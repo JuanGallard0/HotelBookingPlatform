@@ -8,8 +8,6 @@ public class RatePlanConfiguration : IEntityTypeConfiguration<RatePlan>
 {
     public void Configure(EntityTypeBuilder<RatePlan> builder)
     {
-        builder.ToTable("RatePlans", DbSchemas.Catalog);
-
         builder.HasKey(rp => rp.Id);
 
         builder.Property(rp => rp.Name)

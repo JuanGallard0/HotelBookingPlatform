@@ -11,24 +11,8 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.EnsureSchema(
-                name: "audit");
-
-            migrationBuilder.EnsureSchema(
-                name: "booking");
-
-            migrationBuilder.EnsureSchema(
-                name: "catalog");
-
-            migrationBuilder.EnsureSchema(
-                name: "integration");
-
-            migrationBuilder.EnsureSchema(
-                name: "identity");
-
             migrationBuilder.CreateTable(
                 name: "AuditLogs",
-                schema: "audit",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -50,7 +34,6 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Guests",
-                schema: "booking",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -75,7 +58,6 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Hotels",
-                schema: "catalog",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -101,7 +83,6 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "IdempotencyRecords",
-                schema: "integration",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -121,7 +102,6 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Users",
-                schema: "identity",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -145,7 +125,6 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "RoomTypes",
-                schema: "catalog",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -167,7 +146,6 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_RoomTypes_Hotels_HotelId",
                         column: x => x.HotelId,
-                        principalSchema: "catalog",
                         principalTable: "Hotels",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -175,7 +153,6 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "RefreshTokens",
-                schema: "identity",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -197,7 +174,6 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_RefreshTokens_Users_UserId",
                         column: x => x.UserId,
-                        principalSchema: "identity",
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -205,7 +181,6 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Bookings",
-                schema: "booking",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -236,21 +211,18 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_Bookings_Guests_GuestId",
                         column: x => x.GuestId,
-                        principalSchema: "booking",
                         principalTable: "Guests",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Bookings_RoomTypes_RoomTypeId",
                         column: x => x.RoomTypeId,
-                        principalSchema: "catalog",
                         principalTable: "RoomTypes",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Bookings_Users_UserId",
                         column: x => x.UserId,
-                        principalSchema: "identity",
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -258,7 +230,6 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "RatePlans",
-                schema: "catalog",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -282,7 +253,6 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_RatePlans_RoomTypes_RoomTypeId",
                         column: x => x.RoomTypeId,
-                        principalSchema: "catalog",
                         principalTable: "RoomTypes",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -290,7 +260,6 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "RoomInventories",
-                schema: "catalog",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -311,7 +280,6 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_RoomInventories_RoomTypes_RoomTypeId",
                         column: x => x.RoomTypeId,
-                        principalSchema: "catalog",
                         principalTable: "RoomTypes",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -319,7 +287,6 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Payments",
-                schema: "booking",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -343,7 +310,6 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_Payments_Bookings_BookingId",
                         column: x => x.BookingId,
-                        principalSchema: "booking",
                         principalTable: "Bookings",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -351,115 +317,97 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "IX_AuditLogs_EntityName_EntityId",
-                schema: "audit",
                 table: "AuditLogs",
                 columns: new[] { "EntityName", "EntityId" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AuditLogs_Timestamp",
-                schema: "audit",
                 table: "AuditLogs",
                 column: "Timestamp");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Bookings_BookingNumber",
-                schema: "booking",
                 table: "Bookings",
                 column: "BookingNumber",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Bookings_GuestId",
-                schema: "booking",
                 table: "Bookings",
                 column: "GuestId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Bookings_RoomTypeId",
-                schema: "booking",
                 table: "Bookings",
                 column: "RoomTypeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Bookings_UserId",
-                schema: "booking",
                 table: "Bookings",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Guests_Email",
-                schema: "booking",
                 table: "Guests",
                 column: "Email",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_IdempotencyRecords_ExpiresAt",
-                schema: "integration",
                 table: "IdempotencyRecords",
                 column: "ExpiresAt");
 
             migrationBuilder.CreateIndex(
                 name: "IX_IdempotencyRecords_IdempotencyKey",
-                schema: "integration",
                 table: "IdempotencyRecords",
                 column: "IdempotencyKey",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Payments_BookingId",
-                schema: "booking",
                 table: "Payments",
                 column: "BookingId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Payments_TransactionId",
-                schema: "booking",
                 table: "Payments",
                 column: "TransactionId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_RatePlans_RoomTypeId",
-                schema: "catalog",
                 table: "RatePlans",
                 column: "RoomTypeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_RefreshTokens_ExpiresAt",
-                schema: "identity",
                 table: "RefreshTokens",
                 column: "ExpiresAt");
 
             migrationBuilder.CreateIndex(
                 name: "IX_RefreshTokens_TokenHash",
-                schema: "identity",
                 table: "RefreshTokens",
                 column: "TokenHash",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_RefreshTokens_UserId",
-                schema: "identity",
                 table: "RefreshTokens",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_RoomInventories_RoomTypeId_Date",
-                schema: "catalog",
                 table: "RoomInventories",
                 columns: new[] { "RoomTypeId", "Date" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_RoomTypes_HotelId",
-                schema: "catalog",
                 table: "RoomTypes",
                 column: "HotelId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_NormalizedEmail",
-                schema: "identity",
                 table: "Users",
                 column: "NormalizedEmail",
                 unique: true);
@@ -469,48 +417,37 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "AuditLogs",
-                schema: "audit");
+                name: "AuditLogs");
 
             migrationBuilder.DropTable(
-                name: "IdempotencyRecords",
-                schema: "integration");
+                name: "IdempotencyRecords");
 
             migrationBuilder.DropTable(
-                name: "Payments",
-                schema: "booking");
+                name: "Payments");
 
             migrationBuilder.DropTable(
-                name: "RatePlans",
-                schema: "catalog");
+                name: "RatePlans");
 
             migrationBuilder.DropTable(
-                name: "RefreshTokens",
-                schema: "identity");
+                name: "RefreshTokens");
 
             migrationBuilder.DropTable(
-                name: "RoomInventories",
-                schema: "catalog");
+                name: "RoomInventories");
 
             migrationBuilder.DropTable(
-                name: "Bookings",
-                schema: "booking");
+                name: "Bookings");
 
             migrationBuilder.DropTable(
-                name: "Guests",
-                schema: "booking");
+                name: "Guests");
 
             migrationBuilder.DropTable(
-                name: "RoomTypes",
-                schema: "catalog");
+                name: "RoomTypes");
 
             migrationBuilder.DropTable(
-                name: "Users",
-                schema: "identity");
+                name: "Users");
 
             migrationBuilder.DropTable(
-                name: "Hotels",
-                schema: "catalog");
+                name: "Hotels");
         }
     }
 }

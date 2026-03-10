@@ -8,8 +8,6 @@ public class IdempotencyRecordConfiguration : IEntityTypeConfiguration<Idempoten
 {
     public void Configure(EntityTypeBuilder<IdempotencyRecord> builder)
     {
-        builder.ToTable("IdempotencyRecords", DbSchemas.Integration);
-
         builder.HasKey(ir => ir.Id);
 
         builder.Property(ir => ir.IdempotencyKey)

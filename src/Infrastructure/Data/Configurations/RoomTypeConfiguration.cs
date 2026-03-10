@@ -8,8 +8,6 @@ public class RoomTypeConfiguration : IEntityTypeConfiguration<RoomType>
 {
     public void Configure(EntityTypeBuilder<RoomType> builder)
     {
-        builder.ToTable("RoomTypes", DbSchemas.Catalog);
-
         builder.HasKey(rt => rt.Id);
 
         builder.Property(rt => rt.Name)

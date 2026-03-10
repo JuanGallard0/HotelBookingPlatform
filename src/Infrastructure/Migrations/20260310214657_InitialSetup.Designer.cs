@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HotelBookingPlatform.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260310183956_InitialSetup")]
+    [Migration("20260310214657_InitialSetup")]
     partial class InitialSetup
     {
         /// <inheritdoc />
@@ -73,7 +73,7 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
 
                     b.HasIndex("EntityName", "EntityId");
 
-                    b.ToTable("AuditLogs", "audit");
+                    b.ToTable("AuditLogs");
                 });
 
             modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.Booking", b =>
@@ -160,7 +160,7 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Bookings", "booking");
+                    b.ToTable("Bookings");
                 });
 
             modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.Guest", b =>
@@ -223,7 +223,7 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Guests", "booking");
+                    b.ToTable("Guests");
                 });
 
             modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.Hotel", b =>
@@ -291,7 +291,7 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Hotels", "catalog");
+                    b.ToTable("Hotels");
                 });
 
             modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.IdempotencyRecord", b =>
@@ -336,7 +336,7 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
                     b.HasIndex("IdempotencyKey")
                         .IsUnique();
 
-                    b.ToTable("IdempotencyRecords", "integration");
+                    b.ToTable("IdempotencyRecords");
                 });
 
             modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.Payment", b =>
@@ -398,7 +398,7 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
                     b.HasIndex("TransactionId")
                         .IsUnique();
 
-                    b.ToTable("Payments", "booking");
+                    b.ToTable("Payments");
                 });
 
             modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.RatePlan", b =>
@@ -457,7 +457,7 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
 
                     b.HasIndex("RoomTypeId");
 
-                    b.ToTable("RatePlans", "catalog");
+                    b.ToTable("RatePlans");
                 });
 
             modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.RefreshToken", b =>
@@ -511,7 +511,7 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("RefreshTokens", "identity");
+                    b.ToTable("RefreshTokens");
                 });
 
             modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.RoomInventory", b =>
@@ -557,7 +557,7 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
                     b.HasIndex("RoomTypeId", "Date")
                         .IsUnique();
 
-                    b.ToTable("RoomInventories", "catalog");
+                    b.ToTable("RoomInventories");
                 });
 
             modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.RoomType", b =>
@@ -609,7 +609,7 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
 
                     b.HasIndex("HotelId");
 
-                    b.ToTable("RoomTypes", "catalog");
+                    b.ToTable("RoomTypes");
                 });
 
             modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.User", b =>
@@ -670,7 +670,7 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
                     b.HasIndex("NormalizedEmail")
                         .IsUnique();
 
-                    b.ToTable("Users", "identity");
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.Booking", b =>
