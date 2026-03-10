@@ -6,7 +6,7 @@ using HotelBookingPlatform.Application.TodoItems.Commands.UpdateTodoItemDetail;
 using HotelBookingPlatform.Application.TodoItems.Queries.GetTodoItemsWithPagination;
 using Microsoft.AspNetCore.Http.HttpResults;
 
-namespace HotelBookingPlatform.Web.Endpoints;
+namespace HotelBookingPlatform.Api.Endpoints;
 
 public class TodoItems : EndpointGroupBase
 {

@@ -11,7 +11,7 @@
     <Project Path="src/Application/Application.csproj" />
     <Project Path="src/Domain/Domain.csproj" />
     <Project Path="src/Infrastructure/Infrastructure.csproj" />
-    <Project Path="src/Web/Web.csproj" DefaultStartup="true" />
+    <Project Path="src/Api/Api.csproj" DefaultStartup="true" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Application.FunctionalTests/Application.FunctionalTests.csproj" />

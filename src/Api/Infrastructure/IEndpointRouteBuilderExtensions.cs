@@ -1,6 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 
-namespace HotelBookingPlatform.Web.Infrastructure;
+namespace HotelBookingPlatform.Api.Infrastructure;
 
 public static class EndpointRouteBuilderExtensions
 {

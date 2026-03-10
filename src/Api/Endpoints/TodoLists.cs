@@ -4,7 +4,7 @@ using HotelBookingPlatform.Application.TodoLists.Commands.UpdateTodoList;
 using HotelBookingPlatform.Application.TodoLists.Queries.GetTodos;
 using Microsoft.AspNetCore.Http.HttpResults;
 
-namespace HotelBookingPlatform.Web.Endpoints;
+namespace HotelBookingPlatform.Api.Endpoints;
 
 public class TodoLists : EndpointGroupBase
 {

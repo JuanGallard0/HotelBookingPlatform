@@ -1,6 +1,6 @@
-﻿using System.Reflection;
+using System.Reflection;
 
-namespace HotelBookingPlatform.Web.Infrastructure;
+namespace HotelBookingPlatform.Api.Infrastructure;
 
 public static class WebApplicationExtensions
 {

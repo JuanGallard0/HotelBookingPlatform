@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
 
-namespace HotelBookingPlatform.Web.Infrastructure;
+namespace HotelBookingPlatform.Api.Infrastructure;
 
 internal sealed class IdentityApiOperationTransformer : IOpenApiOperationTransformer
 {

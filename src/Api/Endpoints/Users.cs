@@ -1,9 +1,9 @@
-﻿using HotelBookingPlatform.Infrastructure.Identity;
+using HotelBookingPlatform.Infrastructure.Identity;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
-namespace HotelBookingPlatform.Web.Endpoints;
+namespace HotelBookingPlatform.Api.Endpoints;
 
 public class Users : EndpointGroupBase
 {

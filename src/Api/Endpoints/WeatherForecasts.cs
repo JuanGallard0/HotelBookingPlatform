@@ -1,7 +1,7 @@
 using HotelBookingPlatform.Application.WeatherForecasts.Queries.GetWeatherForecasts;
 using Microsoft.AspNetCore.Http.HttpResults;
 
-namespace HotelBookingPlatform.Web.Endpoints;
+namespace HotelBookingPlatform.Api.Endpoints;
 
 public class WeatherForecasts : EndpointGroupBase
 {

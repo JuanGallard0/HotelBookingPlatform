@@ -1,7 +1,7 @@
 using Azure.Identity;
 using HotelBookingPlatform.Application.Common.Interfaces;
 using HotelBookingPlatform.Infrastructure.Data;
-using HotelBookingPlatform.Web.Services;
+using HotelBookingPlatform.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Microsoft.Extensions.DependencyInjection;

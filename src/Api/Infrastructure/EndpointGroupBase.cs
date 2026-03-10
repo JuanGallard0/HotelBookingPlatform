@@ -1,4 +1,4 @@
-﻿namespace HotelBookingPlatform.Web.Infrastructure;
+namespace HotelBookingPlatform.Api.Infrastructure;
 
 public abstract class EndpointGroupBase
 {

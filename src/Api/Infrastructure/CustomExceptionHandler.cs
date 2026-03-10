@@ -1,8 +1,8 @@
-﻿using HotelBookingPlatform.Application.Common.Exceptions;
+using HotelBookingPlatform.Application.Common.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
-namespace HotelBookingPlatform.Web.Infrastructure;
+namespace HotelBookingPlatform.Api.Infrastructure;
 
 public class CustomExceptionHandler : IExceptionHandler
 {

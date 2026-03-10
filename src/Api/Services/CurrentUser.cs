@@ -1,8 +1,8 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 
 using HotelBookingPlatform.Application.Common.Interfaces;
 
-namespace HotelBookingPlatform.Web.Services;
+namespace HotelBookingPlatform.Api.Services;
 
 public class CurrentUser : IUser
 {
