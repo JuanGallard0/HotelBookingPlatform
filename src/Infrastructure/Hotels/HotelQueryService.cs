@@ -1,6 +1,7 @@
 using Dapper;
 using HotelBookingPlatform.Application.Common.Interfaces;
 using HotelBookingPlatform.Application.Hotels.Queries;
+using HotelBookingPlatform.Application.Hotels.Queries.GetHotelById;
 using HotelBookingPlatform.Application.Hotels.Queries.GetHotels;
 
 namespace HotelBookingPlatform.Infrastructure.Hotels;
@@ -111,6 +112,47 @@ public sealed class HotelQueryService(IDbConnectionFactory connectionFactory) : 
                     Nights = nights
                 });
         }
+    }
+
+    public async Task<HotelDetailDto?> GetHotelByIdAsync(int id, CancellationToken cancellationToken)
+    {
+        using var connection = connectionFactory.CreateConnection();
+
+        const string sql = @"
+            SELECT
+                h.Id,
+                h.Name,
+                h.Description,
+                h.Address,
+                h.City,
+                h.Country,
+                h.Email,
+                h.PhoneNumber,
+                h.StarRating,
+                h.IsActive,
+                rt.Id,
+                rt.Name,
+                rt.Description,
+                rt.MaxOccupancy,
+                rt.BasePrice
+            FROM Hotels h
+            LEFT JOIN RoomTypes rt ON rt.HotelId = h.Id AND rt.IsActive = 1
+            WHERE h.Id = @Id";
+
+        HotelDetailDto? hotel = null;
+
+        await connection.QueryAsync<HotelDetailDto, RoomTypeSummaryDto?, HotelDetailDto>(
+            new CommandDefinition(sql, new { Id = id }, cancellationToken: cancellationToken),
+            (h, rt) =>
+            {
+                hotel ??= h;
+                if (rt is not null)
+                    hotel = hotel with { RoomTypes = [.. hotel.RoomTypes, rt] };
+                return hotel;
+            },
+            splitOn: "Id");
+
+        return hotel;
     }
 
     private static string GetSafeColumn(string? requested, string defaultColumn)
