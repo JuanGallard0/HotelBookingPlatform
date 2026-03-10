@@ -1,4 +1,6 @@
 using HotelBookingPlatform.Application.Common.Exceptions;
+using HotelBookingPlatform.Application.Common.Models;
+using HotelBookingPlatform.Domain.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,82 +8,35 @@ namespace HotelBookingPlatform.Api.Infrastructure;
 
 public class CustomExceptionHandler : IExceptionHandler
 {
-    private readonly Dictionary<Type, Func<HttpContext, Exception, Task>> _exceptionHandlers;
-
-    public CustomExceptionHandler()
-    {
-        // Register known exception types and handlers.
-        _exceptionHandlers = new()
-            {
-                { typeof(ValidationException), HandleValidationException },
-                { typeof(NotFoundException), HandleNotFoundException },
-                { typeof(UnauthorizedAccessException), HandleUnauthorizedAccessException },
-                { typeof(ForbiddenAccessException), HandleForbiddenAccessException },
-            };
-    }
-
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
-        var exceptionType = exception.GetType();
-
-        if (_exceptionHandlers.ContainsKey(exceptionType))
+        if (exception is ValidationException validationEx)
         {
-            await _exceptionHandlers[exceptionType].Invoke(httpContext, exception);
+            await TypedResults.Json(
+                ApiResponse<object?>.ValidationFail(
+                    "One or more validation failures have occurred.",
+                    validationEx.Errors.AsReadOnly()),
+                statusCode: StatusCodes.Status400BadRequest)
+                .ExecuteAsync(httpContext);
             return true;
         }
 
-        return false;
+        var result = MapToResult(exception);
+        if (result is null) return false;
+
+        await result.ToHttpResult().ExecuteAsync(httpContext);
+        return true;
     }
 
-    private async Task HandleValidationException(HttpContext httpContext, Exception ex)
+    private static Result? MapToResult(Exception exception) => exception switch
     {
-        var exception = (ValidationException)ex;
-
-        httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
-
-        await httpContext.Response.WriteAsJsonAsync(new ValidationProblemDetails(exception.Errors)
-        {
-            Status = StatusCodes.Status400BadRequest,
-            Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1"
-        });
-    }
-
-    private async Task HandleNotFoundException(HttpContext httpContext, Exception ex)
-    {
-        var exception = (NotFoundException)ex;
-
-        httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
-
-        await httpContext.Response.WriteAsJsonAsync(new ProblemDetails()
-        {
-            Status = StatusCodes.Status404NotFound,
-            Type = "https://tools.ietf.org/html/rfc7231#section-6.5.4",
-            Title = "The specified resource was not found.",
-            Detail = exception.Message
-        });
-    }
-
-    private async Task HandleUnauthorizedAccessException(HttpContext httpContext, Exception ex)
-    {
-        httpContext.Response.StatusCode = StatusCodes.Status401Unauthorized;
-
-        await httpContext.Response.WriteAsJsonAsync(new ProblemDetails
-        {
-            Status = StatusCodes.Status401Unauthorized,
-            Title = "Unauthorized",
-            Type = "https://tools.ietf.org/html/rfc7235#section-3.1"
-        });
-    }
-
-    private async Task HandleForbiddenAccessException(HttpContext httpContext, Exception ex)
-    {
-        httpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
-
-        await httpContext.Response.WriteAsJsonAsync(new ProblemDetails
-        {
-            Status = StatusCodes.Status403Forbidden,
-            Title = "Forbidden",
-            Type = "https://tools.ietf.org/html/rfc7231#section-6.5.3"
-        });
-    }
+        NotFoundException ex              => Result.NotFound(ex.Message),
+        UnauthorizedAccessException       => Result.Unauthorized(),
+        ForbiddenAccessException          => Result.Forbidden(),
+        BadHttpRequestException ex        => Result.Failure(ex.Message),
+        BookingStatusException ex         => Result.Conflict(ex.Message),
+        InsufficientInventoryException ex => Result.Conflict(ex.Message),
+        InvalidBookingDatesException ex   => Result.UnprocessableEntity(ex.Message),
+        _                                 => null
+    };
 }

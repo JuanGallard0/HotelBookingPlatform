@@ -1,6 +1,9 @@
 using HotelBookingPlatform.Application.Common.Interfaces;
+using HotelBookingPlatform.Application.Hotels.Queries;
 using HotelBookingPlatform.Infrastructure.Data;
 using HotelBookingPlatform.Infrastructure.Data.Interceptors;
+using HotelBookingPlatform.Infrastructure.Hotels;
+using HotelBookingPlatform.Infrastructure.Querying;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
@@ -27,6 +30,9 @@ public static class DependencyInjection
 
         builder.Services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
         builder.Services.AddScoped<ApplicationDbContextInitialiser>();
+
+        builder.Services.AddSingleton<IDbConnectionFactory>(_ => new SqlConnectionFactory(connectionString));
+        builder.Services.AddScoped<IHotelQueryService, HotelQueryService>();
 
         builder.Services.AddSingleton(TimeProvider.System);
     }
