@@ -1,7 +1,5 @@
 using Azure.Identity;
-using HotelBookingPlatform.Application.Common.Interfaces;
 using HotelBookingPlatform.Infrastructure.Data;
-using HotelBookingPlatform.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -12,15 +10,12 @@ public static class DependencyInjection
     {
         builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-        builder.Services.AddScoped<IUser, CurrentUser>();
-
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddHealthChecks()
             .AddDbContextCheck<ApplicationDbContext>();
 
         builder.Services.AddExceptionHandler<CustomExceptionHandler>();
 
-        // Customise default API behaviour
         builder.Services.Configure<ApiBehaviorOptions>(options =>
             options.SuppressModelStateInvalidFilter = true);
 
@@ -29,8 +24,6 @@ public static class DependencyInjection
         builder.Services.AddOpenApi(options =>
         {
             options.AddOperationTransformer<ApiExceptionOperationTransformer>();
-            options.AddOperationTransformer<IdentityApiOperationTransformer>();
-            options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
         });
     }
 

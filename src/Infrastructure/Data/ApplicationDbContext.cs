@@ -1,13 +1,11 @@
 using System.Reflection;
 using HotelBookingPlatform.Application.Common.Interfaces;
 using HotelBookingPlatform.Domain.Entities;
-using HotelBookingPlatform.Infrastructure.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelBookingPlatform.Infrastructure.Data;
 
-public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplicationDbContext
+public class ApplicationDbContext : DbContext, IApplicationDbContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
