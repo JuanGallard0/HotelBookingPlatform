@@ -40,7 +40,7 @@ bld/
 
 # Auto-generated OpenAPI specification and TypeScript API clients
 src/Api/wwwroot/openapi/v1.json
-src/frontend/src/generated/api-client.ts
+src/frontend/app/generated/api-client.ts
 
 # Visual Studio 2017 auto generated files
 Generated\ Files/
