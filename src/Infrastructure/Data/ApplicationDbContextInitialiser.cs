@@ -1,6 +1,7 @@
 using HotelBookingPlatform.Domain.Entities;
 using HotelBookingPlatform.Domain.Enums;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -24,6 +25,7 @@ public class ApplicationDbContextInitialiser
 {
     private readonly ILogger<ApplicationDbContextInitialiser> _logger;
     private readonly ApplicationDbContext _context;
+    private readonly PasswordHasher<User> _passwordHasher = new();
 
     public ApplicationDbContextInitialiser(ILogger<ApplicationDbContextInitialiser> logger, ApplicationDbContext context)
     {
@@ -308,9 +310,35 @@ public class ApplicationDbContextInitialiser
         _context.Guests.AddRange(john, sarah, michael);
         await _context.SaveChangesAsync();
 
+        var adminUser = new User
+        {
+            Email = "admin@hotelbooking.local",
+            NormalizedEmail = "ADMIN@HOTELBOOKING.LOCAL",
+            FirstName = "Platform",
+            LastName = "Admin",
+            Role = UserRole.Admin,
+            IsActive = true
+        };
+        adminUser.PasswordHash = _passwordHasher.HashPassword(adminUser, "Admin123!");
+
+        var customerUser = new User
+        {
+            Email = "guest@hotelbooking.local",
+            NormalizedEmail = "GUEST@HOTELBOOKING.LOCAL",
+            FirstName = "Demo",
+            LastName = "Guest",
+            Role = UserRole.Customer,
+            IsActive = true
+        };
+        customerUser.PasswordHash = _passwordHasher.HashPassword(customerUser, "Guest123!");
+
+        _context.Users.AddRange(adminUser, customerUser);
+        await _context.SaveChangesAsync();
+
         // ── Bookings & Payments ───────────────────────────────────────────────
         var booking1 = Booking.Create(
             bookingNumber: "BK-2026-0001",
+            userId: customerUser.Id,
             guestId: john.Id,
             roomTypeId: gpStandard.Id,
             checkInDate: today.AddDays(14),
@@ -324,6 +352,7 @@ public class ApplicationDbContextInitialiser
 
         var booking2 = Booking.Create(
             bookingNumber: "BK-2026-0002",
+            userId: customerUser.Id,
             guestId: sarah.Id,
             roomTypeId: cvFamily.Id,
             checkInDate: today.AddDays(7),
@@ -335,6 +364,7 @@ public class ApplicationDbContextInitialiser
 
         var booking3 = Booking.Create(
             bookingNumber: "BK-2026-0003",
+            userId: adminUser.Id,
             guestId: michael.Id,
             roomTypeId: gpDeluxe.Id,
             checkInDate: today.AddDays(30),

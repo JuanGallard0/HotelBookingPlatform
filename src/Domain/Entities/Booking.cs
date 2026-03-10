@@ -8,6 +8,7 @@ public class Booking : BaseAuditableEntity
     public const int MaximumNightsAllowed = 30;
 
     public string BookingNumber { get; set; } = string.Empty;
+    public int UserId { get; set; }
     public int GuestId { get; set; }
     public int RoomTypeId { get; set; }
     public DateOnly CheckInDate { get; set; }
@@ -22,6 +23,7 @@ public class Booking : BaseAuditableEntity
     public string? CancellationReason { get; set; }
     public byte[] RowVersion { get; set; } = Array.Empty<byte>();
 
+    public User User { get; set; } = null!;
     public Guest Guest { get; set; } = null!;
     public RoomType RoomType { get; set; } = null!;
     public ICollection<Payment> Payments { get; set; } = new List<Payment>();
@@ -80,6 +82,7 @@ public class Booking : BaseAuditableEntity
 
     public static Booking Create(
         string bookingNumber,
+        int userId,
         int guestId,
         int roomTypeId,
         DateOnly checkInDate,
@@ -92,6 +95,7 @@ public class Booking : BaseAuditableEntity
         var booking = new Booking
         {
             BookingNumber = bookingNumber,
+            UserId = userId,
             GuestId = guestId,
             RoomTypeId = roomTypeId,
             CheckInDate = checkInDate,

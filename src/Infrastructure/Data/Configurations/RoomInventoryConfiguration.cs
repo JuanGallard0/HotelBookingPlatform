@@ -8,6 +8,8 @@ public class RoomInventoryConfiguration : IEntityTypeConfiguration<RoomInventory
 {
     public void Configure(EntityTypeBuilder<RoomInventory> builder)
     {
+        builder.ToTable("RoomInventories", DbSchemas.Catalog);
+
         builder.HasKey(ri => ri.Id);
 
         builder.Property(ri => ri.Date)

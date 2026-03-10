@@ -70,7 +70,7 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
 
                     b.HasIndex("EntityName", "EntityId");
 
-                    b.ToTable("AuditLogs");
+                    b.ToTable("AuditLogs", "audit");
                 });
 
             modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.Booking", b =>
@@ -143,6 +143,9 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("BookingNumber")
@@ -152,7 +155,9 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
 
                     b.HasIndex("RoomTypeId");
 
-                    b.ToTable("Bookings");
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Bookings", "booking");
                 });
 
             modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.Guest", b =>
@@ -215,7 +220,7 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Guests");
+                    b.ToTable("Guests", "booking");
                 });
 
             modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.Hotel", b =>
@@ -283,7 +288,7 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Hotels");
+                    b.ToTable("Hotels", "catalog");
                 });
 
             modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.IdempotencyRecord", b =>
@@ -328,7 +333,7 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
                     b.HasIndex("IdempotencyKey")
                         .IsUnique();
 
-                    b.ToTable("IdempotencyRecords");
+                    b.ToTable("IdempotencyRecords", "integration");
                 });
 
             modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.Payment", b =>
@@ -390,7 +395,7 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
                     b.HasIndex("TransactionId")
                         .IsUnique();
 
-                    b.ToTable("Payments");
+                    b.ToTable("Payments", "booking");
                 });
 
             modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.RatePlan", b =>
@@ -449,7 +454,61 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
 
                     b.HasIndex("RoomTypeId");
 
-                    b.ToTable("RatePlans");
+                    b.ToTable("RatePlans", "catalog");
+                });
+
+            modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.RefreshToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CreatedByIp")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReplacedByTokenHash")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<DateTimeOffset?>("RevokedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpiresAt");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("RefreshTokens", "identity");
                 });
 
             modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.RoomInventory", b =>
@@ -495,7 +554,7 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
                     b.HasIndex("RoomTypeId", "Date")
                         .IsUnique();
 
-                    b.ToTable("RoomInventories");
+                    b.ToTable("RoomInventories", "catalog");
                 });
 
             modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.RoomType", b =>
@@ -547,7 +606,68 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
 
                     b.HasIndex("HotelId");
 
-                    b.ToTable("RoomTypes");
+                    b.ToTable("RoomTypes", "catalog");
+                });
+
+            modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.User", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("NormalizedEmail")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedEmail")
+                        .IsUnique();
+
+                    b.ToTable("Users", "identity");
                 });
 
             modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.Booking", b =>
@@ -564,9 +684,17 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("HotelBookingPlatform.Domain.Entities.User", "User")
+                        .WithMany("Bookings")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Guest");
 
                     b.Navigation("RoomType");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.Payment", b =>
@@ -589,6 +717,17 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("RoomType");
+                });
+
+            modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.RefreshToken", b =>
+                {
+                    b.HasOne("HotelBookingPlatform.Domain.Entities.User", "User")
+                        .WithMany("RefreshTokens")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.RoomInventory", b =>
@@ -633,6 +772,13 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
                     b.Navigation("RatePlans");
 
                     b.Navigation("RoomInventories");
+                });
+
+            modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.User", b =>
+                {
+                    b.Navigation("Bookings");
+
+                    b.Navigation("RefreshTokens");
                 });
 #pragma warning restore 612, 618
         }

@@ -13,6 +13,6 @@ public interface IApplicationDbContext
     DbSet<Payment> Payments { get; }
     DbSet<AuditLog> AuditLogs { get; }
     DbSet<IdempotencyRecord> IdempotencyRecords { get; }
-
-    Task<int> SaveChangesAsync(CancellationToken cancellationToken);
+    DbSet<User> Users { get; }
+    DbSet<RefreshToken> RefreshTokens { get; }
 }

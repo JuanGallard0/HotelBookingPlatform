@@ -1,4 +1,5 @@
 using HotelBookingPlatform.Domain.Common;
+using HotelBookingPlatform.Application.Common.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -8,10 +9,12 @@ namespace HotelBookingPlatform.Infrastructure.Data.Interceptors;
 public class AuditableEntityInterceptor : SaveChangesInterceptor
 {
     private readonly TimeProvider _dateTime;
+    private readonly ICurrentUserService _currentUserService;
 
-    public AuditableEntityInterceptor(TimeProvider dateTime)
+    public AuditableEntityInterceptor(TimeProvider dateTime, ICurrentUserService currentUserService)
     {
         _dateTime = dateTime;
+        _currentUserService = currentUserService;
     }
 
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
@@ -32,6 +35,8 @@ public class AuditableEntityInterceptor : SaveChangesInterceptor
     {
         if (context == null) return;
 
+        var currentUser = ResolveCurrentUser();
+
         foreach (var entry in context.ChangeTracker.Entries<BaseAuditableEntity>())
         {
             if (entry.State is EntityState.Added or EntityState.Modified || entry.HasChangedOwnedEntities())
@@ -40,10 +45,23 @@ public class AuditableEntityInterceptor : SaveChangesInterceptor
                 if (entry.State == EntityState.Added)
                 {
                     entry.Entity.Created = utcNow;
+                    entry.Entity.CreatedBy = currentUser;
                 }
+
                 entry.Entity.LastModified = utcNow;
+                entry.Entity.LastModifiedBy = currentUser;
             }
         }
+    }
+
+    private string ResolveCurrentUser()
+    {
+        if (_currentUserService.IsAuthenticated)
+            return _currentUserService.Email
+                ?? _currentUserService.UserId?.ToString()
+                ?? "authenticated-user";
+
+        return "system";
     }
 }
 

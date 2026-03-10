@@ -8,6 +8,8 @@ public class GuestConfiguration : IEntityTypeConfiguration<Guest>
 {
     public void Configure(EntityTypeBuilder<Guest> builder)
     {
+        builder.ToTable("Guests", DbSchemas.Booking);
+
         builder.HasKey(g => g.Id);
 
         builder.Property(g => g.FirstName)

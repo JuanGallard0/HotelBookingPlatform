@@ -8,6 +8,8 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
 {
     public void Configure(EntityTypeBuilder<Booking> builder)
     {
+        builder.ToTable("Bookings", DbSchemas.Booking);
+
         builder.HasKey(b => b.Id);
 
         builder.Property(b => b.BookingNumber)
@@ -47,6 +49,13 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
 
         builder.HasIndex(b => b.BookingNumber)
             .IsUnique();
+
+        builder.HasIndex(b => b.UserId);
+
+        builder.HasOne(b => b.User)
+            .WithMany(u => u.Bookings)
+            .HasForeignKey(b => b.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(b => b.Guest)
             .WithMany(g => g.Bookings)
