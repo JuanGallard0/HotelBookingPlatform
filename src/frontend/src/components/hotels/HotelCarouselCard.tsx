@@ -1,4 +1,12 @@
+import Image from "next/image";
 import type { Hotel } from "@/src/components/hotels/HotelListCard";
+import h1 from "@/src/assets/h1.jpg";
+import h2 from "@/src/assets/h2.jpg";
+import h3 from "@/src/assets/h3.jpg";
+import h4 from "@/src/assets/h4.jpg";
+import h5 from "@/src/assets/h5.jpg";
+
+const HOTEL_IMAGES = [h1, h2, h3, h4, h5];
 
 function StarRating({ stars }: { stars: number }) {
   return (
@@ -20,8 +28,14 @@ function StarRating({ stars }: { stars: number }) {
 export function HotelCarouselCard({ hotel }: { hotel: Hotel }) {
   return (
     <div className="flex w-64 shrink-0 flex-col rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md">
-      <div className="flex h-36 items-center justify-center rounded-t-2xl bg-linear-to-br from-blue-100 to-cyan-100">
-        <span className="text-4xl">🏨</span>
+      <div className="relative h-36 overflow-hidden rounded-t-2xl">
+        <Image
+          src={HOTEL_IMAGES[(hotel.id - 1) % 5]}
+          alt={hotel.name}
+          fill
+          className="object-cover"
+          sizes="256px"
+        />
       </div>
       <div className="flex flex-1 flex-col gap-1 p-4">
         <div className="flex items-start justify-between gap-2">

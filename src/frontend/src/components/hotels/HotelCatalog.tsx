@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   HotelListCard,
@@ -49,6 +49,8 @@ export function HotelCatalog() {
     starRating: null,
   });
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const canLoadMoreRef = useRef(false);
 
   // Derived state: reset page to 1 when search filters change.
   // Calling setState during render is React's recommended pattern for
@@ -67,6 +69,25 @@ export function HotelCatalog() {
   // what we currently need — no setLoading(true) inside any effect.
   const fetchKey = `${currentSearchStr}|${page}|${sortBy}|${sortDir}|${filters.country}|${filters.city}|${filters.starRating ?? ""}`;
   const loading = loadedKey !== fetchKey;
+
+  useEffect(() => {
+    canLoadMoreRef.current = !loading && hotels.length < total;
+  }, [loading, hotels, total]);
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && canLoadMoreRef.current) {
+          setPage((p) => p + 1);
+        }
+      },
+      { rootMargin: "150px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const parts = fetchKey.split("|");
@@ -113,8 +134,10 @@ export function HotelCatalog() {
             activeRoomTypeCount: (h["activeRoomTypeCount"] as number) ?? 0,
           }),
         );
-        setHotels(items);
-        setTotal(json?.data?.totalCount ?? items.length);
+        setHotels((prev) =>
+          effectivePage === 1 ? items : [...prev, ...items],
+        );
+        setTotal(json?.data?.totalRecords ?? items.length);
         setLoadedKey(fetchKey);
       })
       .catch(() => {
@@ -122,50 +145,6 @@ export function HotelCatalog() {
         setLoadedKey(fetchKey);
       });
   }, [fetchKey]);
-
-  if (loading) {
-    return (
-      <div className="flex gap-6 items-start">
-        <aside className="hidden w-52 shrink-0 lg:block">
-          <HotelFilters
-            values={filters}
-            onChange={(v) => {
-              setFilters(v);
-              setPage(1);
-            }}
-          />
-        </aside>
-        <div className="flex flex-1 flex-col gap-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <SkeletonRow key={i} />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (hotels.length === 0) {
-    return (
-      <div className="flex gap-6 items-start">
-        <aside className="hidden w-52 shrink-0 lg:block">
-          <HotelFilters
-            values={filters}
-            onChange={(v) => {
-              setFilters(v);
-              setPage(1);
-            }}
-          />
-        </aside>
-        <div className="flex flex-1 flex-col items-center gap-3 py-20 text-slate-400">
-          <span className="text-5xl">🔍</span>
-          <p className="text-lg font-medium">No se encontraron hoteles</p>
-          <p className="text-sm">Intenta con otros filtros de busqueda</p>
-        </div>
-      </div>
-    );
-  }
-
-  const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
     <div className="flex gap-6 items-start">
@@ -180,87 +159,81 @@ export function HotelCatalog() {
       </aside>
 
       <div className="flex flex-1 flex-col gap-4">
-        <div className="flex items-center justify-between gap-4">
-          <p className="text-sm text-slate-500">
-            {total} hotel{total !== 1 ? "es" : ""} encontrado
-            {total !== 1 ? "s" : ""}
-          </p>
-          <div className="flex items-center gap-2">
-            <label
-              htmlFor="sort-select"
-              className="text-xs font-medium text-slate-500"
-            >
-              Ordenar por
-            </label>
-            <select
-              id="sort-select"
-              value={sortBy}
-              onChange={(e) => {
-                setSortBy(e.target.value as SortOption);
-                setPage(1);
-              }}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
-            >
-              {SORT_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-            <button
-              onClick={() => {
-                setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-                setPage(1);
-              }}
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50"
-              aria-label={
-                sortDir === "asc" ? "Orden ascendente" : "Orden descendente"
-              }
-              title={sortDir === "asc" ? "Ascendente" : "Descendente"}
-            >
-              {sortDir === "asc" ? "↑" : "↓"}
-            </button>
+        {/* Initial loading */}
+        {loading && hotels.length === 0 && (
+          <>
+            {Array.from({ length: 4 }).map((_, i) => (
+              <SkeletonRow key={i} />
+            ))}
+          </>
+        )}
+
+        {/* Empty state */}
+        {!loading && hotels.length === 0 && (
+          <div className="flex flex-col items-center gap-3 py-20 text-slate-400">
+            <span className="text-5xl">🔍</span>
+            <p className="text-lg font-medium">No se encontraron hoteles</p>
+            <p className="text-sm">Intenta con otros filtros de busqueda</p>
           </div>
-        </div>
+        )}
+
+        {/* Results header */}
+        {hotels.length > 0 && (
+          <div className="flex items-center justify-between gap-4">
+            <p className="text-sm text-slate-500">
+              {total} hotel{total !== 1 ? "es" : ""} encontrado
+              {total !== 1 ? "s" : ""}
+            </p>
+            <div className="flex items-center gap-2">
+              <label
+                htmlFor="sort-select"
+                className="text-xs font-medium text-slate-500"
+              >
+                Ordenar por
+              </label>
+              <select
+                id="sort-select"
+                value={sortBy}
+                onChange={(e) => {
+                  setSortBy(e.target.value as SortOption);
+                  setPage(1);
+                }}
+                className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
+              >
+                {SORT_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+              <button
+                onClick={() => {
+                  setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+                  setPage(1);
+                }}
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50"
+                aria-label={
+                  sortDir === "asc" ? "Orden ascendente" : "Orden descendente"
+                }
+                title={sortDir === "asc" ? "Ascendente" : "Descendente"}
+              >
+                {sortDir === "asc" ? "↑" : "↓"}
+              </button>
+            </div>
+          </div>
+        )}
 
         {hotels.map((hotel) => (
           <HotelListCard key={hotel.id} hotel={hotel} />
         ))}
 
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2 pt-2">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-              aria-label="Página anterior"
-            >
-              &#8249;
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-              <button
-                key={p}
-                onClick={() => setPage(p)}
-                className={`flex h-9 w-9 items-center justify-center rounded-lg border text-sm font-medium transition ${
-                  p === page
-                    ? "border-blue-600 bg-blue-600 text-white"
-                    : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-                }`}
-                aria-label={`Página ${p}`}
-                aria-current={p === page ? "page" : undefined}
-              >
-                {p}
-              </button>
-            ))}
-            <button
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-              className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-              aria-label="Página siguiente"
-            >
-              &#8250;
-            </button>
-          </div>
+        {/* Sentinel — always in the DOM so the observer can attach */}
+        <div ref={sentinelRef} className="h-px" />
+        {loading && hotels.length > 0 && <SkeletonRow />}
+        {!loading && hotels.length > 0 && hotels.length >= total && (
+          <p className="py-4 text-center text-sm text-slate-400">
+            — Fin de los resultados —
+          </p>
         )}
       </div>
     </div>

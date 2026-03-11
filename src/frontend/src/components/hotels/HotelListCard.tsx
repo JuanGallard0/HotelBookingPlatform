@@ -1,4 +1,12 @@
+import Image from "next/image";
 import Link from "next/link";
+import h1 from "@/src/assets/h1.jpg";
+import h2 from "@/src/assets/h2.jpg";
+import h3 from "@/src/assets/h3.jpg";
+import h4 from "@/src/assets/h4.jpg";
+import h5 from "@/src/assets/h5.jpg";
+
+const HOTEL_IMAGES = [h1, h2, h3, h4, h5];
 
 export interface Hotel {
   id: number;
@@ -33,8 +41,14 @@ export function HotelListCard({ hotel }: { hotel: Hotel }) {
       href={`/hotels/${hotel.id}`}
       className="flex gap-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
     >
-      <div className="flex h-28 w-36 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-blue-100 to-cyan-100">
-        <span className="text-4xl">🏨</span>
+      <div className="relative h-28 w-36 shrink-0 overflow-hidden rounded-xl">
+        <Image
+          src={HOTEL_IMAGES[(hotel.id - 1) % 5]}
+          alt={hotel.name}
+          fill
+          className="object-cover"
+          sizes="144px"
+        />
       </div>
       <div className="flex flex-1 flex-col gap-1">
         <div className="flex items-start justify-between gap-2">
