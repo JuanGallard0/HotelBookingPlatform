@@ -1,4 +1,4 @@
-export interface AuthenticatedUserDto {
+export interface AuthenticatedUser {
   id: number;
   email: string;
   firstName: string;
@@ -7,9 +7,9 @@ export interface AuthenticatedUserDto {
   role: string;
 }
 
-export interface AuthResponseDto {
+export interface AuthResponse {
   accessToken: string;
   refreshToken: string;
   accessTokenExpiresAt: string;
-  user: AuthenticatedUserDto;
+  user: AuthenticatedUser;
 }

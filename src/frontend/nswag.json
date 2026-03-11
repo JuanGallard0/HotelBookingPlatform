@@ -69,7 +69,7 @@
       "includeHttpContext": false,
       "serviceHost": null,
       "serviceSchemes": null,
-      "output": "src/lib/api/api-client.ts",
+      "output": "src/lib/api/generated/api-client.ts",
       "newLineBehavior": "Auto"
     }
   }

@@ -1,105 +1,168 @@
-"use client";
+export interface HotelFilterValues {
+  country: string;
+  city: string;
+  starRating: number | null;
+}
 
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { useCallback } from "react";
-import { Input } from "@/components/ui/Input";
-import { Button } from "@/components/ui/Button";
-import { SORT_OPTIONS } from "@/lib/constants";
+interface HotelFiltersProps {
+  values: HotelFilterValues;
+  onChange: (values: HotelFilterValues) => void;
+}
 
-export function HotelFilters() {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+const CA_DATA = [
+  { country: "Guatemala", city: "Ciudad de Guatemala" },
+  { country: "Belice", city: "Belmopán" },
+  { country: "Honduras", city: "Tegucigalpa" },
+  { country: "El Salvador", city: "San Salvador" },
+  { country: "Nicaragua", city: "Managua" },
+  { country: "Costa Rica", city: "San José" },
+  { country: "Panamá", city: "Ciudad de Panamá" },
+] as const;
 
-  const createQueryString = useCallback(
-    (updates: Record<string, string | undefined>) => {
-      const params = new URLSearchParams(searchParams.toString());
-      for (const [key, value] of Object.entries(updates)) {
-        if (value === undefined || value === "") {
-          params.delete(key);
-        } else {
-          params.set(key, value);
-        }
-      }
-      params.delete("page");
-      return params.toString();
-    },
-    [searchParams]
-  );
+const CA_COUNTRIES = CA_DATA.map((d) => d.country);
 
-  function handleSearch(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const form = new FormData(e.currentTarget);
-    const q = (form.get("q") as string).trim();
-    const city = (form.get("city") as string).trim();
-    const country = (form.get("country") as string).trim();
-    router.push(
-      `${pathname}?${createQueryString({
-        q: q || undefined,
-        city: city || undefined,
-        country: country || undefined,
-      })}`
-    );
+export function HotelFilters({ values, onChange }: HotelFiltersProps) {
+  const hasFilters =
+    values.country !== "" || values.city !== "" || values.starRating !== null;
+
+  function setCountry(country: string) {
+    // When country changes, also clear city if it doesn't belong to new country
+    const match = CA_DATA.find((d) => d.country === country);
+    const cityStillValid = match?.city === values.city;
+    onChange({
+      ...values,
+      country,
+      city: cityStillValid ? values.city : "",
+    });
   }
 
-  function handleSortChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const [sortBy, sortDirection] = e.target.value.split("|");
-    router.push(
-      `${pathname}?${createQueryString({ sortBy, sortDirection })}`
-    );
+  function setCity(city: string) {
+    onChange({ ...values, city });
   }
 
-  const currentSort = `${searchParams.get("sortBy") ?? ""}|${searchParams.get("sortDirection") ?? ""}`;
+  function setStarRating(starRating: number | null) {
+    onChange({ ...values, starRating });
+  }
+
+  function clearAll() {
+    onChange({ country: "", city: "", starRating: null });
+  }
+
+  // Which cities to show: if a country is selected, only its capital
+  const visibleCities =
+    values.country !== ""
+      ? CA_DATA.filter((d) => d.country === values.country).map((d) => d.city)
+      : CA_DATA.map((d) => d.city);
 
   return (
-    <div className="flex flex-col gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-      <form onSubmit={handleSearch} className="flex flex-col gap-3 sm:flex-row">
-        <Input
-          name="q"
-          type="search"
-          placeholder="Search hotels…"
-          defaultValue={searchParams.get("q") ?? ""}
-          aria-label="Search hotels by name"
-          className="flex-1"
-        />
-        <Input
-          name="city"
-          type="text"
-          placeholder="City"
-          defaultValue={searchParams.get("city") ?? ""}
-          aria-label="Filter by city"
-          className="sm:w-36"
-        />
-        <Input
-          name="country"
-          type="text"
-          placeholder="Country"
-          defaultValue={searchParams.get("country") ?? ""}
-          aria-label="Filter by country"
-          className="sm:w-36"
-        />
-        <Button type="submit" variant="primary" size="md" className="shrink-0">
-          Search
-        </Button>
-      </form>
+    <div className="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-semibold text-slate-700">Filtros</span>
+        {hasFilters && (
+          <button
+            onClick={clearAll}
+            className="text-xs font-medium text-blue-600 hover:text-blue-700"
+          >
+            Limpiar todo
+          </button>
+        )}
+      </div>
 
-      <div className="flex items-center gap-3">
-        <label htmlFor="sort" className="shrink-0 text-sm font-medium text-gray-700">
-          Sort by
-        </label>
-        <select
-          id="sort"
-          value={currentSort}
-          onChange={handleSortChange}
-          className="h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-        >
-          <option value="|">Default</option>
-          {SORT_OPTIONS.map((opt) => (
-            <option key={`${opt.value}|${opt.direction}`} value={`${opt.value}|${opt.direction}`}>
-              {opt.label}
-            </option>
+      {/* Star rating */}
+      <div className="flex flex-col gap-2">
+        <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+          Estrellas
+        </span>
+        <div className="flex items-center gap-1">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <button
+              key={star}
+              onClick={() =>
+                setStarRating(values.starRating === star ? null : star)
+              }
+              aria-label={`${star} estrella${star !== 1 ? "s" : ""}`}
+              aria-pressed={
+                values.starRating !== null && star <= values.starRating
+              }
+              className="focus:outline-none"
+            >
+              <svg
+                className={`h-6 w-6 transition-colors ${
+                  values.starRating !== null && star <= values.starRating
+                    ? "text-amber-400"
+                    : "text-slate-200 hover:text-amber-300"
+                }`}
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+            </button>
           ))}
-        </select>
+          {values.starRating !== null && (
+            <button
+              onClick={() => setStarRating(null)}
+              className="ml-1 text-xs text-slate-400 hover:text-slate-600"
+              aria-label="Limpiar estrellas"
+            >
+              ✕
+            </button>
+          )}
+        </div>
+        {values.starRating !== null && (
+          <p className="text-xs text-slate-400">
+            {values.starRating} estrella{values.starRating !== 1 ? "s" : ""} o
+            más
+          </p>
+        )}
+      </div>
+
+      {/* Country */}
+      <div className="flex flex-col gap-2">
+        <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+          País
+        </span>
+        <div className="flex flex-wrap gap-1.5">
+          {CA_COUNTRIES.map((country) => (
+            <button
+              key={country}
+              onClick={() =>
+                setCountry(values.country === country ? "" : country)
+              }
+              aria-pressed={values.country === country}
+              className={`rounded-full border px-2.5 py-1 text-xs font-medium transition ${
+                values.country === country
+                  ? "border-blue-600 bg-blue-600 text-white"
+                  : "border-slate-200 bg-slate-50 text-slate-600 hover:border-blue-300 hover:bg-blue-50"
+              }`}
+            >
+              {country}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* City */}
+      <div className="flex flex-col gap-2">
+        <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+          Ciudad
+        </span>
+        <div className="flex flex-wrap gap-1.5">
+          {visibleCities.map((city) => (
+            <button
+              key={city}
+              onClick={() => setCity(values.city === city ? "" : city)}
+              aria-pressed={values.city === city}
+              className={`rounded-full border px-2.5 py-1 text-xs font-medium transition ${
+                values.city === city
+                  ? "border-blue-600 bg-blue-600 text-white"
+                  : "border-slate-200 bg-slate-50 text-slate-600 hover:border-blue-300 hover:bg-blue-50"
+              }`}
+            >
+              {city}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
