@@ -1,10 +1,7 @@
 import Link from "next/link";
+
 import { Footer } from "@/components/layout/Footer";
 
-/**
- * Marketing layout — used by /about and any other public info pages.
- * Provides a lightweight nav bar and footer without the full app chrome.
- */
 export default function MarketingLayout({
   children,
 }: {
@@ -18,10 +15,15 @@ export default function MarketingLayout({
             href="/"
             className="flex items-center gap-2 font-semibold text-gray-900"
           >
-            <span className="text-xl" aria-hidden="true">🏨</span>
+            <span className="text-xl" aria-hidden="true">
+              SF
+            </span>
             <span>StayFinder</span>
           </Link>
-          <nav aria-label="Marketing navigation" className="flex items-center gap-6">
+          <nav
+            aria-label="Marketing navigation"
+            className="flex items-center gap-6"
+          >
             <Link
               href="/about"
               className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900"
@@ -33,6 +35,18 @@ export default function MarketingLayout({
               className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900"
             >
               Hotels
+            </Link>
+            <Link
+              href="/account"
+              className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900"
+            >
+              Customer
+            </Link>
+            <Link
+              href="/admin"
+              className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900"
+            >
+              Admin
             </Link>
             <Link
               href="/auth/login"
