@@ -27,7 +27,7 @@ function StarRating({ stars }: { stars: number }) {
   );
 }
 
-export function HotelCard({ hotel }: { hotel: Hotel }) {
+export function HotelListCard({ hotel }: { hotel: Hotel }) {
   return (
     <Link
       href={`/hotels/${hotel.id}`}
