@@ -24,10 +24,10 @@ public record ApiResponse<T>
     public static ApiResponse<T> ValidationFail(
         string errorMessage,
         IReadOnlyDictionary<string, string[]> validationErrors) => new()
-    {
-        Success = false,
-        ErrorMessage = errorMessage,
-        ErrorCode = "VALIDATION_ERROR",
-        ValidationErrors = validationErrors
-    };
+        {
+            Success = false,
+            ErrorMessage = errorMessage,
+            ErrorCode = "VALIDATION_ERROR",
+            ValidationErrors = validationErrors
+        };
 }

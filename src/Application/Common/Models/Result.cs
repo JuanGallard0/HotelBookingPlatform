@@ -26,13 +26,13 @@ public class Result
 
     public string? ErrorCode => ErrorType switch
     {
-        ResultErrorType.Validation          => "VALIDATION_ERROR",
-        ResultErrorType.NotFound            => "NOT_FOUND",
-        ResultErrorType.Conflict            => "CONFLICT",
+        ResultErrorType.Validation => "VALIDATION_ERROR",
+        ResultErrorType.NotFound => "NOT_FOUND",
+        ResultErrorType.Conflict => "CONFLICT",
         ResultErrorType.UnprocessableEntity => "UNPROCESSABLE_ENTITY",
-        ResultErrorType.Unauthorized        => "UNAUTHORIZED",
-        ResultErrorType.Forbidden           => "FORBIDDEN",
-        _                                   => null
+        ResultErrorType.Unauthorized => "UNAUTHORIZED",
+        ResultErrorType.Forbidden => "FORBIDDEN",
+        _ => null
     };
 
     public static Result Success() => new(true, Array.Empty<string>());

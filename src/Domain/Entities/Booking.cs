@@ -1,6 +1,3 @@
-using HotelBookingPlatform.Domain.Events;
-using HotelBookingPlatform.Domain.Exceptions;
-
 namespace HotelBookingPlatform.Domain.Entities;
 
 public class Booking : BaseAuditableEntity

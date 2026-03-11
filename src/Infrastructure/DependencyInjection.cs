@@ -1,3 +1,4 @@
+using System.Text;
 using HotelBookingPlatform.Application.Common.Interfaces;
 using HotelBookingPlatform.Application.Hotels.Queries;
 using HotelBookingPlatform.Domain.Enums;
@@ -12,7 +13,6 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
 
 namespace Microsoft.Extensions.DependencyInjection;
 

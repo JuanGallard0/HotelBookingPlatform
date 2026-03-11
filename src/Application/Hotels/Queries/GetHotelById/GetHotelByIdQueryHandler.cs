@@ -1,6 +1,4 @@
 using HotelBookingPlatform.Application.Common.Models;
-using HotelBookingPlatform.Application.Hotels.Queries;
-using MediatR;
 
 namespace HotelBookingPlatform.Application.Hotels.Queries.GetHotelById;
 

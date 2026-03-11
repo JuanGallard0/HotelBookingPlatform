@@ -8,6 +8,6 @@ public abstract record PagedSortedRequest
     public string? SortDirection { get; init; }
 
     public int ResolvedPageNumber => PageNumber ?? 1;
-    public int ResolvedPageSize   => PageSize   ?? 10;
+    public int ResolvedPageSize => PageSize ?? 10;
     public string ResolvedSortDirection => SortDirection ?? "asc";
 }

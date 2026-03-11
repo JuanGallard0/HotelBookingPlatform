@@ -1,5 +1,5 @@
-using HotelBookingPlatform.Domain.Common;
 using HotelBookingPlatform.Application.Common.Interfaces;
+using HotelBookingPlatform.Domain.Common;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;

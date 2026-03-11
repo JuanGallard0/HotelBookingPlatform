@@ -30,12 +30,12 @@ public static class ResultExtensions
 
     private static IResult Execute<T>(ResultErrorType errorType, ApiResponse<T> response) => errorType switch
     {
-        ResultErrorType.None                => TypedResults.Ok(response),
-        ResultErrorType.NotFound            => TypedResults.NotFound(response),
-        ResultErrorType.Conflict            => TypedResults.Conflict(response),
+        ResultErrorType.None => TypedResults.Ok(response),
+        ResultErrorType.NotFound => TypedResults.NotFound(response),
+        ResultErrorType.Conflict => TypedResults.Conflict(response),
         ResultErrorType.UnprocessableEntity => TypedResults.UnprocessableEntity(response),
-        ResultErrorType.Unauthorized        => TypedResults.Json(response, statusCode: StatusCodes.Status401Unauthorized),
-        ResultErrorType.Forbidden           => TypedResults.Json(response, statusCode: StatusCodes.Status403Forbidden),
-        _                                   => TypedResults.BadRequest(response)
+        ResultErrorType.Unauthorized => TypedResults.Json(response, statusCode: StatusCodes.Status401Unauthorized),
+        ResultErrorType.Forbidden => TypedResults.Json(response, statusCode: StatusCodes.Status403Forbidden),
+        _ => TypedResults.BadRequest(response)
     };
 }

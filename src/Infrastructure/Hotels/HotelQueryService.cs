@@ -17,7 +17,7 @@ public sealed class HotelQueryService(IDbConnectionFactory connectionFactory) : 
         var builder = new SqlBuilder();
 
         var pageNumber = query.ResolvedPageNumber;
-        var pageSize   = query.ResolvedPageSize;
+        var pageSize = query.ResolvedPageSize;
 
         var dataTemplate = builder.AddTemplate(@"
             SELECT

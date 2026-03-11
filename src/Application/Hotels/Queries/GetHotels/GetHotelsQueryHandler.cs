@@ -1,5 +1,4 @@
 using HotelBookingPlatform.Application.Common.Models;
-using HotelBookingPlatform.Application.Hotels.Queries;
 
 namespace HotelBookingPlatform.Application.Hotels.Queries.GetHotels;
 

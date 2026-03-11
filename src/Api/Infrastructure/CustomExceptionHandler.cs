@@ -2,7 +2,6 @@ using HotelBookingPlatform.Application.Common.Exceptions;
 using HotelBookingPlatform.Application.Common.Models;
 using HotelBookingPlatform.Domain.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
 
 namespace HotelBookingPlatform.Api.Infrastructure;
 
@@ -30,13 +29,13 @@ public class CustomExceptionHandler : IExceptionHandler
 
     private static Result? MapToResult(Exception exception) => exception switch
     {
-        NotFoundException ex              => Result.NotFound(ex.Message),
-        UnauthorizedAccessException       => Result.Unauthorized(),
-        ForbiddenAccessException          => Result.Forbidden(),
-        BadHttpRequestException ex        => Result.Failure(ex.Message),
-        BookingStatusException ex         => Result.Conflict(ex.Message),
+        NotFoundException ex => Result.NotFound(ex.Message),
+        UnauthorizedAccessException => Result.Unauthorized(),
+        ForbiddenAccessException => Result.Forbidden(),
+        BadHttpRequestException ex => Result.Failure(ex.Message),
+        BookingStatusException ex => Result.Conflict(ex.Message),
         InsufficientInventoryException ex => Result.Conflict(ex.Message),
-        InvalidBookingDatesException ex   => Result.UnprocessableEntity(ex.Message),
-        _                                 => null
+        InvalidBookingDatesException ex => Result.UnprocessableEntity(ex.Message),
+        _ => null
     };
 }

@@ -1,5 +1,3 @@
-using HotelBookingPlatform.Domain.Exceptions;
-
 namespace HotelBookingPlatform.Domain.Entities;
 
 public class RoomInventory : BaseAuditableEntity
