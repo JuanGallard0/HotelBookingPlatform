@@ -42,19 +42,8 @@ public class RegisterUserCommandHandler(
             ExpiresAt = refreshToken.ExpiresAt
         });
 
-        await unitOfWork.BeginTransactionAsync(cancellationToken);
-
-        try
-        {
-            context.Users.Add(user);
-            await unitOfWork.SaveChangesAsync(cancellationToken);
-            await unitOfWork.CommitAsync(cancellationToken);
-        }
-        catch
-        {
-            await unitOfWork.RollbackAsync(cancellationToken);
-            throw;
-        }
+        context.Users.Add(user);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         var accessToken = tokenService.CreateAccessToken(user);
         return Result<AuthResponseDto>.Success(user.ToAuthResponse(accessToken, refreshToken));

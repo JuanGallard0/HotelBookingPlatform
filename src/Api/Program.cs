@@ -1,7 +1,11 @@
 using HotelBookingPlatform.Infrastructure.Data;
 using Scalar.AspNetCore;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((ctx, config) =>
+    config.ReadFrom.Configuration(ctx.Configuration));
 
 // Add services to the container.
 
@@ -22,6 +26,8 @@ else
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+
+app.UseSerilogRequestLogging();
 
 app.UseHealthChecks("/health");
 app.UseHttpsRedirection();

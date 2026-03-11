@@ -30,18 +30,7 @@ public class LoginUserCommandHandler(
             ExpiresAt = refreshToken.ExpiresAt
         });
 
-        await unitOfWork.BeginTransactionAsync(cancellationToken);
-
-        try
-        {
-            await unitOfWork.SaveChangesAsync(cancellationToken);
-            await unitOfWork.CommitAsync(cancellationToken);
-        }
-        catch
-        {
-            await unitOfWork.RollbackAsync(cancellationToken);
-            throw;
-        }
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         var accessToken = tokenService.CreateAccessToken(user);
         return Result<AuthResponseDto>.Success(user.ToAuthResponse(accessToken, refreshToken));

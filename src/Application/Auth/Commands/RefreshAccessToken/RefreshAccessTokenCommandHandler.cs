@@ -35,18 +35,7 @@ public class RefreshAccessTokenCommandHandler(
             ExpiresAt = nextRefreshToken.ExpiresAt
         });
 
-        await unitOfWork.BeginTransactionAsync(cancellationToken);
-
-        try
-        {
-            await unitOfWork.SaveChangesAsync(cancellationToken);
-            await unitOfWork.CommitAsync(cancellationToken);
-        }
-        catch
-        {
-            await unitOfWork.RollbackAsync(cancellationToken);
-            throw;
-        }
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         var accessToken = tokenService.CreateAccessToken(storedToken.User);
         return Result<AuthResponseDto>.Success(storedToken.User.ToAuthResponse(accessToken, nextRefreshToken));

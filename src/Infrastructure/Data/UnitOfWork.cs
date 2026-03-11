@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace HotelBookingPlatform.Infrastructure.Data;
 
-internal sealed class UnitOfWork(ApplicationDbContext context) : IUnitOfWork
+internal sealed class UnitOfWork(ApplicationDbContext context) : IUnitOfWork, IAsyncDisposable
 {
     private IDbContextTransaction? _transaction;
 
@@ -21,11 +21,18 @@ internal sealed class UnitOfWork(ApplicationDbContext context) : IUnitOfWork
     public async Task CommitAsync(CancellationToken cancellationToken = default)
     {
         if (_transaction is null)
-            return;
+            throw new InvalidOperationException("No active transaction to commit.");
 
-        await _transaction.CommitAsync(cancellationToken);
-        await _transaction.DisposeAsync();
-        _transaction = null;
+        try
+        {
+            await context.SaveChangesAsync(cancellationToken);
+            await _transaction.CommitAsync(cancellationToken);
+        }
+        finally
+        {
+            await _transaction.DisposeAsync();
+            _transaction = null;
+        }
     }
 
     public async Task RollbackAsync(CancellationToken cancellationToken = default)
@@ -33,8 +40,24 @@ internal sealed class UnitOfWork(ApplicationDbContext context) : IUnitOfWork
         if (_transaction is null)
             return;
 
-        await _transaction.RollbackAsync(cancellationToken);
-        await _transaction.DisposeAsync();
-        _transaction = null;
+        try
+        {
+            await _transaction.RollbackAsync(cancellationToken);
+        }
+        finally
+        {
+            await _transaction.DisposeAsync();
+            _transaction = null;
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_transaction is not null)
+        {
+            await _transaction.RollbackAsync();
+            await _transaction.DisposeAsync();
+            _transaction = null;
+        }
     }
 }
