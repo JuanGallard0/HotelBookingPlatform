@@ -3,12 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "npm run generate-api && next dev",
-    "prebuild": "npm run generate-api",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
-    "generate-api": "nswag run /runtime:Net100"
+    "lint": "eslint"
   },
   "dependencies": {
     "next": "16.1.6",
@@ -22,7 +20,6 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
-    "nswag": "latest",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
