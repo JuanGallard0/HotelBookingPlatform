@@ -1,10 +1,10 @@
 import Image from "next/image";
 import type { Hotel } from "@/src/components/hotels/HotelListCard";
-import h1 from "@/src/assets/h1.jpg";
-import h2 from "@/src/assets/h2.jpg";
-import h3 from "@/src/assets/h3.jpg";
-import h4 from "@/src/assets/h4.jpg";
-import h5 from "@/src/assets/h5.jpg";
+import h1 from "@/src/assets/h1.webp";
+import h2 from "@/src/assets/h2.webp";
+import h3 from "@/src/assets/h3.webp";
+import h4 from "@/src/assets/h4.webp";
+import h5 from "@/src/assets/h5.webp";
 
 const HOTEL_IMAGES = [h1, h2, h3, h4, h5];
 
@@ -30,8 +30,8 @@ export function HotelCarouselCard({ hotel }: { hotel: Hotel }) {
     <div className="flex w-64 shrink-0 flex-col rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md">
       <div className="relative h-36 overflow-hidden rounded-t-2xl">
         <Image
-          src={HOTEL_IMAGES[(hotel.id - 1) % 5]}
-          alt={hotel.name}
+          src={HOTEL_IMAGES[((hotel.hotelId ?? 0) - 1) % 5]}
+          alt={hotel.name ?? ""}
           fill
           className="object-cover"
           sizes="256px"
@@ -42,7 +42,7 @@ export function HotelCarouselCard({ hotel }: { hotel: Hotel }) {
           <h3 className="line-clamp-1 font-semibold text-slate-900">
             {hotel.name}
           </h3>
-          <StarRating stars={hotel.starRating} />
+          <StarRating stars={hotel.starRating ?? 0} />
         </div>
         <p className="text-xs text-slate-500">
           {hotel.city}, {hotel.country}
@@ -51,8 +51,8 @@ export function HotelCarouselCard({ hotel }: { hotel: Hotel }) {
           {hotel.description}
         </p>
         <p className="mt-auto pt-3 text-xs text-slate-400">
-          {hotel.activeRoomTypeCount} tipo
-          {hotel.activeRoomTypeCount !== 1 ? "s" : ""} de habitacion
+          {hotel.availableRoomTypeCount} tipo
+          {hotel.availableRoomTypeCount !== 1 ? "s" : ""} de habitacion
         </p>
       </div>
     </div>

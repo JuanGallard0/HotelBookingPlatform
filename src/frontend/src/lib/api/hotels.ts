@@ -1,13 +1,8 @@
 import {
   CreateHotelCommand,
-  CreateRoomTypeCommand,
   HotelsClient,
   SwaggerException,
   UpdateHotelCommand,
-  UpdateRoomTypeCommand,
-  type HotelDetailDto,
-  type HotelDto,
-  type RoomTypeDto,
 } from "@/src/lib/api/generated/api-client";
 import { API_BASE_URL } from "@/src/lib/constants";
 
@@ -45,8 +40,7 @@ export function toErrorMessage(error: unknown, fallback: string) {
 }
 
 export async function listHotels(accessToken?: string) {
-  const response = await makeClient(accessToken).getHotels(
-    undefined,
+  const response = await makeClient(accessToken).getAvailableHotels(
     undefined,
     undefined,
     undefined,
@@ -64,17 +58,7 @@ export async function listHotels(accessToken?: string) {
     throw new Error(response.errorMessage ?? "Failed to load hotels.");
   }
 
-  return (response.data.data as HotelDto[] | undefined) ?? [];
-}
-
-export async function getHotelDetail(id: number, accessToken?: string) {
-  const response = await makeClient(accessToken).hotelsGET(id);
-
-  if (!response.success || !response.data) {
-    throw new Error(response.errorMessage ?? "Failed to load hotel details.");
-  }
-
-  return response.data as HotelDetailDto;
+  return response.data.data ?? [];
 }
 
 export async function createHotel(
@@ -128,81 +112,5 @@ export async function deleteHotel(id: number, accessToken?: string) {
 
   if (!response.success) {
     throw new Error(response.errorMessage ?? "Failed to delete hotel.");
-  }
-}
-
-export async function listRoomTypes(hotelId: number, accessToken?: string) {
-  const response = await makeClient(accessToken).roomTypesGET(
-    hotelId,
-    undefined,
-    1,
-    100,
-    "name",
-    "asc",
-  );
-
-  if (!response.success || !response.data) {
-    throw new Error(response.errorMessage ?? "Failed to load room types.");
-  }
-
-  return (response.data.data as RoomTypeDto[] | undefined) ?? [];
-}
-
-export async function createRoomType(
-  input: {
-    hotelId: number;
-    name: string;
-    description: string;
-    maxOccupancy: number;
-    basePrice: number;
-  },
-  accessToken?: string,
-) {
-  const body = new CreateRoomTypeCommand(input);
-  const response = await makeClient(accessToken).roomTypesPOST(
-    input.hotelId,
-    body,
-  );
-
-  if (!response.success) {
-    throw new Error(response.errorMessage ?? "Failed to create room type.");
-  }
-
-  return response.data ?? null;
-}
-
-export async function updateRoomType(
-  input: {
-    hotelId: number;
-    id: number;
-    name: string;
-    description: string;
-    maxOccupancy: number;
-    basePrice: number;
-    isActive: boolean;
-  },
-  accessToken?: string,
-) {
-  const body = new UpdateRoomTypeCommand(input);
-  const response = await makeClient(accessToken).roomTypesPUT(
-    input.hotelId,
-    input.id,
-    body,
-  );
-
-  if (!response.success) {
-    throw new Error(response.errorMessage ?? "Failed to update room type.");
-  }
-}
-
-export async function deleteRoomType(
-  hotelId: number,
-  id: number,
-  accessToken?: string,
-) {
-  const response = await makeClient(accessToken).roomTypesDELETE(hotelId, id);
-
-  if (!response.success) {
-    throw new Error(response.errorMessage ?? "Failed to delete room type.");
   }
 }

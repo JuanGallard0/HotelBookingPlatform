@@ -1,22 +1,15 @@
 import Image from "next/image";
 import Link from "next/link";
-import h1 from "@/src/assets/h1.jpg";
-import h2 from "@/src/assets/h2.jpg";
-import h3 from "@/src/assets/h3.jpg";
-import h4 from "@/src/assets/h4.jpg";
-import h5 from "@/src/assets/h5.jpg";
+import type { AvailableHotelDto } from "@/src/lib/api/generated/api-client";
+import h1 from "@/src/assets/h1.webp";
+import h2 from "@/src/assets/h2.webp";
+import h3 from "@/src/assets/h3.webp";
+import h4 from "@/src/assets/h4.webp";
+import h5 from "@/src/assets/h5.webp";
 
 const HOTEL_IMAGES = [h1, h2, h3, h4, h5];
 
-export interface Hotel {
-  id: number;
-  name: string;
-  city: string;
-  country: string;
-  starRating: number;
-  description: string;
-  activeRoomTypeCount: number;
-}
+export type Hotel = AvailableHotelDto;
 
 function StarRating({ stars }: { stars: number }) {
   return (
@@ -38,13 +31,13 @@ function StarRating({ stars }: { stars: number }) {
 export function HotelListCard({ hotel }: { hotel: Hotel }) {
   return (
     <Link
-      href={`/hotels/${hotel.id}`}
+      href={`/hotels/${hotel.hotelId}`}
       className="flex gap-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
     >
       <div className="relative h-28 w-36 shrink-0 overflow-hidden rounded-xl">
         <Image
-          src={HOTEL_IMAGES[(hotel.id - 1) % 5]}
-          alt={hotel.name}
+          src={HOTEL_IMAGES[((hotel.hotelId ?? 0) - 1) % 5]}
+          alt={hotel.name ?? ""}
           fill
           className="object-cover"
           sizes="144px"
@@ -55,7 +48,7 @@ export function HotelListCard({ hotel }: { hotel: Hotel }) {
           <h3 className="text-base font-semibold text-slate-900">
             {hotel.name}
           </h3>
-          <StarRating stars={hotel.starRating} />
+          <StarRating stars={hotel.starRating ?? 0} />
         </div>
         <p className="text-sm text-slate-500">
           {hotel.city}, {hotel.country}
@@ -63,10 +56,29 @@ export function HotelListCard({ hotel }: { hotel: Hotel }) {
         <p className="mt-1 line-clamp-2 text-sm leading-5 text-slate-600">
           {hotel.description}
         </p>
-        <p className="mt-auto pt-2 text-xs text-slate-400">
-          {hotel.activeRoomTypeCount} tipo
-          {hotel.activeRoomTypeCount !== 1 ? "s" : ""} de habitacion
-        </p>
+        <div className="mt-auto flex items-end justify-between pt-2">
+          <p className="text-xs text-slate-400">
+            {hotel.availableRoomTypeCount} tipo
+            {hotel.availableRoomTypeCount !== 1 ? "s" : ""} de habitacion
+          </p>
+          {hotel.pricePerNightFrom != null && (
+            <div className="flex flex-col items-end gap-0.5">
+              {hotel.discountPercentage != null &&
+                hotel.discountPercentage > 0 && (
+                  <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-xs font-medium text-emerald-700">
+                    -{hotel.discountPercentage}%
+                  </span>
+                )}
+              <span className="text-sm font-semibold text-slate-900">
+                {hotel.currency ?? ""} {hotel.pricePerNightFrom.toFixed(2)}
+                <span className="text-xs font-normal text-slate-400">
+                  {" "}
+                  / noche
+                </span>
+              </span>
+            </div>
+          )}
+        </div>
       </div>
     </Link>
   );

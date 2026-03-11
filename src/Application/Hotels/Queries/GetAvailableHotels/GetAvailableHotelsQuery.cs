@@ -1,14 +1,13 @@
 using HotelBookingPlatform.Application.Common.Models;
 
-namespace HotelBookingPlatform.Application.Hotels.Queries.GetHotels;
+namespace HotelBookingPlatform.Application.Hotels.Queries.GetAvailableHotels;
 
-public record GetHotelsQuery : PagedSortedRequest, IRequest<Result<PagedResponse<HotelDto>>>
+public record GetAvailableHotelsQuery : PagedSortedRequest, IRequest<Result<PagedResponse<AvailableHotelDto>>>
 {
     public string? Name { get; init; }
     public string? City { get; init; }
     public string? Country { get; init; }
     public int? StarRating { get; init; }
-    public bool? IsActive { get; init; }
 
     public DateOnly? CheckIn { get; init; }
     public DateOnly? CheckOut { get; init; }
@@ -17,6 +16,6 @@ public record GetHotelsQuery : PagedSortedRequest, IRequest<Result<PagedResponse
     public static readonly IReadOnlySet<string> AllowedSortColumns =
         new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            "Id", "Name", "City", "Country", "StarRating"
+            "HotelId", "Name", "City", "Country", "StarRating", "PricePerNightFrom"
         };
 }

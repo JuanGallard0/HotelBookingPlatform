@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { HotelsClient } from "@/src/lib/api/generated/api-client";
 import {
   HotelListCard,
   type Hotel,
@@ -90,60 +91,43 @@ export function HotelCatalog() {
   }, []);
 
   useEffect(() => {
-    const parts = fetchKey.split("|");
-    const effectiveStarRating = parts[parts.length - 1];
-    const effectiveCity = parts[parts.length - 2];
-    const effectiveCountry = parts[parts.length - 3];
-    const effectiveSortDir = parts[parts.length - 4];
-    const effectiveSortBy = parts[parts.length - 5];
-    const effectivePage = parseInt(parts[parts.length - 6], 10);
-    const sp = new URLSearchParams(parts.slice(0, -6).join("|"));
+    const sp = searchParams;
+    const checkIn = sp.get("checkIn")
+      ? new Date(sp.get("checkIn")!)
+      : undefined;
+    const checkOut = sp.get("checkOut")
+      ? new Date(sp.get("checkOut")!)
+      : undefined;
+    const numberOfGuests = sp.get("numberOfGuests")
+      ? parseInt(sp.get("numberOfGuests")!, 10)
+      : undefined;
 
-    const query = new URLSearchParams();
-    query.set("PageSize", String(PAGE_SIZE));
-    query.set("PageNumber", String(effectivePage));
-    query.set("SortBy", effectiveSortBy);
-    query.set("SortDirection", effectiveSortDir);
-    query.set("IsActive", "true");
-
-    if (effectiveCountry) query.set("country", effectiveCountry);
-    if (effectiveCity) query.set("city", effectiveCity);
-    if (effectiveStarRating) query.set("starRating", effectiveStarRating);
-
-    const name = sp.get("name");
-    const checkIn = sp.get("checkIn");
-    const checkOut = sp.get("checkOut");
-    const numberOfGuests = sp.get("numberOfGuests");
-
-    if (name) query.set("name", name);
-    if (checkIn) query.set("checkIn", checkIn);
-    if (checkOut) query.set("checkOut", checkOut);
-    if (numberOfGuests) query.set("numberOfGuests", numberOfGuests);
-
-    fetch(`/api/v1/hotels?${query.toString()}`)
-      .then((r) => r.json())
-      .then((json) => {
-        const items: Hotel[] = (json?.data?.data ?? []).map(
-          (h: Record<string, unknown>) => ({
-            id: h["id"] as number,
-            name: h["name"] as string,
-            city: h["city"] as string,
-            country: h["country"] as string,
-            starRating: (h["starRating"] as number) ?? 0,
-            description: h["description"] as string,
-            activeRoomTypeCount: (h["activeRoomTypeCount"] as number) ?? 0,
-          }),
-        );
-        setHotels((prev) =>
-          effectivePage === 1 ? items : [...prev, ...items],
-        );
-        setTotal(json?.data?.totalRecords ?? items.length);
+    new HotelsClient()
+      .getAvailableHotels(
+        sp.get("name") ?? undefined,
+        filters.city || undefined,
+        filters.country || undefined,
+        filters.starRating ?? undefined,
+        checkIn,
+        checkOut,
+        numberOfGuests,
+        page,
+        PAGE_SIZE,
+        sortBy,
+        sortDir,
+      )
+      .then((response) => {
+        const items = response.data?.data ?? [];
+        setHotels((prev) => (page === 1 ? items : [...prev, ...items]));
+        setTotal(response.data?.totalRecords ?? items.length);
         setLoadedKey(fetchKey);
       })
       .catch(() => {
         setHotels([]);
         setLoadedKey(fetchKey);
       });
+    // fetchKey encodes all dependencies; using it as the sole dep is intentional.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchKey]);
 
   return (

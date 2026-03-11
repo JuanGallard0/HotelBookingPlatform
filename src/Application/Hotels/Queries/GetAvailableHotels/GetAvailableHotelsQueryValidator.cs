@@ -1,11 +1,11 @@
 using HotelBookingPlatform.Application.Common.Validation;
 
-namespace HotelBookingPlatform.Application.Hotels.Queries.GetHotels;
+namespace HotelBookingPlatform.Application.Hotels.Queries.GetAvailableHotels;
 
-public class GetHotelsQueryValidator : PagedSortedRequestValidator<GetHotelsQuery>
+public class GetAvailableHotelsQueryValidator : PagedSortedRequestValidator<GetAvailableHotelsQuery>
 {
-    public GetHotelsQueryValidator(TimeProvider timeProvider)
-        : base(GetHotelsQuery.AllowedSortColumns)
+    public GetAvailableHotelsQueryValidator(TimeProvider timeProvider)
+        : base(GetAvailableHotelsQuery.AllowedSortColumns)
     {
         RuleFor(x => x.StarRating)
             .InclusiveBetween(1, 5)

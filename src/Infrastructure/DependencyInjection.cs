@@ -1,14 +1,12 @@
 using System.Text;
 using HotelBookingPlatform.Application.Common.Interfaces;
 using HotelBookingPlatform.Application.Hotels.Queries;
-using HotelBookingPlatform.Application.RoomTypes.Queries;
 using HotelBookingPlatform.Domain.Enums;
 using HotelBookingPlatform.Infrastructure.Authentication;
 using HotelBookingPlatform.Infrastructure.Data;
 using HotelBookingPlatform.Infrastructure.Data.Interceptors;
 using HotelBookingPlatform.Infrastructure.Hotels;
 using HotelBookingPlatform.Infrastructure.Querying;
-using HotelBookingPlatform.Infrastructure.RoomTypes;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -41,7 +39,6 @@ public static class DependencyInjection
 
         builder.Services.AddSingleton<IDbConnectionFactory>(_ => new SqlConnectionFactory(connectionString));
         builder.Services.AddScoped<IHotelQueryService, HotelQueryService>();
-        builder.Services.AddScoped<IRoomTypeQueryService, RoomTypeQueryService>();
         builder.Services.AddScoped<IPasswordHasher, AspNetPasswordHasher>();
         builder.Services.AddScoped<ITokenService, JwtTokenService>();
         builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();

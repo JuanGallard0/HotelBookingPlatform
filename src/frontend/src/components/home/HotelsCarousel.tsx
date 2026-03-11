@@ -3,9 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { HotelCarouselCard } from "@/src/components/hotels/HotelCarouselCard";
 import type { Hotel } from "@/src/components/hotels/HotelListCard";
-
-// Fetches through a Next.js route handler proxy so the browser stays same-origin.
-const API_BASE = "/api/v1";
+import { HotelsClient } from "@/src/lib/api/generated/api-client";
 
 function SkeletonCard() {
   return (
@@ -28,23 +26,22 @@ export function HotelsCarousel() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch(
-      `${API_BASE}/hotels?PageSize=10&SortBy=name&SortDirection=asc&IsActive=true`,
-    )
-      .then((r) => r.json())
-      .then((json) => {
-        const items: Hotel[] = (json?.data?.data ?? []).map(
-          (h: Record<string, unknown>) => ({
-            id: h["id"] as number,
-            name: h["name"] as string,
-            city: h["city"] as string,
-            country: h["country"] as string,
-            starRating: (h["starRating"] as number) ?? 0,
-            description: h["description"] as string,
-            activeRoomTypeCount: (h["activeRoomTypeCount"] as number) ?? 0,
-          }),
-        );
-        setHotels(items);
+    new HotelsClient()
+      .getAvailableHotels(
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        1,
+        10,
+        "Name",
+        "asc",
+      )
+      .then((response) => {
+        setHotels(response.data?.data ?? []);
       })
       .catch(() => setError(true))
       .finally(() => setLoading(false));
