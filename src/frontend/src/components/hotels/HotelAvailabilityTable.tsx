@@ -1,17 +1,27 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { format, parse, isValid } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
 import { getHotelAvailability } from "@/src/lib/api/hotels";
 import type { AvailableRoomTypeDto } from "@/src/lib/api/generated/api-client";
+import { useAuth } from "@/src/context/AuthContext";
 import { cn } from "@/src/lib/utils";
 import { Input } from "@/src/components/ui/input";
 import { Label } from "@/src/components/ui/label";
 import { Button } from "@/src/components/ui/button";
 import { Badge } from "@/src/components/ui/badge";
 import { Calendar } from "@/src/components/ui/calendar";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/src/components/ui/dialog";
 import {
   Popover,
   PopoverContent,
@@ -93,6 +103,9 @@ function defaultDates() {
 }
 
 export function HotelAvailabilityTable({ hotelId }: { hotelId: number }) {
+  const router = useRouter();
+  const { accessToken, openModal } = useAuth();
+  const [pendingUrl, setPendingUrl] = useState<string | null>(null);
   const defaults = defaultDates();
   const [checkIn, setCheckIn] = useState(defaults.checkIn);
   const [checkOut, setCheckOut] = useState(defaults.checkOut);
@@ -146,8 +159,62 @@ export function HotelAvailabilityTable({ hotelId }: { hotelId: number }) {
     fetchAvailability(d.checkIn, d.checkOut, 1, 1);
   }
 
+  function buildBookingUrl(room: AvailableRoomTypeDto) {
+    const params = new URLSearchParams({
+      roomTypeId: String(room.roomTypeId ?? ""),
+      checkIn,
+      checkOut,
+      guests: String(guests),
+      numberOfRooms: String(numberOfRooms),
+      roomName: room.name ?? "",
+      totalPrice: String(room.totalPrice ?? room.pricePerNight ?? 0),
+      currency: room.currency ?? "",
+      hotelId: String(hotelId),
+    });
+    return `/bookings/new?${params.toString()}`;
+  }
+
+  function handleReservar(room: AvailableRoomTypeDto) {
+    const url = buildBookingUrl(room);
+    if (accessToken) {
+      router.push(url);
+    } else {
+      setPendingUrl(url);
+    }
+  }
+
   return (
     <section id="availability" className="mt-10">
+      {/* Login prompt dialog */}
+      <Dialog
+        open={pendingUrl !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingUrl(null);
+        }}
+      >
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Inicia sesión para continuar</DialogTitle>
+            <DialogDescription>
+              Necesitas una cuenta para realizar una reserva. ¿Quieres iniciar
+              sesión ahora?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setPendingUrl(null)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={() => {
+                setPendingUrl(null);
+                openModal("login");
+              }}
+            >
+              Iniciar sesión
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
         {/* Header */}
         <div className="px-6 py-5 border-b border-border">
@@ -321,7 +388,11 @@ export function HotelAvailabilityTable({ hotelId }: { hotelId: number }) {
                           precio total
                         </p>
                       </div>
-                      <Button size="sm" disabled={available === 0}>
+                      <Button
+                        size="sm"
+                        disabled={available === 0}
+                        onClick={() => handleReservar(room)}
+                      >
                         Reservar
                       </Button>
                     </div>
@@ -439,7 +510,11 @@ export function HotelAvailabilityTable({ hotelId }: { hotelId: number }) {
                           </p>
                         </TableCell>
                         <TableCell className="py-5 text-center">
-                          <Button size="sm" disabled={available === 0}>
+                          <Button
+                            size="sm"
+                            disabled={available === 0}
+                            onClick={() => handleReservar(room)}
+                          >
                             Reservar
                           </Button>
                         </TableCell>

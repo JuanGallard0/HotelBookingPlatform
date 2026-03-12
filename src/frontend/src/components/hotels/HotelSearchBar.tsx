@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type SyntheticEvent } from "react";
 import { format, parse, isValid } from "date-fns";
 import { es } from "date-fns/locale";
@@ -82,11 +82,12 @@ export function HotelSearchBar({
   replace = false,
 }: HotelSearchBarProps) {
   const router = useRouter();
-  const [name, setName] = useState("");
-  const [checkIn, setCheckIn] = useState("");
-  const [checkOut, setCheckOut] = useState("");
-  const [guests, setGuests] = useState("");
-  const [rooms, setRooms] = useState("");
+  const searchParams = useSearchParams();
+  const [name, setName] = useState(searchParams.get("name") ?? "");
+  const [checkIn, setCheckIn] = useState(searchParams.get("checkIn") ?? "");
+  const [checkOut, setCheckOut] = useState(searchParams.get("checkOut") ?? "");
+  const [guests, setGuests] = useState(searchParams.get("numberOfGuests") ?? "");
+  const [rooms, setRooms] = useState(searchParams.get("numberOfRooms") ?? "");
 
   const labelCls = cn(
     "text-xs font-semibold uppercase tracking-wide",
