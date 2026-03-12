@@ -37,8 +37,8 @@ export function HotelsCarousel() {
         undefined,
         1,
         10,
-        "Name",
-        "asc",
+        "StarRating",
+        "desc",
       )
       .then((response) => {
         setHotels(response.data?.data ?? []);

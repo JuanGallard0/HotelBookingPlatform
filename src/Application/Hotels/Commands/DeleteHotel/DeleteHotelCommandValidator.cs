@@ -4,6 +4,7 @@ public class DeleteHotelCommandValidator : AbstractValidator<DeleteHotelCommand>
 {
     public DeleteHotelCommandValidator()
     {
-        RuleFor(x => x.Id).GreaterThan(0);
+        RuleFor(x => x.Id)
+            .GreaterThan(0).WithMessage("Hotel id must be greater than 0.");
     }
 }

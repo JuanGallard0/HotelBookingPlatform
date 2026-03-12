@@ -4,14 +4,39 @@ public class UpdateHotelCommandValidator : AbstractValidator<UpdateHotelCommand>
 {
     public UpdateHotelCommandValidator()
     {
-        RuleFor(x => x.Id).GreaterThan(0);
-        RuleFor(x => x.Name).NotEmpty().MaximumLength(200);
-        RuleFor(x => x.Description).NotEmpty().MaximumLength(2000);
-        RuleFor(x => x.Address).NotEmpty().MaximumLength(500);
-        RuleFor(x => x.City).NotEmpty().MaximumLength(100);
-        RuleFor(x => x.Country).NotEmpty().MaximumLength(100);
-        RuleFor(x => x.Email).NotEmpty().EmailAddress().MaximumLength(200);
-        RuleFor(x => x.PhoneNumber).NotEmpty().MaximumLength(20);
-        RuleFor(x => x.StarRating).InclusiveBetween(1, 5);
+        RuleFor(x => x.Id)
+            .GreaterThan(0).WithMessage("Hotel id must be greater than 0.");
+
+        RuleFor(x => x.Name)
+            .NotEmpty().WithMessage("Name is required.")
+            .MaximumLength(200).WithMessage("Name must not exceed 200 characters.");
+
+        RuleFor(x => x.Description)
+            .NotEmpty().WithMessage("Description is required.")
+            .MaximumLength(2000).WithMessage("Description must not exceed 2000 characters.");
+
+        RuleFor(x => x.Address)
+            .NotEmpty().WithMessage("Address is required.")
+            .MaximumLength(500).WithMessage("Address must not exceed 500 characters.");
+
+        RuleFor(x => x.City)
+            .NotEmpty().WithMessage("City is required.")
+            .MaximumLength(100).WithMessage("City must not exceed 100 characters.");
+
+        RuleFor(x => x.Country)
+            .NotEmpty().WithMessage("Country is required.")
+            .MaximumLength(100).WithMessage("Country must not exceed 100 characters.");
+
+        RuleFor(x => x.Email)
+            .NotEmpty().WithMessage("Email is required.")
+            .EmailAddress().WithMessage("Email must be a valid email address.")
+            .MaximumLength(200).WithMessage("Email must not exceed 200 characters.");
+
+        RuleFor(x => x.PhoneNumber)
+            .NotEmpty().WithMessage("Phone number is required.")
+            .MaximumLength(20).WithMessage("Phone number must not exceed 20 characters.");
+
+        RuleFor(x => x.StarRating)
+            .InclusiveBetween(1, 5).WithMessage("Star rating must be between 1 and 5.");
     }
 }

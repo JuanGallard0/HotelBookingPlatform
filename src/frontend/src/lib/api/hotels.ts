@@ -3,6 +3,7 @@ import {
   HotelsClient,
   SwaggerException,
   UpdateHotelCommand,
+  type HotelDto,
 } from "@/src/lib/api/generated/api-client";
 import { API_BASE_URL } from "@/src/lib/constants";
 
@@ -37,6 +38,16 @@ function getApiErrorMessage(error: unknown, fallback: string) {
 
 export function toErrorMessage(error: unknown, fallback: string) {
   return getApiErrorMessage(error, fallback);
+}
+
+export async function getHotelDetail(id: number, accessToken?: string) {
+  const response = await makeClient(accessToken).hotelsGET(id);
+
+  if (!response.success || !response.data) {
+    throw new Error(response.errorMessage ?? "Failed to load hotel.");
+  }
+
+  return response.data as HotelDto;
 }
 
 export async function listHotels(accessToken?: string) {
