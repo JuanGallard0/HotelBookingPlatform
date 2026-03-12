@@ -2,10 +2,17 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { useAuth } from "@/src/context/AuthContext";
 
 export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const { user, openModal, logoutUser } = useAuth();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -68,6 +75,16 @@ export function Navbar() {
                 role="menu"
                 className="absolute right-0 top-11 z-20 w-52 rounded-lg border border-slate-200 bg-white p-2 shadow-lg"
               >
+                {user && (
+                  <div className="mb-1 border-b border-slate-100 px-3 py-2">
+                    <p className="text-xs font-medium text-slate-900 truncate">
+                      {user.fullName || `${user.firstName} ${user.lastName}`}
+                    </p>
+                    <p className="text-xs text-slate-400 truncate">
+                      {user.email}
+                    </p>
+                  </div>
+                )}
                 <Link
                   href="/account/reservations"
                   role="menuitem"
@@ -76,16 +93,40 @@ export function Navbar() {
                 >
                   Mis reservas
                 </Link>
+                {user && (
+                  <button
+                    role="menuitem"
+                    className="w-full rounded-md px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      logoutUser();
+                    }}
+                  >
+                    Cerrar sesión
+                  </button>
+                )}
               </div>
             )}
           </div>
 
-          <Link
-            href="/auth/login"
-            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
-          >
-            Iniciar sesion
-          </Link>
+          {mounted && user ? (
+            <button
+              onClick={() => setMenuOpen((o) => !o)}
+              className="flex items-center gap-2 rounded-full bg-slate-100 pl-2 pr-3 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-200"
+            >
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
+                {user.firstName?.[0]?.toUpperCase() ?? "U"}
+              </span>
+              {user.firstName}
+            </button>
+          ) : (
+            <button
+              onClick={() => openModal("login")}
+              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+            >
+              Iniciar sesión
+            </button>
+          )}
         </nav>
       </div>
     </header>
