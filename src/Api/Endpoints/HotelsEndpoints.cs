@@ -63,11 +63,21 @@ public class HotelsEndpoints : EndpointGroupBase
 
     private static async Task<IResult> GetHotelAvailability(
         int id,
-        [AsParameters] GetHotelAvailabilityQuery query,
+        DateOnly checkIn,
+        DateOnly checkOut,
+        int? numberOfGuests,
+        int? numberOfRooms,
         ISender sender,
         CancellationToken cancellationToken)
     {
-        var result = await sender.Send(query with { HotelId = id }, cancellationToken);
+        var result = await sender.Send(new GetHotelAvailabilityQuery
+        {
+            HotelId = id,
+            CheckIn = checkIn,
+            CheckOut = checkOut,
+            NumberOfGuests = numberOfGuests,
+            NumberOfRooms = numberOfRooms
+        }, cancellationToken);
         return result.ToHttpResult();
     }
 

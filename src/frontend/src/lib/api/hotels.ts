@@ -65,11 +65,12 @@ export async function getHotelAvailability(
 
   // On the server use the absolute backend URL; on the client use the Next.js proxy.
   const base = typeof window === "undefined" ? API_BASE_URL : "";
-  let url = `${base}/api/v1/hotels/${hotelId}/availability?HotelId=${hotelId}`;
-  if (checkIn) url += `&CheckIn=${toDateOnly(checkIn)}`;
-  if (checkOut) url += `&CheckOut=${toDateOnly(checkOut)}`;
-  if (numberOfGuests !== undefined) url += `&NumberOfGuests=${numberOfGuests}`;
-  if (numberOfRooms !== undefined) url += `&NumberOfRooms=${numberOfRooms}`;
+  let url = `${base}/api/v1/hotels/${hotelId}/availability?`;
+  if (checkIn) url += `checkIn=${toDateOnly(checkIn)}&`;
+  if (checkOut) url += `checkOut=${toDateOnly(checkOut)}&`;
+  if (numberOfGuests !== undefined) url += `numberOfGuests=${numberOfGuests}&`;
+  if (numberOfRooms !== undefined) url += `numberOfRooms=${numberOfRooms}&`;
+  url = url.replace(/[?&]$/, "");
 
   const headers: Record<string, string> = { Accept: "application/json" };
   if (accessToken) headers["Authorization"] = `Bearer ${accessToken}`;

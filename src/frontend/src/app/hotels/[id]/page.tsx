@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { getHotelDetail } from "@/src/lib/api/hotels";
 import { BookNowButton } from "@/src/components/hotels/BookNowButton";
-import { HotelAvailabilitySection } from "@/src/components/hotels/HotelAvailabilitySection";
+import { HotelAvailabilityTable } from "@/src/components/hotels/HotelAvailabilityTable";
 import {
   Card,
   CardHeader,
@@ -232,7 +232,7 @@ export default async function HotelDetailPage({
         </div>
 
         {/* Availability table */}
-        <HotelAvailabilitySection hotelId={hotelId} />
+        <HotelAvailabilityTable hotelId={hotelId} />
       </div>
     </main>
   );

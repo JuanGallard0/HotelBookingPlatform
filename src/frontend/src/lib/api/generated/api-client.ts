@@ -729,31 +729,27 @@ export class HotelsClient {
      * @param numberOfRooms (optional) 
      * @return OK
      */
-    availability(id: number, hotelId: number, checkIn: Date, checkOut: Date, numberOfGuests: number | undefined, numberOfRooms: number | undefined): Promise<ApiResponseOfHotelAvailabilityDto> {
+    availability(id: number, checkIn: Date, checkOut: Date, numberOfGuests: number | undefined, numberOfRooms: number | undefined): Promise<ApiResponseOfHotelAvailabilityDto> {
         let url_ = this.baseUrl + "/api/v1/hotels/{id}/availability?";
         if (id === undefined || id === null)
             throw new globalThis.Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
-        if (hotelId === undefined || hotelId === null)
-            throw new globalThis.Error("The parameter 'hotelId' must be defined and cannot be null.");
-        else
-            url_ += "HotelId=" + encodeURIComponent("" + hotelId) + "&";
         if (checkIn === undefined || checkIn === null)
             throw new globalThis.Error("The parameter 'checkIn' must be defined and cannot be null.");
         else
-            url_ += "CheckIn=" + encodeURIComponent(checkIn ? "" + checkIn.toISOString() : "") + "&";
+            url_ += "checkIn=" + encodeURIComponent(checkIn ? "" + checkIn.toISOString() : "") + "&";
         if (checkOut === undefined || checkOut === null)
             throw new globalThis.Error("The parameter 'checkOut' must be defined and cannot be null.");
         else
-            url_ += "CheckOut=" + encodeURIComponent(checkOut ? "" + checkOut.toISOString() : "") + "&";
+            url_ += "checkOut=" + encodeURIComponent(checkOut ? "" + checkOut.toISOString() : "") + "&";
         if (numberOfGuests === null)
             throw new globalThis.Error("The parameter 'numberOfGuests' cannot be null.");
         else if (numberOfGuests !== undefined)
-            url_ += "NumberOfGuests=" + encodeURIComponent("" + numberOfGuests) + "&";
+            url_ += "numberOfGuests=" + encodeURIComponent("" + numberOfGuests) + "&";
         if (numberOfRooms === null)
             throw new globalThis.Error("The parameter 'numberOfRooms' cannot be null.");
         else if (numberOfRooms !== undefined)
-            url_ += "NumberOfRooms=" + encodeURIComponent("" + numberOfRooms) + "&";
+            url_ += "numberOfRooms=" + encodeURIComponent("" + numberOfRooms) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -2489,7 +2485,6 @@ export interface IRegisterUserCommand {
 }
 
 export class UpdateHotelCommand implements IUpdateHotelCommand {
-    id!: number;
     name!: string;
     description!: string;
     address!: string;
@@ -2517,7 +2512,6 @@ export class UpdateHotelCommand implements IUpdateHotelCommand {
                 if (_data.hasOwnProperty(property))
                     this[property] = _data[property];
             }
-            this.id = _data["id"];
             this.name = _data["name"];
             this.description = _data["description"];
             this.address = _data["address"];
@@ -2543,7 +2537,6 @@ export class UpdateHotelCommand implements IUpdateHotelCommand {
             if (this.hasOwnProperty(property))
                 data[property] = this[property];
         }
-        data["id"] = this.id;
         data["name"] = this.name;
         data["description"] = this.description;
         data["address"] = this.address;
@@ -2558,7 +2551,6 @@ export class UpdateHotelCommand implements IUpdateHotelCommand {
 }
 
 export interface IUpdateHotelCommand {
-    id: number;
     name: string;
     description: string;
     address: string;

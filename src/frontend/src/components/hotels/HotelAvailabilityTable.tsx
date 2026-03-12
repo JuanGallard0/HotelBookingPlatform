@@ -92,7 +92,7 @@ function defaultDates() {
   return { checkIn: toDateOnly(checkIn), checkOut: toDateOnly(checkOut) };
 }
 
-export function HotelAvailabilitySection({ hotelId }: { hotelId: number }) {
+export function HotelAvailabilityTable({ hotelId }: { hotelId: number }) {
   const defaults = defaultDates();
   const [checkIn, setCheckIn] = useState(defaults.checkIn);
   const [checkOut, setCheckOut] = useState(defaults.checkOut);
