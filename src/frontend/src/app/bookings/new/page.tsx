@@ -118,7 +118,7 @@ function BookingConfirmation({ booking }: { booking: BookingDto }) {
 export default function NewBookingPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { accessToken } = useAuth();
+  const { accessToken, user } = useAuth();
 
   // Auth guard: redirect unauthenticated users to the previous page
   useEffect(() => {
@@ -141,10 +141,10 @@ export default function NewBookingPage() {
   const checkOut = parseDate(checkOutStr);
   const nightCount = checkIn && checkOut ? nights(checkIn, checkOut) : 0;
 
-  // Form state
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
+  // Form state — prefill with logged-in user data where available
+  const [firstName, setFirstName] = useState(user?.firstName ?? "");
+  const [lastName, setLastName] = useState(user?.lastName ?? "");
+  const [email, setEmail] = useState(user?.email ?? "");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [documentType, setDocumentType] = useState("");
   const [documentNumber, setDocumentNumber] = useState("");
