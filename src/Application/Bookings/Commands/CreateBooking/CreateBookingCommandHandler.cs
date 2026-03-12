@@ -20,7 +20,6 @@ public class CreateBookingCommandHandler(
         if (!currentUser.IsAuthenticated || !currentUser.UserId.HasValue)
             return Result<BookingDto>.Unauthorized();
 
-        // 1. Idempotency check
         if (!string.IsNullOrEmpty(request.IdempotencyKey))
         {
             var cached = await idempotencyService.GetCachedResponseAsync(
@@ -31,7 +30,6 @@ public class CreateBookingCommandHandler(
                     JsonSerializer.Deserialize<BookingDto>(cached)!);
         }
 
-        // 2. Validate room type exists and is active
         var roomType = await context.RoomTypes
             .Include(rt => rt.Hotel)
             .FirstOrDefaultAsync(
@@ -42,13 +40,11 @@ public class CreateBookingCommandHandler(
             return Result<BookingDto>.NotFound(
                 $"Room type with id {request.RoomTypeId} was not found.");
 
-        // 3. Validate guest capacity
         if (request.NumberOfGuests > roomType.MaxOccupancy * request.NumberOfRooms)
             return Result<BookingDto>.UnprocessableEntity(
                 $"Room type supports a maximum of {roomType.MaxOccupancy} guests per room " +
                 $"({roomType.MaxOccupancy * request.NumberOfRooms} total for {request.NumberOfRooms} room(s)).");
 
-        // 4. Load and validate inventory for the full date range
         var checkIn = request.CheckIn;
         var checkOut = request.CheckOut;
         var nights = checkOut.DayNumber - checkIn.DayNumber;
@@ -67,7 +63,6 @@ public class CreateBookingCommandHandler(
             return Result<BookingDto>.UnprocessableEntity(
                 "Not enough rooms available for the selected dates.");
 
-        // 5. Resolve best active rate plan; fall back to room type base price
         var ratePlan = await context.RatePlans
             .Where(rp => rp.RoomTypeId == request.RoomTypeId
                       && rp.IsActive
@@ -79,12 +74,9 @@ public class CreateBookingCommandHandler(
         var pricePerNight = ratePlan?.GetEffectivePrice() ?? roomType.BasePrice;
         var totalAmount = pricePerNight * nights * request.NumberOfRooms;
 
-        // 6. Execute within a transaction for atomicity; RowVersion on RoomInventory
-        //    handles optimistic concurrency against parallel bookings
         await unitOfWork.BeginTransactionAsync(cancellationToken);
         try
         {
-            // Resolve existing guest by email or create a new one
             var guest = await context.Guests
                 .FirstOrDefaultAsync(
                     g => g.Email == request.Guest.Email.ToLower().Trim(),
@@ -97,8 +89,6 @@ public class CreateBookingCommandHandler(
                 await unitOfWork.SaveChangesAsync(cancellationToken);
             }
 
-            // Reserve inventory — throws InsufficientInventoryException if a concurrent
-            // request already took the last room; DbUpdateConcurrencyException is caught below
             foreach (var inventory in inventories)
                 inventory.ReserveRooms(request.NumberOfRooms);
 

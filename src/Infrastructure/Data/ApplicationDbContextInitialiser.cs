@@ -67,7 +67,6 @@ public class ApplicationDbContextInitialiser
         var yearStart = new DateOnly(today.Year, 1, 1);
         var yearEnd = new DateOnly(today.Year, 12, 31);
 
-        // Hotels
         var hotels = new[]
         {
             CreateHotel(
@@ -293,7 +292,6 @@ public class ApplicationDbContextInitialiser
 
         var hotelByName = hotels.ToDictionary(h => h.Name);
 
-        // Room types
         var roomTypes = new[]
         {
             CreateRoomType(hotelByName["Hotel Volcan de San Salvador"], "Habitacion Estandar Ejecutiva", "Cama queen, escritorio ergonomico y cafe local de cortesia.", 2, 119m),
@@ -352,7 +350,6 @@ public class ApplicationDbContextInitialiser
         _context.RoomTypes.AddRange(roomTypes);
         await _context.SaveChangesAsync();
 
-        // Rate plans
         var ratePlans = new List<RatePlan>();
         foreach (var roomType in roomTypes)
         {
@@ -402,7 +399,6 @@ public class ApplicationDbContextInitialiser
         _context.RatePlans.AddRange(ratePlans);
         await _context.SaveChangesAsync();
 
-        // Room inventory for the next 120 days
         var roomCapacities = new Dictionary<string, int>
         {
             ["Habitacion Estandar Ejecutiva"] = 28,
@@ -471,7 +467,6 @@ public class ApplicationDbContextInitialiser
         _context.RoomInventories.AddRange(inventoryRecords);
         await _context.SaveChangesAsync();
 
-        // Guests
         var guests = new[]
         {
             CreateGuest("Ana Lucia", "Hernandez", "ana.hernandez@correo.com", "+50370100101", "DUI", "04651234-5", new DateOnly(1991, 5, 14), "Salvadorena"),
@@ -493,8 +488,7 @@ public class ApplicationDbContextInitialiser
 
         var guestByEmail = guests.ToDictionary(g => g.Email);
 
-        // Users
-        var adminUser = CreateUser("admin@hotelbooking.local", "Plataforma", "Administracion", UserRole.Admin, "Admin123!");
+        var adminUser =
         var customerUser = CreateUser("cliente@hotelbooking.local", "Marvin", "Alas", UserRole.Customer, "Guest123!");
         var secondCustomerUser = CreateUser("turismo@hotelbooking.local", "Camila", "Ayala", UserRole.Customer, "Guest123!");
         var corporateCustomerUser = CreateUser("empresas@hotelbooking.local", "Rafael", "Escobar", UserRole.Customer, "Guest123!");
@@ -504,7 +498,6 @@ public class ApplicationDbContextInitialiser
 
         var roomTypeByName = roomTypes.ToDictionary(rt => rt.Name);
 
-        // Bookings
         var bookings = new List<Booking>
         {
             CreateBooking("BK-2026-0001", customerUser.Id, guestByEmail["ana.hernandez@correo.com"].Id, roomTypeByName["Habitacion Estandar Ejecutiva"].Id, today.AddDays(5), today.AddDays(8), 2, 1, 357m, "Piso alto y check-in temprano si esta disponible."),
@@ -538,7 +531,6 @@ public class ApplicationDbContextInitialiser
 
         var bookingByNumber = bookings.ToDictionary(b => b.BookingNumber);
 
-        // Payments
         var payments = new[]
         {
             CreatePayment(bookingByNumber["BK-2026-0001"].Id, "TXN-20260001", 357m, PaymentMethod.CreditCard, PaymentStatus.Captured, DateTimeOffset.UtcNow.AddDays(-2)),

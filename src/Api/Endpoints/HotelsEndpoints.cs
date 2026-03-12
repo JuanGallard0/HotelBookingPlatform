@@ -15,7 +15,6 @@ public class HotelsEndpoints : EndpointGroupBase
 
     public override void Map(RouteGroupBuilder group)
     {
-        // Hotels
         group.MapGet(GetAvailableHotels)
             .WithSummary("Search available hotels")
             .Produces<ApiResponse<PagedResponse<AvailableHotelDto>>>(StatusCodes.Status200OK)
