@@ -56,16 +56,20 @@ export async function getHotelAvailability(
   checkIn?: Date,
   checkOut?: Date,
   numberOfGuests?: number,
+  numberOfRooms?: number,
   accessToken?: string,
 ) {
   function toDateOnly(d: Date) {
     return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
   }
 
-  let url = `${API_BASE_URL}/api/v1/hotels/${hotelId}/availability?HotelId=${hotelId}`;
+  // On the server use the absolute backend URL; on the client use the Next.js proxy.
+  const base = typeof window === "undefined" ? API_BASE_URL : "";
+  let url = `${base}/api/v1/hotels/${hotelId}/availability?HotelId=${hotelId}`;
   if (checkIn) url += `&CheckIn=${toDateOnly(checkIn)}`;
   if (checkOut) url += `&CheckOut=${toDateOnly(checkOut)}`;
   if (numberOfGuests !== undefined) url += `&NumberOfGuests=${numberOfGuests}`;
+  if (numberOfRooms !== undefined) url += `&NumberOfRooms=${numberOfRooms}`;
 
   const headers: Record<string, string> = { Accept: "application/json" };
   if (accessToken) headers["Authorization"] = `Bearer ${accessToken}`;
@@ -82,6 +86,7 @@ export async function getHotelAvailability(
 
 export async function listHotels(accessToken?: string) {
   const response = await makeClient(accessToken).getAvailableHotels(
+    undefined,
     undefined,
     undefined,
     undefined,

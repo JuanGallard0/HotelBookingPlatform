@@ -1,12 +1,22 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { HotelAvailabilityDto } from "@/src/lib/api/generated/api-client";
+import { format, parse, isValid } from "date-fns";
+import { es } from "date-fns/locale";
+import { CalendarIcon } from "lucide-react";
+import { getHotelAvailability } from "@/src/lib/api/hotels";
 import type { AvailableRoomTypeDto } from "@/src/lib/api/generated/api-client";
+import { cn } from "@/src/lib/utils";
 import { Input } from "@/src/components/ui/input";
 import { Label } from "@/src/components/ui/label";
 import { Button } from "@/src/components/ui/button";
 import { Badge } from "@/src/components/ui/badge";
+import { Calendar } from "@/src/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/src/components/ui/popover";
 import {
   Table,
   TableBody,
@@ -18,6 +28,57 @@ import {
 
 function toDateOnly(d: Date) {
   return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
+}
+
+function DatePickerField({
+  label,
+  value,
+  onChange,
+  fromDate,
+}: {
+  label: string;
+  value: string;
+  onChange: (iso: string) => void;
+  fromDate?: Date;
+}) {
+  const [open, setOpen] = useState(false);
+  const selected = value ? parse(value, "yyyy-MM-dd", new Date()) : undefined;
+  const isSelected = selected && isValid(selected);
+
+  return (
+    <div className="flex flex-col gap-1">
+      <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+        {label}
+      </Label>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            className={cn(
+              "flex h-9 w-36 items-center gap-2 rounded-md border border-input bg-background px-3 text-sm transition-colors hover:bg-accent",
+              !isSelected && "text-muted-foreground",
+            )}
+          >
+            <CalendarIcon className="h-4 w-4 shrink-0 opacity-60" />
+            {isSelected ? format(selected, "dd/MM/yyyy") : "dd/mm/yyyy"}
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar
+            mode="single"
+            selected={isSelected ? selected : undefined}
+            onSelect={(day) => {
+              onChange(day ? format(day, "yyyy-MM-dd") : "");
+              setOpen(false);
+            }}
+            fromDate={fromDate ?? new Date()}
+            locale={es}
+            initialFocus
+          />
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
 }
 
 function defaultDates() {
@@ -36,25 +97,24 @@ export function HotelAvailabilitySection({ hotelId }: { hotelId: number }) {
   const [checkIn, setCheckIn] = useState(defaults.checkIn);
   const [checkOut, setCheckOut] = useState(defaults.checkOut);
   const [guests, setGuests] = useState(1);
+  const [numberOfRooms, setNumberOfRooms] = useState(1);
   const [rooms, setRooms] = useState<AvailableRoomTypeDto[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searched, setSearched] = useState(false);
 
   const fetchAvailability = useCallback(
-    async (ci: string, co: string, g: number) => {
+    async (ci: string, co: string, g: number, r: number) => {
       setLoading(true);
       setError(null);
       try {
-        const url =
-          `/api/v1/hotels/${hotelId}/availability` +
-          `?HotelId=${hotelId}&CheckIn=${ci}&CheckOut=${co}&NumberOfGuests=${g}`;
-        const res = await fetch(url);
-        const json = await res.json();
-        if (!json.success || !json.data) {
-          throw new Error(json.errorMessage ?? "Error");
-        }
-        const dto = HotelAvailabilityDto.fromJS(json.data);
+        const dto = await getHotelAvailability(
+          hotelId,
+          new Date(ci),
+          new Date(co),
+          g,
+          r,
+        );
         setRooms(dto.availableRoomTypes ?? []);
       } catch {
         setError("No se pudo cargar la disponibilidad. Intenta de nuevo.");
@@ -69,12 +129,12 @@ export function HotelAvailabilitySection({ hotelId }: { hotelId: number }) {
 
   useEffect(() => {
     const d = defaultDates();
-    fetchAvailability(d.checkIn, d.checkOut, 1);
+    fetchAvailability(d.checkIn, d.checkOut, 1, 1);
   }, [fetchAvailability]);
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    await fetchAvailability(checkIn, checkOut, guests);
+    await fetchAvailability(checkIn, checkOut, guests, numberOfRooms);
   }
 
   function handleClear() {
@@ -82,7 +142,8 @@ export function HotelAvailabilitySection({ hotelId }: { hotelId: number }) {
     setCheckIn(d.checkIn);
     setCheckOut(d.checkOut);
     setGuests(1);
-    fetchAvailability(d.checkIn, d.checkOut, 1);
+    setNumberOfRooms(1);
+    fetchAvailability(d.checkIn, d.checkOut, 1, 1);
   }
 
   return (
@@ -105,38 +166,29 @@ export function HotelAvailabilitySection({ hotelId }: { hotelId: number }) {
           className="px-6 py-5 border-b border-border bg-muted/30"
         >
           <div className="flex flex-wrap gap-4 items-end">
-            <div className="flex flex-col gap-1">
-              <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Check-in
-              </Label>
-              <Input
-                type="date"
-                required
-                value={checkIn}
-                min={toDateOnly(new Date())}
-                onChange={(e) => {
-                  setCheckIn(e.target.value);
-                  if (e.target.value >= checkOut) {
-                    const next = new Date(e.target.value);
-                    next.setUTCDate(next.getUTCDate() + 1);
-                    setCheckOut(toDateOnly(next));
-                  }
-                }}
-              />
-            </div>
+            <DatePickerField
+              label="Check-in"
+              value={checkIn}
+              onChange={(v) => {
+                setCheckIn(v);
+                if (v >= checkOut) {
+                  const next = new Date(v);
+                  next.setUTCDate(next.getUTCDate() + 1);
+                  setCheckOut(toDateOnly(next));
+                }
+              }}
+            />
 
-            <div className="flex flex-col gap-1">
-              <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Check-out
-              </Label>
-              <Input
-                type="date"
-                required
-                value={checkOut}
-                min={checkIn}
-                onChange={(e) => setCheckOut(e.target.value)}
-              />
-            </div>
+            <DatePickerField
+              label="Check-out"
+              value={checkOut}
+              onChange={setCheckOut}
+              fromDate={
+                checkIn
+                  ? new Date(new Date(checkIn).getTime() + 86400000)
+                  : new Date()
+              }
+            />
 
             <div className="flex flex-col gap-1">
               <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -149,6 +201,21 @@ export function HotelAvailabilitySection({ hotelId }: { hotelId: number }) {
                 max={20}
                 value={guests}
                 onChange={(e) => setGuests(Number(e.target.value))}
+                className="w-24"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Habitaciones
+              </Label>
+              <Input
+                type="number"
+                required
+                min={1}
+                max={20}
+                value={numberOfRooms}
+                onChange={(e) => setNumberOfRooms(Number(e.target.value))}
                 className="w-24"
               />
             </div>

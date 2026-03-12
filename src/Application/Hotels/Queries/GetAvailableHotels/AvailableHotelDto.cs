@@ -10,10 +10,10 @@ public sealed record AvailableHotelDto
     public string Country { get; init; } = string.Empty;
     public int StarRating { get; init; }
     public int AvailableRoomTypeCount { get; init; }
-    public int TotalAvailableRooms { get; init; }
+    public int? TotalAvailableRooms { get; init; }
     public int MaxSupportedOccupancy { get; init; }
     public decimal PricePerNightFrom { get; init; }
-    public decimal TotalPriceFrom { get; init; }
+    public decimal? TotalPriceFrom { get; init; }
     public decimal? DiscountPercentage { get; init; }
     public string Currency { get; init; } = "USD";
 }

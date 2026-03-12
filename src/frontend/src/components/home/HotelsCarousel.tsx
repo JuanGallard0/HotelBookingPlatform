@@ -38,6 +38,7 @@ export function HotelsCarousel() {
         undefined,
         undefined,
         undefined,
+        undefined,
         1,
         10,
         "StarRating",

@@ -30,6 +30,13 @@ import {
 } from "@/src/components/ui/sheet";
 import { SlidersHorizontal } from "lucide-react";
 
+/** Returns a Date whose .toISOString() yields "YYYY-MM-DD" (no time/timezone). */
+function toDateOnly(iso: string): Date {
+  const d = new Date(iso);
+  d.toISOString = () => iso;
+  return d;
+}
+
 function SkeletonRow() {
   return (
     <div className="flex gap-5 rounded-2xl border border-border p-4">
@@ -111,13 +118,16 @@ export function HotelCatalog() {
   useEffect(() => {
     const sp = searchParams;
     const checkIn = sp.get("checkIn")
-      ? new Date(sp.get("checkIn")!)
+      ? toDateOnly(sp.get("checkIn")!)
       : undefined;
     const checkOut = sp.get("checkOut")
-      ? new Date(sp.get("checkOut")!)
+      ? toDateOnly(sp.get("checkOut")!)
       : undefined;
     const numberOfGuests = sp.get("numberOfGuests")
       ? parseInt(sp.get("numberOfGuests")!, 10)
+      : undefined;
+    const numberOfRooms = sp.get("numberOfRooms")
+      ? parseInt(sp.get("numberOfRooms")!, 10)
       : undefined;
 
     new HotelsClient()
@@ -129,6 +139,7 @@ export function HotelCatalog() {
         checkIn,
         checkOut,
         numberOfGuests,
+        numberOfRooms,
         page,
         PAGE_SIZE,
         sortBy,

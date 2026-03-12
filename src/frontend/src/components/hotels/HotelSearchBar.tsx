@@ -2,24 +2,78 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type SyntheticEvent } from "react";
+import { format, parse, isValid } from "date-fns";
+import { es } from "date-fns/locale";
+import { CalendarIcon } from "lucide-react";
 import { cn } from "@/src/lib/utils";
 import { Input } from "@/src/components/ui/input";
 import { Label } from "@/src/components/ui/label";
 import { Button } from "@/src/components/ui/button";
+import { Calendar } from "@/src/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/src/components/ui/popover";
 
 interface HotelSearchBarProps {
-  /** Extra classes applied to the outer <form> element */
   className?: string;
-  /**
-   * "dark" (default) — labels in blue-100; for use on dark/hero backgrounds.
-   * "light" — labels in slate-600; for use on light page backgrounds.
-   */
   variant?: "dark" | "light";
-  /**
-   * When true, uses router.replace instead of router.push so the catalog
-   * refreshes in place without adding a new history entry.
-   */
   replace?: boolean;
+}
+
+function DatePickerField({
+  label,
+  value,
+  onChange,
+  fromDate,
+  labelCls,
+  triggerCls,
+}: {
+  label: string;
+  value: string;
+  onChange: (iso: string) => void;
+  fromDate?: Date;
+  labelCls: string;
+  triggerCls: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const selected = value ? parse(value, "yyyy-MM-dd", new Date()) : undefined;
+  const isSelected = selected && isValid(selected);
+
+  return (
+    <div className="flex flex-col gap-1">
+      <Label className={labelCls}>{label}</Label>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            className={cn(
+              "flex h-9 w-36 items-center gap-2 rounded-md border px-3 text-sm transition-colors",
+              triggerCls,
+              !isSelected && "text-muted-foreground",
+            )}
+          >
+            <CalendarIcon className="h-4 w-4 shrink-0 opacity-60" />
+            {isSelected ? format(selected, "dd/MM/yyyy") : "dd/mm/yyyy"}
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar
+            mode="single"
+            selected={isSelected ? selected : undefined}
+            onSelect={(day) => {
+              onChange(day ? format(day, "yyyy-MM-dd") : "");
+              setOpen(false);
+            }}
+            fromDate={fromDate ?? new Date()}
+            locale={es}
+            initialFocus
+          />
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
 }
 
 export function HotelSearchBar({
@@ -32,6 +86,7 @@ export function HotelSearchBar({
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [guests, setGuests] = useState("");
+  const [rooms, setRooms] = useState("");
 
   const labelCls = cn(
     "text-xs font-semibold uppercase tracking-wide",
@@ -41,6 +96,11 @@ export function HotelSearchBar({
   const inputCls =
     variant === "dark" ? "border-0 bg-white focus-visible:ring-blue-300" : "";
 
+  const triggerCls =
+    variant === "dark"
+      ? "border-0 bg-white text-slate-900 hover:bg-white/90 focus-visible:ring-blue-300"
+      : "border-border bg-background hover:bg-accent";
+
   function handleSearch(e: SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
     const params = new URLSearchParams();
@@ -48,6 +108,7 @@ export function HotelSearchBar({
     if (checkIn) params.set("checkIn", checkIn);
     if (checkOut) params.set("checkOut", checkOut);
     if (guests) params.set("numberOfGuests", guests);
+    if (rooms) params.set("numberOfRooms", rooms);
     const url = `/hotels?${params.toString()}`;
     if (replace) {
       router.replace(url);
@@ -55,6 +116,14 @@ export function HotelSearchBar({
       router.push(url);
     }
   }
+
+  const checkInDate = checkIn
+    ? parse(checkIn, "yyyy-MM-dd", new Date())
+    : undefined;
+  const minCheckOut =
+    checkInDate && isValid(checkInDate)
+      ? new Date(checkInDate.getTime() + 86400000)
+      : new Date();
 
   return (
     <form
@@ -72,25 +141,26 @@ export function HotelSearchBar({
         />
       </div>
 
-      <div className="flex flex-col gap-1">
-        <Label className={labelCls}>Entrada</Label>
-        <Input
-          type="date"
-          value={checkIn}
-          onChange={(e) => setCheckIn(e.target.value)}
-          className={inputCls}
-        />
-      </div>
+      <DatePickerField
+        label="Entrada"
+        value={checkIn}
+        onChange={(v) => {
+          setCheckIn(v);
+          // clear checkout if it's now before checkin
+          if (checkOut && v >= checkOut) setCheckOut("");
+        }}
+        labelCls={labelCls}
+        triggerCls={triggerCls}
+      />
 
-      <div className="flex flex-col gap-1">
-        <Label className={labelCls}>Salida</Label>
-        <Input
-          type="date"
-          value={checkOut}
-          onChange={(e) => setCheckOut(e.target.value)}
-          className={inputCls}
-        />
-      </div>
+      <DatePickerField
+        label="Salida"
+        value={checkOut}
+        onChange={setCheckOut}
+        fromDate={minCheckOut}
+        labelCls={labelCls}
+        triggerCls={triggerCls}
+      />
 
       <div className="flex flex-col gap-1">
         <Label className={labelCls}>Huespedes</Label>
@@ -100,6 +170,18 @@ export function HotelSearchBar({
           placeholder="1"
           value={guests}
           onChange={(e) => setGuests(e.target.value)}
+          className={cn("w-24", inputCls)}
+        />
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <Label className={labelCls}>Habitaciones</Label>
+        <Input
+          type="number"
+          min={1}
+          placeholder="1"
+          value={rooms}
+          onChange={(e) => setRooms(e.target.value)}
           className={cn("w-24", inputCls)}
         />
       </div>

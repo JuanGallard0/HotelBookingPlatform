@@ -5,11 +5,15 @@ public class GetHotelAvailabilityQueryValidator : AbstractValidator<GetHotelAvai
     public GetHotelAvailabilityQueryValidator(TimeProvider timeProvider)
     {
         RuleFor(x => x.CheckIn)
-            .NotNull()
-            .WithMessage("Check-in date is required.");
+            .NotEqual(default(DateOnly))
+            .WithMessage("Check-in date is required.")
+            .GreaterThanOrEqualTo(_ => DateOnly.FromDateTime(timeProvider.GetUtcNow().Date))
+            .WithMessage("Check-in date cannot be in the past.")
+            .LessThan(x => x.CheckOut)
+            .WithMessage("Check-in must be before check-out.");
 
         RuleFor(x => x.CheckOut)
-            .NotNull()
+            .NotEqual(default(DateOnly))
             .WithMessage("Check-out date is required.");
 
         RuleFor(x => x.NumberOfGuests)
@@ -17,15 +21,9 @@ public class GetHotelAvailabilityQueryValidator : AbstractValidator<GetHotelAvai
             .When(x => x.NumberOfGuests.HasValue)
             .WithMessage("Number of guests must be greater than 0.");
 
-        When(x => x.CheckIn.HasValue && x.CheckOut.HasValue, () =>
-        {
-            RuleFor(x => x.CheckIn!.Value)
-                .LessThan(x => x.CheckOut!.Value)
-                .WithMessage("Check-in must be before check-out.");
-
-            RuleFor(x => x.CheckIn!.Value)
-                .GreaterThanOrEqualTo(_ => DateOnly.FromDateTime(timeProvider.GetUtcNow().Date))
-                .WithMessage("Check-in date cannot be in the past.");
-        });
+        RuleFor(x => x.NumberOfRooms)
+            .GreaterThan(0)
+            .When(x => x.NumberOfRooms.HasValue)
+            .WithMessage("Number of rooms must be greater than 0.");
     }
 }

@@ -17,6 +17,11 @@ public class GetAvailableHotelsQueryValidator : PagedSortedRequestValidator<GetA
             .When(x => x.NumberOfGuests.HasValue)
             .WithMessage("Number of guests must be greater than 0.");
 
+        RuleFor(x => x.NumberOfRooms)
+            .GreaterThan(0)
+            .When(x => x.NumberOfRooms.HasValue)
+            .WithMessage("Number of rooms must be greater than 0.");
+
         RuleFor(x => x.CheckIn)
             .NotNull()
             .When(x => x.CheckOut.HasValue)

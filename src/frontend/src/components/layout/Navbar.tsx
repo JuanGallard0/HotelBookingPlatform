@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { Menu } from "lucide-react";
+import { useSyncExternalStore } from "react";
+import { ChevronDown } from "lucide-react";
 import { useAuth } from "@/src/context/AuthContext";
 import { Button } from "@/src/components/ui/button";
 import {
@@ -14,13 +14,19 @@ import {
   DropdownMenuTrigger,
 } from "@/src/components/ui/dropdown-menu";
 
-export function Navbar() {
-  const [mounted, setMounted] = useState(false);
-  const { user, openModal, logoutUser } = useAuth();
+// Returns false on the server (and during hydration), true after mount on the client.
+// This prevents hydration mismatches when auth state is read from localStorage.
+function useIsMounted() {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+}
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+export function Navbar() {
+  const { user, openModal, logoutUser } = useAuth();
+  const mounted = useIsMounted();
 
   return (
     <header className="border-b border-border bg-background">
@@ -42,51 +48,39 @@ export function Navbar() {
           aria-label="Navegacion principal"
           className="flex items-center gap-3"
         >
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="gap-2">
-                <Menu className="h-5 w-5" />
-                Menu
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-52">
-              {user && (
-                <>
-                  <DropdownMenuLabel className="font-normal">
-                    <p className="font-medium text-foreground truncate">
-                      {user.fullName || `${user.firstName} ${user.lastName}`}
-                    </p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {user.email}
-                    </p>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                </>
-              )}
-              <DropdownMenuItem asChild>
-                <Link href="/account/reservations">Mis reservas</Link>
-              </DropdownMenuItem>
-              {user && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={logoutUser}
-                    className="text-destructive focus:text-destructive"
-                  >
-                    Cerrar sesión
-                  </DropdownMenuItem>
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
           {mounted && user ? (
-            <button className="flex items-center gap-2 rounded-full bg-muted pl-2 pr-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted/80">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-                {user.firstName?.[0]?.toUpperCase() ?? "U"}
-              </span>
-              {user.firstName}
-            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2 rounded-full border border-border bg-muted pl-2 pr-2.5 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring group">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                    {user.firstName?.[0]?.toUpperCase() ?? "U"}
+                  </span>
+                  {user.firstName}
+                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel className="font-normal">
+                  <p className="font-medium text-foreground truncate">
+                    {user.fullName || `${user.firstName} ${user.lastName}`}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {user.email}
+                  </p>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/account/reservations">Mis reservas</Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={logoutUser}
+                  className="cursor-pointer text-destructive focus:text-destructive"
+                >
+                  Cerrar sesión
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
             <Button onClick={() => openModal("login")}>Iniciar sesión</Button>
           )}

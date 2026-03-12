@@ -18,8 +18,8 @@ public class GetHotelAvailabilityQueryHandler(
         if (!hotelExists)
             return Result<HotelAvailabilityDto>.NotFound($"Hotel with id {request.HotelId} was not found.");
 
-        var checkIn = request.CheckIn!.Value;
-        var checkOut = request.CheckOut!.Value;
+        var checkIn = request.CheckIn;
+        var checkOut = request.CheckOut;
         var nights = checkOut.DayNumber - checkIn.DayNumber;
 
         var roomTypes = await hotelQueryService.GetHotelAvailabilityAsync(request, cancellationToken);

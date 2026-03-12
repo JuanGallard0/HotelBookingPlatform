@@ -41,4 +41,4 @@ yarn-error.log*
 next-env.d.ts
 
 # generated api client
-/src/lib/api/generated/api-client.ts
+# /src/lib/api/generated/api-client.ts

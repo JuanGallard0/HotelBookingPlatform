@@ -12,6 +12,7 @@ public record GetAvailableHotelsQuery : PagedSortedRequest, IRequest<Result<Page
     public DateOnly? CheckIn { get; init; }
     public DateOnly? CheckOut { get; init; }
     public int? NumberOfGuests { get; init; }
+    public int? NumberOfRooms { get; init; }
 
     public static readonly IReadOnlySet<string> AllowedSortColumns =
         new HashSet<string>(StringComparer.OrdinalIgnoreCase)

@@ -43,6 +43,7 @@ public sealed class HotelQueryService(IDbConnectionFactory connectionFactory) : 
             CheckOut = (DateTime?)checkOut,
             Nights = nights,
             query.NumberOfGuests,
+            NumberOfRooms = query.NumberOfRooms ?? 1,
             Offset = (pageNumber - 1) * pageSize,
             PageSize = pageSize
         };
@@ -61,7 +62,7 @@ public sealed class HotelQueryService(IDbConnectionFactory connectionFactory) : 
                 avail.TotalAvailableRooms,
                 avail.MaxSupportedOccupancy,
                 avail.PricePerNightFrom,
-                avail.PricePerNightFrom * @Nights AS TotalPriceFrom,
+                CASE WHEN @CheckIn IS NOT NULL THEN avail.PricePerNightFrom * @Nights ELSE NULL END AS TotalPriceFrom,
                 (
                     SELECT TOP 1 best_rp.DiscountPercentage
                     FROM RoomTypes rt2
@@ -73,7 +74,7 @@ public sealed class HotelQueryService(IDbConnectionFactory connectionFactory) : 
                           AND ri2.Date < @CheckOut
                         GROUP BY ri2.RoomTypeId
                         HAVING COUNT(ri2.Date) = @Nights
-                           AND MIN(ri2.AvailableRooms) > 0
+                           AND MIN(ri2.AvailableRooms) >= @NumberOfRooms
                     ) avail_check
                         ON avail_check.RoomTypeId = rt2.Id
                     OUTER APPLY (
@@ -101,7 +102,7 @@ public sealed class HotelQueryService(IDbConnectionFactory connectionFactory) : 
                 SELECT
                     rt.HotelId,
                     COUNT(DISTINCT rt.Id) AS AvailableRoomTypeCount,
-                    ISNULL(SUM(min_ri.MinAvailable), 0) AS TotalAvailableRooms,
+                    CASE WHEN @CheckIn IS NOT NULL THEN ISNULL(SUM(min_ri.MinAvailable), 0) ELSE NULL END AS TotalAvailableRooms,
                     MAX(rt.MaxOccupancy) AS MaxSupportedOccupancy,
                     MIN(COALESCE(best_rp.PricePerNight, rt.BasePrice)) AS PricePerNightFrom
                 FROM RoomTypes rt
@@ -114,7 +115,7 @@ public sealed class HotelQueryService(IDbConnectionFactory connectionFactory) : 
                       AND ri.Date < @CheckOut
                     GROUP BY ri.RoomTypeId
                     HAVING COUNT(ri.Date) = @Nights
-                       AND MIN(ri.AvailableRooms) > 0
+                       AND MIN(ri.AvailableRooms) >= @NumberOfRooms
                 ) min_ri
                     ON min_ri.RoomTypeId = rt.Id
                 OUTER APPLY (
@@ -157,7 +158,7 @@ public sealed class HotelQueryService(IDbConnectionFactory connectionFactory) : 
                       AND ri.Date < @CheckOut
                     GROUP BY ri.RoomTypeId
                     HAVING COUNT(ri.Date) = @Nights
-                       AND MIN(ri.AvailableRooms) > 0
+                       AND MIN(ri.AvailableRooms) >= @NumberOfRooms
                 ) min_ri
                     ON min_ri.RoomTypeId = rt.Id
                 WHERE rt.IsActive = 1
@@ -233,9 +234,9 @@ public sealed class HotelQueryService(IDbConnectionFactory connectionFactory) : 
     {
         using var connection = connectionFactory.CreateConnection();
 
-        var checkIn = query.CheckIn!.Value.ToDateTime(TimeOnly.MinValue);
-        var checkOut = query.CheckOut!.Value.ToDateTime(TimeOnly.MinValue);
-        var nights = query.CheckOut.Value.DayNumber - query.CheckIn.Value.DayNumber;
+        var checkIn = query.CheckIn.ToDateTime(TimeOnly.MinValue);
+        var checkOut = query.CheckOut.ToDateTime(TimeOnly.MinValue);
+        var nights = query.CheckOut.DayNumber - query.CheckIn.DayNumber;
 
         var roomTypes = await connection.QueryAsync<AvailableRoomTypeDto>(
             new CommandDefinition(
@@ -260,7 +261,7 @@ public sealed class HotelQueryService(IDbConnectionFactory connectionFactory) : 
                       AND ri.Date < @CheckOut
                     GROUP BY ri.RoomTypeId
                     HAVING COUNT(ri.Date) = @Nights
-                       AND MIN(ri.AvailableRooms) > 0
+                       AND MIN(ri.AvailableRooms) >= @NumberOfRooms
                 ) avail ON avail.RoomTypeId = rt.Id
                 OUTER APPLY (
                     SELECT TOP 1
@@ -285,6 +286,7 @@ public sealed class HotelQueryService(IDbConnectionFactory connectionFactory) : 
                     CheckOut = checkOut,
                     Nights = nights,
                     query.NumberOfGuests,
+                    NumberOfRooms = query.NumberOfRooms ?? 1,
                 },
                 cancellationToken: cancellationToken));
 
