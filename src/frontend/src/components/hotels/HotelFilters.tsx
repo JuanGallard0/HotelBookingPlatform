@@ -1,3 +1,7 @@
+import { cn } from "@/src/lib/utils";
+import { Button } from "@/src/components/ui/button";
+import { Separator } from "@/src/components/ui/separator";
+
 export interface HotelFilterValues {
   country: string;
   city: string;
@@ -55,22 +59,28 @@ export function HotelFilters({ values, onChange }: HotelFiltersProps) {
       : CA_DATA.map((d) => d.city);
 
   return (
-    <div className="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+    <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-semibold text-slate-700">Filtros</span>
+        <span className="text-sm font-semibold text-card-foreground">
+          Filtros
+        </span>
         {hasFilters && (
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={clearAll}
-            className="text-xs font-medium text-blue-600 hover:text-blue-700"
+            className="h-auto px-2 py-1 text-xs text-primary"
           >
             Limpiar todo
-          </button>
+          </Button>
         )}
       </div>
 
+      <Separator />
+
       {/* Star rating */}
       <div className="flex flex-col gap-2">
-        <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           Estrellas
         </span>
         <div className="flex items-center gap-1">
@@ -87,11 +97,12 @@ export function HotelFilters({ values, onChange }: HotelFiltersProps) {
               className="focus:outline-none"
             >
               <svg
-                className={`h-6 w-6 transition-colors ${
+                className={cn(
+                  "h-6 w-6 transition-colors",
                   values.starRating !== null && star <= values.starRating
                     ? "text-amber-400"
-                    : "text-slate-200 hover:text-amber-300"
-                }`}
+                    : "text-slate-200 hover:text-amber-300",
+                )}
                 fill="currentColor"
                 viewBox="0 0 20 20"
               >
@@ -102,7 +113,7 @@ export function HotelFilters({ values, onChange }: HotelFiltersProps) {
           {values.starRating !== null && (
             <button
               onClick={() => setStarRating(null)}
-              className="ml-1 text-xs text-slate-400 hover:text-slate-600"
+              className="ml-1 text-xs text-muted-foreground hover:text-foreground"
               aria-label="Limpiar estrellas"
             >
               ✕
@@ -110,16 +121,18 @@ export function HotelFilters({ values, onChange }: HotelFiltersProps) {
           )}
         </div>
         {values.starRating !== null && (
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-muted-foreground">
             {values.starRating} estrella{values.starRating !== 1 ? "s" : ""} o
             más
           </p>
         )}
       </div>
 
+      <Separator />
+
       {/* Country */}
       <div className="flex flex-col gap-2">
-        <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           País
         </span>
         <div className="flex flex-wrap gap-1.5">
@@ -130,11 +143,12 @@ export function HotelFilters({ values, onChange }: HotelFiltersProps) {
                 setCountry(values.country === country ? "" : country)
               }
               aria-pressed={values.country === country}
-              className={`rounded-full border px-2.5 py-1 text-xs font-medium transition ${
+              className={cn(
+                "rounded-full border px-2.5 py-1 text-xs font-medium transition",
                 values.country === country
-                  ? "border-blue-600 bg-blue-600 text-white"
-                  : "border-slate-200 bg-slate-50 text-slate-600 hover:border-blue-300 hover:bg-blue-50"
-              }`}
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border bg-muted text-muted-foreground hover:border-primary/40 hover:bg-primary/10",
+              )}
             >
               {country}
             </button>
@@ -142,9 +156,11 @@ export function HotelFilters({ values, onChange }: HotelFiltersProps) {
         </div>
       </div>
 
+      <Separator />
+
       {/* City */}
       <div className="flex flex-col gap-2">
-        <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           Ciudad
         </span>
         <div className="flex flex-wrap gap-1.5">
@@ -153,11 +169,12 @@ export function HotelFilters({ values, onChange }: HotelFiltersProps) {
               key={city}
               onClick={() => setCity(values.city === city ? "" : city)}
               aria-pressed={values.city === city}
-              className={`rounded-full border px-2.5 py-1 text-xs font-medium transition ${
+              className={cn(
+                "rounded-full border px-2.5 py-1 text-xs font-medium transition",
                 values.city === city
-                  ? "border-blue-600 bg-blue-600 text-white"
-                  : "border-slate-200 bg-slate-50 text-slate-600 hover:border-blue-300 hover:bg-blue-50"
-              }`}
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border bg-muted text-muted-foreground hover:border-primary/40 hover:bg-primary/10",
+              )}
             >
               {city}
             </button>

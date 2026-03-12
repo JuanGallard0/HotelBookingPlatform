@@ -3,6 +3,18 @@
 import { useState, useEffect, useCallback } from "react";
 import { HotelAvailabilityDto } from "@/src/lib/api/generated/api-client";
 import type { AvailableRoomTypeDto } from "@/src/lib/api/generated/api-client";
+import { Input } from "@/src/components/ui/input";
+import { Label } from "@/src/components/ui/label";
+import { Button } from "@/src/components/ui/button";
+import { Badge } from "@/src/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/src/components/ui/table";
 
 function toDateOnly(d: Date) {
   return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
@@ -75,13 +87,13 @@ export function HotelAvailabilitySection({ hotelId }: { hotelId: number }) {
 
   return (
     <section id="availability" className="mt-10">
-      <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
         {/* Header */}
-        <div className="px-6 py-5 border-b border-slate-100">
-          <h2 className="text-xl font-semibold text-slate-900">
+        <div className="px-6 py-5 border-b border-border">
+          <h2 className="text-xl font-semibold text-card-foreground">
             Disponibilidad de habitaciones
           </h2>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-muted-foreground">
             Selecciona fechas y número de huéspedes para consultar
             disponibilidad.
           </p>
@@ -90,14 +102,14 @@ export function HotelAvailabilitySection({ hotelId }: { hotelId: number }) {
         {/* Filter form */}
         <form
           onSubmit={handleSearch}
-          className="px-6 py-5 border-b border-slate-100 bg-slate-50"
+          className="px-6 py-5 border-b border-border bg-muted/30"
         >
           <div className="flex flex-wrap gap-4 items-end">
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium uppercase tracking-wide text-slate-500">
+              <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 Check-in
-              </label>
-              <input
+              </Label>
+              <Input
                 type="date"
                 required
                 value={checkIn}
@@ -110,54 +122,48 @@ export function HotelAvailabilitySection({ hotelId }: { hotelId: number }) {
                     setCheckOut(toDateOnly(next));
                   }
                 }}
-                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium uppercase tracking-wide text-slate-500">
+              <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 Check-out
-              </label>
-              <input
+              </Label>
+              <Input
                 type="date"
                 required
                 value={checkOut}
                 min={checkIn}
                 onChange={(e) => setCheckOut(e.target.value)}
-                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium uppercase tracking-wide text-slate-500">
+              <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 Huéspedes
-              </label>
-              <input
+              </Label>
+              <Input
                 type="number"
                 required
                 min={1}
                 max={20}
                 value={guests}
                 onChange={(e) => setGuests(Number(e.target.value))}
-                className="w-24 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-24"
               />
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+            <Button type="submit" disabled={loading}>
               {loading ? "Buscando…" : "Buscar"}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="outline"
               disabled={loading}
               onClick={handleClear}
-              className="rounded-lg border border-slate-200 bg-white px-5 py-2 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Limpiar
-            </button>
+            </Button>
           </div>
         </form>
 
@@ -171,106 +177,212 @@ export function HotelAvailabilitySection({ hotelId }: { hotelId: number }) {
         )}
 
         {rooms && rooms.length > 0 && (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-xs font-medium uppercase tracking-wide text-slate-500">
-                <tr>
-                  <th className="px-6 py-4 text-left">Habitación</th>
-                  <th className="px-6 py-4 text-center">Capacidad</th>
-                  <th className="px-6 py-4 text-center">Disponibles</th>
-                  <th className="px-6 py-4 text-right">Precio / noche</th>
-                  <th className="px-6 py-4 text-right">Precio final</th>
-                  <th className="px-6 py-4 text-center">Acción</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {rooms.map((room) => {
-                  const discount = room.discountPercentage ?? 0;
-                  const base = room.pricePerNight ?? 0;
-                  const final =
-                    discount > 0 ? base * (1 - discount / 100) : null;
-                  const available = room.availableRooms ?? 0;
-                  return (
-                    <tr
-                      key={room.roomTypeId}
-                      className="hover:bg-slate-50 transition-colors"
-                    >
-                      <td className="px-6 py-6 max-w-xs">
-                        <p className="font-semibold text-slate-900">
+          <>
+            {/* ── Mobile cards (< md) ── */}
+            <div className="md:hidden divide-y divide-border">
+              {rooms.map((room) => {
+                const discount = room.discountPercentage ?? 0;
+                const base = room.pricePerNight ?? 0;
+                const total = room.totalPrice ?? base * (1 - discount / 100);
+                const available = room.availableRooms ?? 0;
+                return (
+                  <div
+                    key={room.roomTypeId}
+                    className="px-5 py-5 flex flex-col gap-3"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-semibold text-card-foreground">
                           {room.name}
                         </p>
                         {room.description && (
-                          <p className="mt-1 text-xs text-slate-500 line-clamp-2">
+                          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                             {room.description}
                           </p>
                         )}
-                      </td>
-                      <td className="px-6 py-6 text-center">
-                        <span className="inline-flex items-center gap-1 text-slate-700">
-                          <svg
-                            className="h-4 w-4 text-slate-400"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth={1.8}
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
-                            />
-                          </svg>
-                          {room.maxOccupancy}
-                        </span>
-                      </td>
-                      <td className="px-6 py-6 text-center">
+                      </div>
+                      <Badge
+                        className={`shrink-0 ${available > 0 ? "bg-green-100 text-green-700 hover:bg-green-100" : "bg-red-100 text-red-600 hover:bg-red-100"}`}
+                      >
                         <span
-                          className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium ${
-                            available > 0
-                              ? "bg-green-100 text-green-700"
-                              : "bg-red-100 text-red-600"
-                          }`}
+                          className={`h-1.5 w-1.5 rounded-full ${available > 0 ? "bg-green-500" : "bg-red-500"}`}
+                        />
+                        {available > 0 ? `${available} disp.` : "Agotado"}
+                      </Badge>
+                    </div>
+
+                    <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
+                      <span className="flex items-center gap-1 text-muted-foreground">
+                        <svg
+                          className="h-3.5 w-3.5"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={1.8}
+                          viewBox="0 0 24 24"
                         >
-                          <span
-                            className={`h-1.5 w-1.5 rounded-full ${available > 0 ? "bg-green-500" : "bg-red-500"}`}
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
                           />
-                          {available > 0
-                            ? `${available} disponibles`
-                            : "Sin disponibilidad"}
-                        </span>
-                      </td>
-                      <td className="px-6 py-6 text-right">
-                        <p
-                          className={`font-medium ${final ? "text-slate-400 line-through text-xs" : "text-slate-900"}`}
-                        >
-                          {base.toFixed(2)} {room.currency}
-                        </p>
+                        </svg>
+                        {room.maxOccupancy} huéspedes
+                      </span>
+                      {discount > 0 && (
+                        <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100">
+                          -{discount}%
+                        </Badge>
+                      )}
+                    </div>
+
+                    <div className="flex items-end justify-between">
+                      <div>
                         {discount > 0 && (
-                          <span className="mt-1 inline-block rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
-                            -{discount}%
-                          </span>
+                          <p className="text-xs text-muted-foreground line-through">
+                            {base.toFixed(2)} {room.currency} / noche
+                          </p>
                         )}
-                      </td>
-                      <td className="px-6 py-6 text-right">
-                        <p className="text-base font-bold text-slate-900">
-                          {(final ?? base).toFixed(2)} {room.currency}
+                        <p className="text-xs text-muted-foreground">
+                          {discount === 0
+                            ? `${base.toFixed(2)} ${room.currency} / noche`
+                            : ""}
                         </p>
-                        <p className="text-xs text-slate-400">por noche</p>
-                      </td>
-                      <td className="px-6 py-6 text-center">
-                        <button
-                          disabled={available === 0}
-                          className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
-                        >
-                          Reservar
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                        <p className="text-lg font-bold text-card-foreground">
+                          {total.toFixed(2)} {room.currency}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          precio total
+                        </p>
+                      </div>
+                      <Button size="sm" disabled={available === 0}>
+                        Reservar
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* ── Desktop table (>= md) ── */}
+            <div className="hidden md:block overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="py-4 text-sm">Habitación</TableHead>
+                    <TableHead className="py-4 text-center text-sm">
+                      Capacidad
+                    </TableHead>
+                    <TableHead className="py-4 text-center text-sm">
+                      Disponibles
+                    </TableHead>
+                    <TableHead className="py-4 text-right text-sm">
+                      Precio / noche
+                    </TableHead>
+                    <TableHead className="py-4 text-right text-sm">
+                      Descuento
+                    </TableHead>
+                    <TableHead className="py-4 text-right text-sm">
+                      Total estancia
+                    </TableHead>
+                    <TableHead className="py-4 text-center text-sm">
+                      Acción
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {rooms.map((room) => {
+                    const discount = room.discountPercentage ?? 0;
+                    const base = room.pricePerNight ?? 0;
+                    const total =
+                      room.totalPrice ?? base * (1 - discount / 100);
+                    const available = room.availableRooms ?? 0;
+                    return (
+                      <TableRow key={room.roomTypeId} className="align-top">
+                        <TableCell className="py-5 max-w-sm">
+                          <p className="text-sm font-semibold text-card-foreground">
+                            {room.name}
+                          </p>
+                          {room.description && (
+                            <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+                              {room.description}
+                            </p>
+                          )}
+                        </TableCell>
+                        <TableCell className="py-5 text-center">
+                          <span className="inline-flex items-center gap-1.5 text-sm text-foreground">
+                            <svg
+                              className="h-4 w-4 text-muted-foreground"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth={1.8}
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
+                              />
+                            </svg>
+                            {room.maxOccupancy} huéspedes
+                          </span>
+                        </TableCell>
+                        <TableCell className="py-5 text-center">
+                          <Badge
+                            className={
+                              available > 0
+                                ? "bg-green-100 text-green-700 hover:bg-green-100"
+                                : "bg-red-100 text-red-600 hover:bg-red-100"
+                            }
+                          >
+                            <span
+                              className={`h-1.5 w-1.5 rounded-full ${available > 0 ? "bg-green-500" : "bg-red-500"}`}
+                            />
+                            {available > 0
+                              ? `${available} disponibles`
+                              : "Sin disponibilidad"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="py-5 text-right">
+                          <p
+                            className={`text-sm font-medium ${discount > 0 ? "text-muted-foreground line-through" : "text-card-foreground"}`}
+                          >
+                            {base.toFixed(2)} {room.currency}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            por noche
+                          </p>
+                        </TableCell>
+                        <TableCell className="py-5 text-right">
+                          {discount > 0 ? (
+                            <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100">
+                              -{discount}%
+                            </Badge>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">
+                              —
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell className="py-5 text-right">
+                          <p className="text-base font-bold text-card-foreground">
+                            {total.toFixed(2)} {room.currency}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            precio total
+                          </p>
+                        </TableCell>
+                        <TableCell className="py-5 text-center">
+                          <Button size="sm" disabled={available === 0}>
+                            Reservar
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </>
         )}
       </div>
     </section>

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { ArrowDown, ArrowUp } from "lucide-react";
 import { HotelsClient } from "@/src/lib/api/generated/api-client";
 import {
   HotelListCard,
@@ -11,16 +12,33 @@ import {
   HotelFilters,
   type HotelFilterValues,
 } from "@/src/components/hotels/HotelFilters";
+import { Button } from "@/src/components/ui/button";
+import { Skeleton } from "@/src/components/ui/skeleton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/src/components/ui/select";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/src/components/ui/sheet";
+import { SlidersHorizontal } from "lucide-react";
 
 function SkeletonRow() {
   return (
-    <div className="flex gap-5 rounded-2xl border border-slate-200 bg-white p-4 animate-pulse">
-      <div className="h-28 w-36 shrink-0 rounded-xl bg-slate-100" />
+    <div className="flex gap-5 rounded-2xl border border-border p-4">
+      <Skeleton className="min-h-32 w-40 shrink-0 rounded-xl" />
       <div className="flex flex-1 flex-col gap-2 py-1">
-        <div className="h-4 w-1/2 rounded bg-slate-100" />
-        <div className="h-3 w-1/3 rounded bg-slate-100" />
-        <div className="h-3 w-full rounded bg-slate-100" />
-        <div className="h-3 w-4/5 rounded bg-slate-100" />
+        <Skeleton className="h-4 w-1/2" />
+        <Skeleton className="h-3 w-1/3" />
+        <Skeleton className="h-3 w-full" />
+        <Skeleton className="h-3 w-4/5" />
       </div>
     </div>
   );
@@ -132,6 +150,7 @@ export function HotelCatalog() {
 
   return (
     <div className="flex gap-6 items-start">
+      {/* Desktop sidebar */}
       <aside className="hidden w-52 shrink-0 lg:block">
         <HotelFilters
           values={filters}
@@ -163,47 +182,114 @@ export function HotelCatalog() {
 
         {/* Results header */}
         {hotels.length > 0 && (
-          <div className="flex items-center justify-between gap-4">
-            <p className="text-sm text-slate-500">
-              {total} hotel{total !== 1 ? "es" : ""} encontrado
-              {total !== 1 ? "s" : ""}
-            </p>
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <label
-                htmlFor="sort-select"
-                className="text-xs font-medium text-slate-500"
-              >
+              {/* Mobile filter trigger */}
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="lg:hidden flex items-center gap-1.5"
+                  >
+                    <SlidersHorizontal className="h-3.5 w-3.5" />
+                    Filtros
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-72 overflow-y-auto">
+                  <SheetHeader>
+                    <SheetTitle>Filtros</SheetTitle>
+                  </SheetHeader>
+                  <div className="mt-4">
+                    <HotelFilters
+                      values={filters}
+                      onChange={(v) => {
+                        setFilters(v);
+                        setPage(1);
+                      }}
+                    />
+                  </div>
+                </SheetContent>
+              </Sheet>
+              <p className="text-sm text-slate-500">
+                {total} hotel{total !== 1 ? "es" : ""} encontrado
+                {total !== 1 ? "s" : ""}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium text-muted-foreground">
                 Ordenar por
-              </label>
-              <select
-                id="sort-select"
+              </span>
+              <Select
                 value={sortBy}
-                onChange={(e) => {
-                  setSortBy(e.target.value as SortOption);
+                onValueChange={(v) => {
+                  setSortBy(v as SortOption);
                   setPage(1);
                 }}
-                className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
               >
-                {SORT_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-              <button
+                <SelectTrigger className="w-36 h-8 text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SORT_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
                 onClick={() => {
                   setSortDir((d) => (d === "asc" ? "desc" : "asc"));
                   setPage(1);
                 }}
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50"
                 aria-label={
                   sortDir === "asc" ? "Orden ascendente" : "Orden descendente"
                 }
                 title={sortDir === "asc" ? "Ascendente" : "Descendente"}
               >
-                {sortDir === "asc" ? "↑" : "↓"}
-              </button>
+                {sortDir === "asc" ? (
+                  <ArrowUp className="h-4 w-4" />
+                ) : (
+                  <ArrowDown className="h-4 w-4" />
+                )}
+              </Button>
             </div>
+          </div>
+        )}
+
+        {/* Mobile filter trigger when no results yet */}
+        {hotels.length === 0 && !loading && (
+          <div className="flex lg:hidden">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-1.5"
+                >
+                  <SlidersHorizontal className="h-3.5 w-3.5" />
+                  Filtros
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-72 overflow-y-auto">
+                <SheetHeader>
+                  <SheetTitle>Filtros</SheetTitle>
+                </SheetHeader>
+                <div className="mt-4">
+                  <HotelFilters
+                    values={filters}
+                    onChange={(v) => {
+                      setFilters(v);
+                      setPage(1);
+                    }}
+                  />
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         )}
 

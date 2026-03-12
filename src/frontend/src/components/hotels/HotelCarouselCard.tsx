@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Hotel } from "@/src/components/hotels/HotelListCard";
+import { Card, CardContent } from "@/src/components/ui/card";
 import h1 from "@/src/assets/h1.webp";
 import h2 from "@/src/assets/h2.webp";
 import h3 from "@/src/assets/h3.webp";
@@ -28,37 +29,36 @@ function StarRating({ stars }: { stars: number }) {
 
 export function HotelCarouselCard({ hotel }: { hotel: Hotel }) {
   return (
-    <Link
-      href={`/hotels/${hotel.hotelId}`}
-      className="flex w-64 shrink-0 flex-col rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md"
-    >
-      <div className="relative h-36 overflow-hidden rounded-t-2xl">
-        <Image
-          src={HOTEL_IMAGES[((hotel.hotelId ?? 0) - 1) % 5]}
-          alt={hotel.name ?? ""}
-          fill
-          className="object-cover"
-          sizes="256px"
-        />
-      </div>
-      <div className="flex flex-1 flex-col gap-1 p-4">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="line-clamp-1 font-semibold text-slate-900">
-            {hotel.name}
-          </h3>
-          <StarRating stars={hotel.starRating ?? 0} />
+    <Link href={`/hotels/${hotel.hotelId}`} className="block w-64 shrink-0">
+      <Card className="h-full gap-0 overflow-hidden p-0 transition-shadow hover:shadow-md">
+        <div className="relative h-36 overflow-hidden">
+          <Image
+            src={HOTEL_IMAGES[((hotel.hotelId ?? 0) - 1) % 5]}
+            alt={hotel.name ?? ""}
+            fill
+            className="object-cover"
+            sizes="256px"
+          />
         </div>
-        <p className="text-xs text-slate-500">
-          {hotel.city}, {hotel.country}
-        </p>
-        <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-600">
-          {hotel.description}
-        </p>
-        <p className="mt-auto pt-3 text-xs text-slate-400">
-          {hotel.availableRoomTypeCount} tipo
-          {hotel.availableRoomTypeCount !== 1 ? "s" : ""} de habitacion
-        </p>
-      </div>
+        <CardContent className="flex flex-1 flex-col gap-1 p-4">
+          <div className="flex items-start justify-between gap-2">
+            <h3 className="line-clamp-1 font-semibold text-card-foreground">
+              {hotel.name}
+            </h3>
+            <StarRating stars={hotel.starRating ?? 0} />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {hotel.city}, {hotel.country}
+          </p>
+          <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">
+            {hotel.description}
+          </p>
+          <p className="mt-auto pt-3 text-xs text-muted-foreground">
+            {hotel.availableRoomTypeCount} tipo
+            {hotel.availableRoomTypeCount !== 1 ? "s" : ""} de habitacion
+          </p>
+        </CardContent>
+      </Card>
     </Link>
   );
 }

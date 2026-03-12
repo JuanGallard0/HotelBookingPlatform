@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { AvailableHotelDto } from "@/src/lib/api/generated/api-client";
+import { Card, CardContent } from "@/src/components/ui/card";
+import { Badge } from "@/src/components/ui/badge";
 import h1 from "@/src/assets/h1.webp";
 import h2 from "@/src/assets/h2.webp";
 import h3 from "@/src/assets/h3.webp";
@@ -30,56 +32,56 @@ function StarRating({ stars }: { stars: number }) {
 
 export function HotelListCard({ hotel }: { hotel: Hotel }) {
   return (
-    <Link
-      href={`/hotels/${hotel.hotelId}`}
-      className="flex gap-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
-    >
-      <div className="relative h-28 w-36 shrink-0 overflow-hidden rounded-xl">
-        <Image
-          src={HOTEL_IMAGES[((hotel.hotelId ?? 0) - 1) % 5]}
-          alt={hotel.name ?? ""}
-          fill
-          className="object-cover"
-          sizes="144px"
-        />
-      </div>
-      <div className="flex flex-1 flex-col gap-1">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="text-base font-semibold text-slate-900">
-            {hotel.name}
-          </h3>
-          <StarRating stars={hotel.starRating ?? 0} />
+    <Link href={`/hotels/${hotel.hotelId}`}>
+      <Card className="flex flex-col sm:flex-row sm:items-stretch gap-0 sm:gap-5 sm:p-4 overflow-hidden transition-shadow hover:shadow-md">
+        {/* Image — full width on mobile, fixed sidebar on sm+ */}
+        <div className="relative h-48 w-full sm:h-auto sm:min-h-32 sm:w-40 sm:shrink-0 sm:overflow-hidden sm:rounded-xl">
+          <Image
+            src={HOTEL_IMAGES[((hotel.hotelId ?? 0) - 1) % 5]}
+            alt={hotel.name ?? ""}
+            fill
+            className="object-cover"
+            sizes="(max-width: 640px) 100vw, 160px"
+          />
         </div>
-        <p className="text-sm text-slate-500">
-          {hotel.city}, {hotel.country}
-        </p>
-        <p className="mt-1 line-clamp-2 text-sm leading-5 text-slate-600">
-          {hotel.description}
-        </p>
-        <div className="mt-auto flex items-end justify-between pt-2">
-          <p className="text-xs text-slate-400">
-            {hotel.availableRoomTypeCount} tipo
-            {hotel.availableRoomTypeCount !== 1 ? "s" : ""} de habitacion
+        <CardContent className="flex flex-1 flex-col gap-1 p-4 sm:p-0">
+          <div className="flex items-start justify-between gap-2">
+            <h3 className="text-base font-semibold text-card-foreground">
+              {hotel.name}
+            </h3>
+            <StarRating stars={hotel.starRating ?? 0} />
+          </div>
+          <p className="text-sm text-muted-foreground">
+            {hotel.city}, {hotel.country}
           </p>
-          {hotel.pricePerNightFrom != null && (
-            <div className="flex flex-col items-end gap-0.5">
-              {hotel.discountPercentage != null &&
-                hotel.discountPercentage > 0 && (
-                  <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-xs font-medium text-emerald-700">
-                    -{hotel.discountPercentage}%
+          <p className="mt-1 line-clamp-2 text-sm leading-5 text-muted-foreground">
+            {hotel.description}
+          </p>
+          <div className="mt-auto flex items-end justify-between pt-2">
+            <p className="text-xs text-muted-foreground">
+              {hotel.availableRoomTypeCount} tipo
+              {hotel.availableRoomTypeCount !== 1 ? "s" : ""} de habitacion
+            </p>
+            {hotel.pricePerNightFrom != null && (
+              <div className="flex flex-col items-end gap-0.5">
+                {hotel.discountPercentage != null &&
+                  hotel.discountPercentage > 0 && (
+                    <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
+                      -{hotel.discountPercentage}%
+                    </Badge>
+                  )}
+                <span className="text-sm font-semibold text-card-foreground">
+                  {hotel.currency ?? ""} {hotel.pricePerNightFrom.toFixed(2)}
+                  <span className="text-xs font-normal text-muted-foreground">
+                    {" "}
+                    / noche
                   </span>
-                )}
-              <span className="text-sm font-semibold text-slate-900">
-                {hotel.currency ?? ""} {hotel.pricePerNightFrom.toFixed(2)}
-                <span className="text-xs font-normal text-slate-400">
-                  {" "}
-                  / noche
                 </span>
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </Link>
   );
 }

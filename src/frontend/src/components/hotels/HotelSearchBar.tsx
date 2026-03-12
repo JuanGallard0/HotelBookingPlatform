@@ -2,13 +2,17 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type SyntheticEvent } from "react";
+import { cn } from "@/src/lib/utils";
+import { Input } from "@/src/components/ui/input";
+import { Label } from "@/src/components/ui/label";
+import { Button } from "@/src/components/ui/button";
 
 interface HotelSearchBarProps {
   /** Extra classes applied to the outer <form> element */
   className?: string;
   /**
-   * "dark" (default) — labels in blue-100, white button; for use on dark/hero backgrounds.
-   * "light" — labels in slate-600, blue button; for use on light page backgrounds.
+   * "dark" (default) — labels in blue-100; for use on dark/hero backgrounds.
+   * "light" — labels in slate-600; for use on light page backgrounds.
    */
   variant?: "dark" | "light";
   /**
@@ -29,20 +33,13 @@ export function HotelSearchBar({
   const [checkOut, setCheckOut] = useState("");
   const [guests, setGuests] = useState("");
 
-  const labelCls =
-    variant === "light"
-      ? "text-xs font-semibold uppercase tracking-wide text-slate-600"
-      : "text-xs font-semibold uppercase tracking-wide text-blue-100";
+  const labelCls = cn(
+    "text-xs font-semibold uppercase tracking-wide",
+    variant === "light" ? "text-slate-600" : "text-blue-100",
+  );
 
   const inputCls =
-    variant === "light"
-      ? "rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-300"
-      : "rounded-lg border-0 bg-white px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-300";
-
-  const btnCls =
-    variant === "light"
-      ? "rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
-      : "rounded-lg bg-white px-6 py-2.5 text-sm font-semibold text-blue-700 shadow-md transition-colors hover:bg-blue-50";
+    variant === "dark" ? "border-0 bg-white focus-visible:ring-blue-300" : "";
 
   function handleSearch(e: SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -62,11 +59,11 @@ export function HotelSearchBar({
   return (
     <form
       onSubmit={handleSearch}
-      className={`flex flex-col gap-3 sm:flex-row sm:items-end ${className}`}
+      className={cn("flex flex-col gap-3 sm:flex-row sm:items-end", className)}
     >
       <div className="flex flex-1 flex-col gap-1">
-        <label className={labelCls}>Hotel</label>
-        <input
+        <Label className={labelCls}>Hotel</Label>
+        <Input
           type="text"
           placeholder="Nombre del hotel"
           value={name}
@@ -76,8 +73,8 @@ export function HotelSearchBar({
       </div>
 
       <div className="flex flex-col gap-1">
-        <label className={labelCls}>Entrada</label>
-        <input
+        <Label className={labelCls}>Entrada</Label>
+        <Input
           type="date"
           value={checkIn}
           onChange={(e) => setCheckIn(e.target.value)}
@@ -86,8 +83,8 @@ export function HotelSearchBar({
       </div>
 
       <div className="flex flex-col gap-1">
-        <label className={labelCls}>Salida</label>
-        <input
+        <Label className={labelCls}>Salida</Label>
+        <Input
           type="date"
           value={checkOut}
           onChange={(e) => setCheckOut(e.target.value)}
@@ -96,20 +93,24 @@ export function HotelSearchBar({
       </div>
 
       <div className="flex flex-col gap-1">
-        <label className={labelCls}>Huespedes</label>
-        <input
+        <Label className={labelCls}>Huespedes</Label>
+        <Input
           type="number"
           min={1}
           placeholder="1"
           value={guests}
           onChange={(e) => setGuests(e.target.value)}
-          className={`w-24 ${inputCls}`}
+          className={cn("w-24", inputCls)}
         />
       </div>
 
-      <button type="submit" className={btnCls}>
+      <Button
+        type="submit"
+        variant={variant === "dark" ? "secondary" : "default"}
+        className={variant === "dark" ? "text-primary font-semibold" : ""}
+      >
         Buscar
-      </button>
+      </Button>
     </form>
   );
 }

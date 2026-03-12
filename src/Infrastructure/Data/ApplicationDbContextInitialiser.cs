@@ -488,7 +488,8 @@ public class ApplicationDbContextInitialiser
 
         var guestByEmail = guests.ToDictionary(g => g.Email);
 
-        var adminUser =
+        // Users
+        var adminUser = CreateUser("admin@hotelbooking.local", "Plataforma", "Administracion", UserRole.Admin, "Admin123!");
         var customerUser = CreateUser("cliente@hotelbooking.local", "Marvin", "Alas", UserRole.Customer, "Guest123!");
         var secondCustomerUser = CreateUser("turismo@hotelbooking.local", "Camila", "Ayala", UserRole.Customer, "Guest123!");
         var corporateCustomerUser = CreateUser("empresas@hotelbooking.local", "Rafael", "Escobar", UserRole.Customer, "Guest123!");

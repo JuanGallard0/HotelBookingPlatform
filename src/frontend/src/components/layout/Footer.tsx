@@ -4,12 +4,12 @@ export function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-gray-200 bg-white">
+    <footer className="border-t border-border bg-background">
       <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
         <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 font-semibold text-gray-900"
+            className="inline-flex items-center gap-2 font-semibold text-foreground"
           >
             <span aria-hidden="true">H|B</span>
             <span>Hotel Booking</span>
@@ -20,30 +20,30 @@ export function Footer() {
           >
             <Link
               href="/hotels"
-              className="text-sm text-gray-500 hover:text-gray-700"
+              className="text-sm text-muted-foreground hover:text-foreground"
             >
               Hoteles
             </Link>
             <Link
               href="/about"
-              className="text-sm text-gray-500 hover:text-gray-700"
+              className="text-sm text-muted-foreground hover:text-foreground"
             >
               Nosotros
             </Link>
             <Link
               href="/account"
-              className="text-sm text-gray-500 hover:text-gray-700"
+              className="text-sm text-muted-foreground hover:text-foreground"
             >
               Mi cuenta
             </Link>
             <Link
               href="/auth/login"
-              className="text-sm text-gray-500 hover:text-gray-700"
+              className="text-sm text-muted-foreground hover:text-foreground"
             >
               Iniciar sesion
             </Link>
           </nav>
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-muted-foreground">
             © {year} Hotel Booking. Todos los derechos reservados.
           </p>
         </div>
