@@ -94,7 +94,7 @@ export function HotelsCarousel() {
         {loading
           ? Array.from({ length: 5 }).map((_, i) => <SkeletonCard key={i} />)
           : hotels.map((hotel) => (
-              <HotelCarouselCard key={hotel.id} hotel={hotel} />
+              <HotelCarouselCard key={hotel.hotelId} hotel={hotel} />
             ))}
       </div>
     </section>

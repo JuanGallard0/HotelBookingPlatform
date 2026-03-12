@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import type { Hotel } from "@/src/components/hotels/HotelListCard";
 import h1 from "@/src/assets/h1.webp";
 import h2 from "@/src/assets/h2.webp";
@@ -27,7 +28,10 @@ function StarRating({ stars }: { stars: number }) {
 
 export function HotelCarouselCard({ hotel }: { hotel: Hotel }) {
   return (
-    <div className="flex w-64 shrink-0 flex-col rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md">
+    <Link
+      href={`/hotels/${hotel.hotelId}`}
+      className="flex w-64 shrink-0 flex-col rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md"
+    >
       <div className="relative h-36 overflow-hidden rounded-t-2xl">
         <Image
           src={HOTEL_IMAGES[((hotel.hotelId ?? 0) - 1) % 5]}
@@ -55,6 +59,6 @@ export function HotelCarouselCard({ hotel }: { hotel: Hotel }) {
           {hotel.availableRoomTypeCount !== 1 ? "s" : ""} de habitacion
         </p>
       </div>
-    </div>
+    </Link>
   );
 }

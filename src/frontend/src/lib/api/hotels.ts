@@ -1,6 +1,7 @@
 import {
   CreateHotelCommand,
   HotelsClient,
+  HotelAvailabilityDto,
   SwaggerException,
   UpdateHotelCommand,
   type HotelDto,
@@ -48,6 +49,35 @@ export async function getHotelDetail(id: number, accessToken?: string) {
   }
 
   return response.data as HotelDto;
+}
+
+export async function getHotelAvailability(
+  hotelId: number,
+  checkIn?: Date,
+  checkOut?: Date,
+  numberOfGuests?: number,
+  accessToken?: string,
+) {
+  function toDateOnly(d: Date) {
+    return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
+  }
+
+  let url = `${API_BASE_URL}/api/v1/hotels/${hotelId}/availability?HotelId=${hotelId}`;
+  if (checkIn) url += `&CheckIn=${toDateOnly(checkIn)}`;
+  if (checkOut) url += `&CheckOut=${toDateOnly(checkOut)}`;
+  if (numberOfGuests !== undefined) url += `&NumberOfGuests=${numberOfGuests}`;
+
+  const headers: Record<string, string> = { Accept: "application/json" };
+  if (accessToken) headers["Authorization"] = `Bearer ${accessToken}`;
+
+  const res = await fetch(url, { headers });
+  const json = await res.json();
+
+  if (!json.success || !json.data) {
+    throw new Error(json.errorMessage ?? "Failed to load availability.");
+  }
+
+  return HotelAvailabilityDto.fromJS(json.data);
 }
 
 export async function listHotels(accessToken?: string) {

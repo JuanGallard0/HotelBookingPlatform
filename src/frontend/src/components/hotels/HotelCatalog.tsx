@@ -208,7 +208,7 @@ export function HotelCatalog() {
         )}
 
         {hotels.map((hotel) => (
-          <HotelListCard key={hotel.id} hotel={hotel} />
+          <HotelListCard key={hotel.hotelId} hotel={hotel} />
         ))}
 
         {/* Sentinel — always in the DOM so the observer can attach */}
