@@ -5,6 +5,7 @@ using HotelBookingPlatform.Application.Hotels.Commands.UpdateHotel;
 using HotelBookingPlatform.Application.Hotels.Queries.GetAvailableHotels;
 using HotelBookingPlatform.Application.Hotels.Queries.GetHotelAvailability;
 using HotelBookingPlatform.Application.Hotels.Queries.GetHotelById;
+using HotelBookingPlatform.Application.Hotels.Queries.GetHotels;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HotelBookingPlatform.Api.Endpoints;
@@ -20,6 +21,14 @@ public class HotelsEndpoints : EndpointGroupBase
             .Produces<ApiResponse<PagedResponse<AvailableHotelDto>>>(StatusCodes.Status200OK)
             .Produces<ApiResponse<object?>>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse<object?>>(StatusCodes.Status422UnprocessableEntity);
+
+        group.MapGet("list", GetHotels)
+            .WithSummary("Browse all hotels")
+            .Produces<ApiResponse<PagedResponse<HotelDto>>>(StatusCodes.Status200OK)
+            .Produces<ApiResponse<object?>>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse<object?>>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse<object?>>(StatusCodes.Status403Forbidden)
+            .RequireAuthorization("AdminOnly");
 
         group.MapGet("{id:int}", GetHotelById)
             .WithSummary("Get hotel by id")
@@ -51,6 +60,15 @@ public class HotelsEndpoints : EndpointGroupBase
             .Produces<ApiResponse<object?>>(StatusCodes.Status409Conflict);
     }
 
+
+    private static async Task<IResult> GetHotels(
+        [AsParameters] GetHotelsQuery query,
+        ISender sender,
+        CancellationToken cancellationToken)
+    {
+        var result = await sender.Send(query, cancellationToken);
+        return result.ToHttpResult();
+    }
 
     private static async Task<IResult> GetHotelById(
         int id,
