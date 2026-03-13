@@ -69,6 +69,12 @@ export function Navbar() {
                   </p>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                {user.role === "Admin" ? (
+                  <DropdownMenuItem asChild>
+                    <Link href="/admin/hotels">Modulo admin</Link>
+                  </DropdownMenuItem>
+                ) : null}
+                {user.role === "Admin" ? <DropdownMenuSeparator /> : null}
                 <DropdownMenuItem asChild>
                   <Link href="/account/bookings">Mis reservas</Link>
                 </DropdownMenuItem>

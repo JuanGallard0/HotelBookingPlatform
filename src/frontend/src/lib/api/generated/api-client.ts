@@ -782,6 +782,20 @@ export class HotelsClient {
             result400 = ApiResponseOfObject.fromJS(resultData400);
             return throwException("Bad Request", status, _responseText, _headers, result400);
             });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ApiResponseOfObject.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            let result403: any = null;
+            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result403 = ApiResponseOfObject.fromJS(resultData403);
+            return throwException("Forbidden", status, _responseText, _headers, result403);
+            });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
@@ -990,6 +1004,20 @@ export class HotelsClient {
             result400 = ApiResponseOfObject.fromJS(resultData400);
             return throwException("Bad Request", status, _responseText, _headers, result400);
             });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ApiResponseOfObject.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            let result403: any = null;
+            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result403 = ApiResponseOfObject.fromJS(resultData403);
+            return throwException("Forbidden", status, _responseText, _headers, result403);
+            });
         } else if (status === 404) {
             return response.text().then((_responseText) => {
             let result404: any = null;
@@ -1042,6 +1070,20 @@ export class HotelsClient {
             return response.text().then((_responseText) => {
             return throwException("Bad Request", status, _responseText, _headers);
             });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ApiResponseOfObject.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            let result403: any = null;
+            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result403 = ApiResponseOfObject.fromJS(resultData403);
+            return throwException("Forbidden", status, _responseText, _headers, result403);
+            });
         } else if (status === 404) {
             return response.text().then((_responseText) => {
             let result404: any = null;
@@ -1062,6 +1104,75 @@ export class HotelsClient {
             });
         }
         return Promise.resolve<ApiResponseOfObject>(null as any);
+    }
+
+    /**
+     * Get hotel details for management
+     * @return OK
+     */
+    details(hotelId: number): Promise<ApiResponseOfHotelDetailsDto> {
+        let url_ = this.baseUrl + "/api/v1/hotels/{hotelId}/details";
+        if (hotelId === undefined || hotelId === null)
+            throw new globalThis.Error("The parameter 'hotelId' must be defined.");
+        url_ = url_.replace("{hotelId}", encodeURIComponent("" + hotelId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDetails(_response);
+        });
+    }
+
+    protected processDetails(response: Response): Promise<ApiResponseOfHotelDetailsDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ApiResponseOfHotelDetailsDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ApiResponseOfObject.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ApiResponseOfObject.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            let result403: any = null;
+            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result403 = ApiResponseOfObject.fromJS(resultData403);
+            return throwException("Forbidden", status, _responseText, _headers, result403);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ApiResponseOfObject.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ApiResponseOfHotelDetailsDto>(null as any);
     }
 
     /**
@@ -1142,6 +1253,692 @@ export class HotelsClient {
             });
         }
         return Promise.resolve<ApiResponseOfHotelAvailabilityDto>(null as any);
+    }
+
+    /**
+     * Get hotel inventory for a calendar range
+     * @return OK
+     */
+    inventoryGET(hotelId: number, from: Date, to: Date): Promise<ApiResponseOfHotelInventoryDto> {
+        let url_ = this.baseUrl + "/api/v1/hotels/{hotelId}/inventory?";
+        if (hotelId === undefined || hotelId === null)
+            throw new globalThis.Error("The parameter 'hotelId' must be defined.");
+        url_ = url_.replace("{hotelId}", encodeURIComponent("" + hotelId));
+        if (from === undefined || from === null)
+            throw new globalThis.Error("The parameter 'from' must be defined and cannot be null.");
+        else
+            url_ += "from=" + encodeURIComponent(from ? "" + from.toISOString() : "") + "&";
+        if (to === undefined || to === null)
+            throw new globalThis.Error("The parameter 'to' must be defined and cannot be null.");
+        else
+            url_ += "to=" + encodeURIComponent(to ? "" + to.toISOString() : "") + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processInventoryGET(_response);
+        });
+    }
+
+    protected processInventoryGET(response: Response): Promise<ApiResponseOfHotelInventoryDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ApiResponseOfHotelInventoryDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ApiResponseOfObject.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ApiResponseOfObject.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            let result403: any = null;
+            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result403 = ApiResponseOfObject.fromJS(resultData403);
+            return throwException("Forbidden", status, _responseText, _headers, result403);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ApiResponseOfObject.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ApiResponseOfHotelInventoryDto>(null as any);
+    }
+
+    /**
+     * Create a room type for a hotel
+     * @return Created
+     */
+    roomTypesPOST(hotelId: number, body: CreateRoomTypeCommand): Promise<ApiResponseOfint> {
+        let url_ = this.baseUrl + "/api/v1/hotels/{hotelId}/room-types";
+        if (hotelId === undefined || hotelId === null)
+            throw new globalThis.Error("The parameter 'hotelId' must be defined.");
+        url_ = url_.replace("{hotelId}", encodeURIComponent("" + hotelId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRoomTypesPOST(_response);
+        });
+    }
+
+    protected processRoomTypesPOST(response: Response): Promise<ApiResponseOfint> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = ApiResponseOfint.fromJS(resultData201);
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ApiResponseOfObject.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ApiResponseOfObject.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            let result403: any = null;
+            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result403 = ApiResponseOfObject.fromJS(resultData403);
+            return throwException("Forbidden", status, _responseText, _headers, result403);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ApiResponseOfObject.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ApiResponseOfint>(null as any);
+    }
+}
+
+export class RatePlansClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    /**
+     * Update a rate plan
+     * @return OK
+     */
+    ratePlansPUT(ratePlanId: number, body: UpdateRatePlanCommand): Promise<ApiResponseOfObject> {
+        let url_ = this.baseUrl + "/api/v1/rate-plans/{ratePlanId}";
+        if (ratePlanId === undefined || ratePlanId === null)
+            throw new globalThis.Error("The parameter 'ratePlanId' must be defined.");
+        url_ = url_.replace("{ratePlanId}", encodeURIComponent("" + ratePlanId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRatePlansPUT(_response);
+        });
+    }
+
+    protected processRatePlansPUT(response: Response): Promise<ApiResponseOfObject> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ApiResponseOfObject.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ApiResponseOfObject.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ApiResponseOfObject.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            let result403: any = null;
+            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result403 = ApiResponseOfObject.fromJS(resultData403);
+            return throwException("Forbidden", status, _responseText, _headers, result403);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ApiResponseOfObject.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ApiResponseOfObject>(null as any);
+    }
+
+    /**
+     * Delete a rate plan
+     * @return OK
+     */
+    ratePlansDELETE(ratePlanId: number): Promise<ApiResponseOfObject> {
+        let url_ = this.baseUrl + "/api/v1/rate-plans/{ratePlanId}";
+        if (ratePlanId === undefined || ratePlanId === null)
+            throw new globalThis.Error("The parameter 'ratePlanId' must be defined.");
+        url_ = url_.replace("{ratePlanId}", encodeURIComponent("" + ratePlanId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRatePlansDELETE(_response);
+        });
+    }
+
+    protected processRatePlansDELETE(response: Response): Promise<ApiResponseOfObject> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ApiResponseOfObject.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ApiResponseOfObject.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            let result403: any = null;
+            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result403 = ApiResponseOfObject.fromJS(resultData403);
+            return throwException("Forbidden", status, _responseText, _headers, result403);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ApiResponseOfObject.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ApiResponseOfObject>(null as any);
+    }
+}
+
+export class RoomTypesClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    /**
+     * Create a rate plan for a room type
+     * @return Created
+     */
+    ratePlansPOST(roomTypeId: number, body: CreateRatePlanCommand): Promise<ApiResponseOfint> {
+        let url_ = this.baseUrl + "/api/v1/room-types/{roomTypeId}/rate-plans";
+        if (roomTypeId === undefined || roomTypeId === null)
+            throw new globalThis.Error("The parameter 'roomTypeId' must be defined.");
+        url_ = url_.replace("{roomTypeId}", encodeURIComponent("" + roomTypeId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRatePlansPOST(_response);
+        });
+    }
+
+    protected processRatePlansPOST(response: Response): Promise<ApiResponseOfint> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = ApiResponseOfint.fromJS(resultData201);
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ApiResponseOfObject.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ApiResponseOfObject.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            let result403: any = null;
+            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result403 = ApiResponseOfObject.fromJS(resultData403);
+            return throwException("Forbidden", status, _responseText, _headers, result403);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ApiResponseOfObject.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ApiResponseOfint>(null as any);
+    }
+
+    /**
+     * Update a room type
+     * @return OK
+     */
+    roomTypesPUT(roomTypeId: number, body: UpdateRoomTypeCommand): Promise<ApiResponseOfObject> {
+        let url_ = this.baseUrl + "/api/v1/room-types/{roomTypeId}";
+        if (roomTypeId === undefined || roomTypeId === null)
+            throw new globalThis.Error("The parameter 'roomTypeId' must be defined.");
+        url_ = url_.replace("{roomTypeId}", encodeURIComponent("" + roomTypeId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRoomTypesPUT(_response);
+        });
+    }
+
+    protected processRoomTypesPUT(response: Response): Promise<ApiResponseOfObject> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ApiResponseOfObject.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ApiResponseOfObject.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ApiResponseOfObject.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            let result403: any = null;
+            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result403 = ApiResponseOfObject.fromJS(resultData403);
+            return throwException("Forbidden", status, _responseText, _headers, result403);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ApiResponseOfObject.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ApiResponseOfObject>(null as any);
+    }
+
+    /**
+     * Delete a room type
+     * @return OK
+     */
+    roomTypesDELETE(roomTypeId: number): Promise<ApiResponseOfObject> {
+        let url_ = this.baseUrl + "/api/v1/room-types/{roomTypeId}";
+        if (roomTypeId === undefined || roomTypeId === null)
+            throw new globalThis.Error("The parameter 'roomTypeId' must be defined.");
+        url_ = url_.replace("{roomTypeId}", encodeURIComponent("" + roomTypeId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRoomTypesDELETE(_response);
+        });
+    }
+
+    protected processRoomTypesDELETE(response: Response): Promise<ApiResponseOfObject> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ApiResponseOfObject.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ApiResponseOfObject.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            let result403: any = null;
+            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result403 = ApiResponseOfObject.fromJS(resultData403);
+            return throwException("Forbidden", status, _responseText, _headers, result403);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ApiResponseOfObject.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ApiResponseOfObject.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ApiResponseOfObject>(null as any);
+    }
+
+    /**
+     * Upsert inventory for a room type on a specific date
+     * @return OK
+     */
+    inventoryPUT(roomTypeId: number, date: Date, body: UpsertRoomInventoryCommand): Promise<ApiResponseOfObject> {
+        let url_ = this.baseUrl + "/api/v1/room-types/{roomTypeId}/inventory/{date}";
+        if (roomTypeId === undefined || roomTypeId === null)
+            throw new globalThis.Error("The parameter 'roomTypeId' must be defined.");
+        url_ = url_.replace("{roomTypeId}", encodeURIComponent("" + roomTypeId));
+        if (date === undefined || date === null)
+            throw new globalThis.Error("The parameter 'date' must be defined.");
+        url_ = url_.replace("{date}", encodeURIComponent(date ? "" + date.toISOString() : "null"));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processInventoryPUT(_response);
+        });
+    }
+
+    protected processInventoryPUT(response: Response): Promise<ApiResponseOfObject> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ApiResponseOfObject.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ApiResponseOfObject.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ApiResponseOfObject.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            let result403: any = null;
+            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result403 = ApiResponseOfObject.fromJS(resultData403);
+            return throwException("Forbidden", status, _responseText, _headers, result403);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ApiResponseOfObject.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ApiResponseOfObject.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ApiResponseOfObject>(null as any);
+    }
+
+    /**
+     * Bulk update inventory for a room type
+     * @return OK
+     */
+    bulk(roomTypeId: number, body: BulkUpdateRoomInventoryCommand): Promise<ApiResponseOfObject> {
+        let url_ = this.baseUrl + "/api/v1/room-types/{roomTypeId}/inventory/bulk";
+        if (roomTypeId === undefined || roomTypeId === null)
+            throw new globalThis.Error("The parameter 'roomTypeId' must be defined.");
+        url_ = url_.replace("{roomTypeId}", encodeURIComponent("" + roomTypeId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processBulk(_response);
+        });
+    }
+
+    protected processBulk(response: Response): Promise<ApiResponseOfObject> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ApiResponseOfObject.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ApiResponseOfObject.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ApiResponseOfObject.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            let result403: any = null;
+            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result403 = ApiResponseOfObject.fromJS(resultData403);
+            return throwException("Forbidden", status, _responseText, _headers, result403);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ApiResponseOfObject.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ApiResponseOfObject>(null as any);
     }
 }
 
@@ -1449,6 +2246,82 @@ export interface IApiResponseOfHotelAvailabilityDto {
     [key: string]: any;
 }
 
+export class ApiResponseOfHotelDetailsDto implements IApiResponseOfHotelDetailsDto {
+    success?: boolean;
+    data?: HotelDetailsDto | undefined;
+    errorMessage?: string | undefined;
+    errorCode?: string | undefined;
+    validationErrors?: { [key: string]: string[]; } | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IApiResponseOfHotelDetailsDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.success = _data["success"];
+            this.data = _data["data"] ? HotelDetailsDto.fromJS(_data["data"]) : undefined as any;
+            this.errorMessage = _data["errorMessage"];
+            this.errorCode = _data["errorCode"];
+            if (_data["validationErrors"]) {
+                this.validationErrors = {} as any;
+                for (let key in _data["validationErrors"]) {
+                    if (_data["validationErrors"].hasOwnProperty(key))
+                        (this.validationErrors as any)![key] = _data["validationErrors"][key] !== undefined ? _data["validationErrors"][key] : [];
+                }
+            }
+        }
+    }
+
+    static fromJS(data: any): ApiResponseOfHotelDetailsDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new ApiResponseOfHotelDetailsDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["success"] = this.success;
+        data["data"] = this.data ? this.data.toJSON() : undefined as any;
+        data["errorMessage"] = this.errorMessage;
+        data["errorCode"] = this.errorCode;
+        if (this.validationErrors) {
+            data["validationErrors"] = {};
+            for (let key in this.validationErrors) {
+                if (this.validationErrors.hasOwnProperty(key))
+                    (data["validationErrors"] as any)[key] = (this.validationErrors as any)[key];
+            }
+        }
+        return data;
+    }
+}
+
+export interface IApiResponseOfHotelDetailsDto {
+    success?: boolean;
+    data?: HotelDetailsDto | undefined;
+    errorMessage?: string | undefined;
+    errorCode?: string | undefined;
+    validationErrors?: { [key: string]: string[]; } | undefined;
+
+    [key: string]: any;
+}
+
 export class ApiResponseOfHotelDto implements IApiResponseOfHotelDto {
     success?: boolean;
     data?: HotelDto | undefined;
@@ -1518,6 +2391,82 @@ export class ApiResponseOfHotelDto implements IApiResponseOfHotelDto {
 export interface IApiResponseOfHotelDto {
     success?: boolean;
     data?: HotelDto | undefined;
+    errorMessage?: string | undefined;
+    errorCode?: string | undefined;
+    validationErrors?: { [key: string]: string[]; } | undefined;
+
+    [key: string]: any;
+}
+
+export class ApiResponseOfHotelInventoryDto implements IApiResponseOfHotelInventoryDto {
+    success?: boolean;
+    data?: HotelInventoryDto | undefined;
+    errorMessage?: string | undefined;
+    errorCode?: string | undefined;
+    validationErrors?: { [key: string]: string[]; } | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IApiResponseOfHotelInventoryDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.success = _data["success"];
+            this.data = _data["data"] ? HotelInventoryDto.fromJS(_data["data"]) : undefined as any;
+            this.errorMessage = _data["errorMessage"];
+            this.errorCode = _data["errorCode"];
+            if (_data["validationErrors"]) {
+                this.validationErrors = {} as any;
+                for (let key in _data["validationErrors"]) {
+                    if (_data["validationErrors"].hasOwnProperty(key))
+                        (this.validationErrors as any)![key] = _data["validationErrors"][key] !== undefined ? _data["validationErrors"][key] : [];
+                }
+            }
+        }
+    }
+
+    static fromJS(data: any): ApiResponseOfHotelInventoryDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new ApiResponseOfHotelInventoryDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["success"] = this.success;
+        data["data"] = this.data ? this.data.toJSON() : undefined as any;
+        data["errorMessage"] = this.errorMessage;
+        data["errorCode"] = this.errorCode;
+        if (this.validationErrors) {
+            data["validationErrors"] = {};
+            for (let key in this.validationErrors) {
+                if (this.validationErrors.hasOwnProperty(key))
+                    (data["validationErrors"] as any)[key] = (this.validationErrors as any)[key];
+            }
+        }
+        return data;
+    }
+}
+
+export interface IApiResponseOfHotelInventoryDto {
+    success?: boolean;
+    data?: HotelInventoryDto | undefined;
     errorMessage?: string | undefined;
     errorCode?: string | undefined;
     validationErrors?: { [key: string]: string[]; } | undefined;
@@ -2305,6 +3254,66 @@ export interface IBookingDto {
     [key: string]: any;
 }
 
+export class BulkUpdateRoomInventoryCommand implements IBulkUpdateRoomInventoryCommand {
+    from!: Date;
+    to!: Date;
+    totalRooms!: number;
+    availableRooms!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IBulkUpdateRoomInventoryCommand) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.from = _data["from"] ? new Date(_data["from"].toString()) : undefined as any;
+            this.to = _data["to"] ? new Date(_data["to"].toString()) : undefined as any;
+            this.totalRooms = _data["totalRooms"];
+            this.availableRooms = _data["availableRooms"];
+        }
+    }
+
+    static fromJS(data: any): BulkUpdateRoomInventoryCommand {
+        data = typeof data === 'object' ? data : {};
+        let result = new BulkUpdateRoomInventoryCommand();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["from"] = this.from ? formatDate(this.from) : undefined as any;
+        data["to"] = this.to ? formatDate(this.to) : undefined as any;
+        data["totalRooms"] = this.totalRooms;
+        data["availableRooms"] = this.availableRooms;
+        return data;
+    }
+}
+
+export interface IBulkUpdateRoomInventoryCommand {
+    from: Date;
+    to: Date;
+    totalRooms: number;
+    availableRooms: number;
+
+    [key: string]: any;
+}
+
 export class CancelBookingRequest implements ICancelBookingRequest {
     reason!: string;
 
@@ -2501,6 +3510,142 @@ export interface ICreateHotelCommand {
     [key: string]: any;
 }
 
+export class CreateRatePlanCommand implements ICreateRatePlanCommand {
+    name!: string;
+    description!: string;
+    validFrom!: Date;
+    validTo!: Date;
+    pricePerNight!: number;
+    discountPercentage!: number | undefined;
+    isActive!: boolean;
+
+    [key: string]: any;
+
+    constructor(data?: ICreateRatePlanCommand) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.name = _data["name"];
+            this.description = _data["description"];
+            this.validFrom = _data["validFrom"] ? new Date(_data["validFrom"].toString()) : undefined as any;
+            this.validTo = _data["validTo"] ? new Date(_data["validTo"].toString()) : undefined as any;
+            this.pricePerNight = _data["pricePerNight"];
+            this.discountPercentage = _data["discountPercentage"];
+            this.isActive = _data["isActive"];
+        }
+    }
+
+    static fromJS(data: any): CreateRatePlanCommand {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateRatePlanCommand();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["name"] = this.name;
+        data["description"] = this.description;
+        data["validFrom"] = this.validFrom ? formatDate(this.validFrom) : undefined as any;
+        data["validTo"] = this.validTo ? formatDate(this.validTo) : undefined as any;
+        data["pricePerNight"] = this.pricePerNight;
+        data["discountPercentage"] = this.discountPercentage;
+        data["isActive"] = this.isActive;
+        return data;
+    }
+}
+
+export interface ICreateRatePlanCommand {
+    name: string;
+    description: string;
+    validFrom: Date;
+    validTo: Date;
+    pricePerNight: number;
+    discountPercentage: number | undefined;
+    isActive: boolean;
+
+    [key: string]: any;
+}
+
+export class CreateRoomTypeCommand implements ICreateRoomTypeCommand {
+    name!: string;
+    description!: string;
+    maxOccupancy!: number;
+    basePrice!: number;
+    isActive!: boolean;
+
+    [key: string]: any;
+
+    constructor(data?: ICreateRoomTypeCommand) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.name = _data["name"];
+            this.description = _data["description"];
+            this.maxOccupancy = _data["maxOccupancy"];
+            this.basePrice = _data["basePrice"];
+            this.isActive = _data["isActive"];
+        }
+    }
+
+    static fromJS(data: any): CreateRoomTypeCommand {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateRoomTypeCommand();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["name"] = this.name;
+        data["description"] = this.description;
+        data["maxOccupancy"] = this.maxOccupancy;
+        data["basePrice"] = this.basePrice;
+        data["isActive"] = this.isActive;
+        return data;
+    }
+}
+
+export interface ICreateRoomTypeCommand {
+    name: string;
+    description: string;
+    maxOccupancy: number;
+    basePrice: number;
+    isActive: boolean;
+
+    [key: string]: any;
+}
+
 export class GuestInfoDto implements IGuestInfoDto {
     firstName!: string;
     lastName!: string;
@@ -2649,6 +3794,102 @@ export interface IHotelAvailabilityDto {
     [key: string]: any;
 }
 
+export class HotelDetailsDto implements IHotelDetailsDto {
+    hotelId?: number;
+    name?: string;
+    description?: string;
+    address?: string;
+    city?: string;
+    country?: string;
+    email?: string;
+    phoneNumber?: string;
+    starRating?: number;
+    isActive?: boolean;
+    roomTypes?: RoomTypeDetailsDto[];
+
+    [key: string]: any;
+
+    constructor(data?: IHotelDetailsDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.hotelId = _data["hotelId"];
+            this.name = _data["name"];
+            this.description = _data["description"];
+            this.address = _data["address"];
+            this.city = _data["city"];
+            this.country = _data["country"];
+            this.email = _data["email"];
+            this.phoneNumber = _data["phoneNumber"];
+            this.starRating = _data["starRating"];
+            this.isActive = _data["isActive"];
+            if (Array.isArray(_data["roomTypes"])) {
+                this.roomTypes = [] as any;
+                for (let item of _data["roomTypes"])
+                    this.roomTypes!.push(RoomTypeDetailsDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): HotelDetailsDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new HotelDetailsDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["hotelId"] = this.hotelId;
+        data["name"] = this.name;
+        data["description"] = this.description;
+        data["address"] = this.address;
+        data["city"] = this.city;
+        data["country"] = this.country;
+        data["email"] = this.email;
+        data["phoneNumber"] = this.phoneNumber;
+        data["starRating"] = this.starRating;
+        data["isActive"] = this.isActive;
+        if (Array.isArray(this.roomTypes)) {
+            data["roomTypes"] = [];
+            for (let item of this.roomTypes)
+                data["roomTypes"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IHotelDetailsDto {
+    hotelId?: number;
+    name?: string;
+    description?: string;
+    address?: string;
+    city?: string;
+    country?: string;
+    email?: string;
+    phoneNumber?: string;
+    starRating?: number;
+    isActive?: boolean;
+    roomTypes?: RoomTypeDetailsDto[];
+
+    [key: string]: any;
+}
+
 export class HotelDto implements IHotelDto {
     hotelId?: number;
     name?: string;
@@ -2729,6 +3970,138 @@ export interface IHotelDto {
     phoneNumber?: string;
     starRating?: number;
     isActive?: boolean;
+
+    [key: string]: any;
+}
+
+export class HotelInventoryDto implements IHotelInventoryDto {
+    hotelId?: number;
+    from?: Date;
+    to?: Date;
+    roomTypes?: RoomTypeInventoryDto[];
+
+    [key: string]: any;
+
+    constructor(data?: IHotelInventoryDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.hotelId = _data["hotelId"];
+            this.from = _data["from"] ? new Date(_data["from"].toString()) : undefined as any;
+            this.to = _data["to"] ? new Date(_data["to"].toString()) : undefined as any;
+            if (Array.isArray(_data["roomTypes"])) {
+                this.roomTypes = [] as any;
+                for (let item of _data["roomTypes"])
+                    this.roomTypes!.push(RoomTypeInventoryDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): HotelInventoryDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new HotelInventoryDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["hotelId"] = this.hotelId;
+        data["from"] = this.from ? formatDate(this.from) : undefined as any;
+        data["to"] = this.to ? formatDate(this.to) : undefined as any;
+        if (Array.isArray(this.roomTypes)) {
+            data["roomTypes"] = [];
+            for (let item of this.roomTypes)
+                data["roomTypes"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IHotelInventoryDto {
+    hotelId?: number;
+    from?: Date;
+    to?: Date;
+    roomTypes?: RoomTypeInventoryDto[];
+
+    [key: string]: any;
+}
+
+export class InventoryDayDto implements IInventoryDayDto {
+    date?: Date;
+    totalRooms?: number;
+    availableRooms?: number;
+    reservedRooms?: number;
+    rowVersion?: string;
+
+    [key: string]: any;
+
+    constructor(data?: IInventoryDayDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.date = _data["date"] ? new Date(_data["date"].toString()) : undefined as any;
+            this.totalRooms = _data["totalRooms"];
+            this.availableRooms = _data["availableRooms"];
+            this.reservedRooms = _data["reservedRooms"];
+            this.rowVersion = _data["rowVersion"];
+        }
+    }
+
+    static fromJS(data: any): InventoryDayDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new InventoryDayDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["date"] = this.date ? formatDate(this.date) : undefined as any;
+        data["totalRooms"] = this.totalRooms;
+        data["availableRooms"] = this.availableRooms;
+        data["reservedRooms"] = this.reservedRooms;
+        data["rowVersion"] = this.rowVersion;
+        return data;
+    }
+}
+
+export interface IInventoryDayDto {
+    date?: Date;
+    totalRooms?: number;
+    availableRooms?: number;
+    reservedRooms?: number;
+    rowVersion?: string;
 
     [key: string]: any;
 }
@@ -3073,6 +4446,82 @@ export interface IPagedResponseOfUserBookingDto {
     [key: string]: any;
 }
 
+export class RatePlanDetailsDto implements IRatePlanDetailsDto {
+    ratePlanId?: number;
+    name?: string;
+    description?: string;
+    validFrom?: Date;
+    validTo?: Date;
+    pricePerNight?: number;
+    discountPercentage?: number | undefined;
+    isActive?: boolean;
+
+    [key: string]: any;
+
+    constructor(data?: IRatePlanDetailsDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.ratePlanId = _data["ratePlanId"];
+            this.name = _data["name"];
+            this.description = _data["description"];
+            this.validFrom = _data["validFrom"] ? new Date(_data["validFrom"].toString()) : undefined as any;
+            this.validTo = _data["validTo"] ? new Date(_data["validTo"].toString()) : undefined as any;
+            this.pricePerNight = _data["pricePerNight"];
+            this.discountPercentage = _data["discountPercentage"];
+            this.isActive = _data["isActive"];
+        }
+    }
+
+    static fromJS(data: any): RatePlanDetailsDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new RatePlanDetailsDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["ratePlanId"] = this.ratePlanId;
+        data["name"] = this.name;
+        data["description"] = this.description;
+        data["validFrom"] = this.validFrom ? formatDate(this.validFrom) : undefined as any;
+        data["validTo"] = this.validTo ? formatDate(this.validTo) : undefined as any;
+        data["pricePerNight"] = this.pricePerNight;
+        data["discountPercentage"] = this.discountPercentage;
+        data["isActive"] = this.isActive;
+        return data;
+    }
+}
+
+export interface IRatePlanDetailsDto {
+    ratePlanId?: number;
+    name?: string;
+    description?: string;
+    validFrom?: Date;
+    validTo?: Date;
+    pricePerNight?: number;
+    discountPercentage?: number | undefined;
+    isActive?: boolean;
+
+    [key: string]: any;
+}
+
 export class RefreshAccessTokenCommand implements IRefreshAccessTokenCommand {
     refreshToken!: string;
 
@@ -3181,6 +4630,150 @@ export interface IRegisterUserCommand {
     [key: string]: any;
 }
 
+export class RoomTypeDetailsDto implements IRoomTypeDetailsDto {
+    roomTypeId?: number;
+    name?: string;
+    description?: string;
+    maxOccupancy?: number;
+    basePrice?: number;
+    isActive?: boolean;
+    ratePlans?: RatePlanDetailsDto[];
+
+    [key: string]: any;
+
+    constructor(data?: IRoomTypeDetailsDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.roomTypeId = _data["roomTypeId"];
+            this.name = _data["name"];
+            this.description = _data["description"];
+            this.maxOccupancy = _data["maxOccupancy"];
+            this.basePrice = _data["basePrice"];
+            this.isActive = _data["isActive"];
+            if (Array.isArray(_data["ratePlans"])) {
+                this.ratePlans = [] as any;
+                for (let item of _data["ratePlans"])
+                    this.ratePlans!.push(RatePlanDetailsDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): RoomTypeDetailsDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new RoomTypeDetailsDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["roomTypeId"] = this.roomTypeId;
+        data["name"] = this.name;
+        data["description"] = this.description;
+        data["maxOccupancy"] = this.maxOccupancy;
+        data["basePrice"] = this.basePrice;
+        data["isActive"] = this.isActive;
+        if (Array.isArray(this.ratePlans)) {
+            data["ratePlans"] = [];
+            for (let item of this.ratePlans)
+                data["ratePlans"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IRoomTypeDetailsDto {
+    roomTypeId?: number;
+    name?: string;
+    description?: string;
+    maxOccupancy?: number;
+    basePrice?: number;
+    isActive?: boolean;
+    ratePlans?: RatePlanDetailsDto[];
+
+    [key: string]: any;
+}
+
+export class RoomTypeInventoryDto implements IRoomTypeInventoryDto {
+    roomTypeId?: number;
+    name?: string;
+    days?: InventoryDayDto[];
+
+    [key: string]: any;
+
+    constructor(data?: IRoomTypeInventoryDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.roomTypeId = _data["roomTypeId"];
+            this.name = _data["name"];
+            if (Array.isArray(_data["days"])) {
+                this.days = [] as any;
+                for (let item of _data["days"])
+                    this.days!.push(InventoryDayDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): RoomTypeInventoryDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new RoomTypeInventoryDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["roomTypeId"] = this.roomTypeId;
+        data["name"] = this.name;
+        if (Array.isArray(this.days)) {
+            data["days"] = [];
+            for (let item of this.days)
+                data["days"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IRoomTypeInventoryDto {
+    roomTypeId?: number;
+    name?: string;
+    days?: InventoryDayDto[];
+
+    [key: string]: any;
+}
+
 export class UpdateHotelCommand implements IUpdateHotelCommand {
     name!: string;
     description!: string;
@@ -3257,6 +4850,198 @@ export interface IUpdateHotelCommand {
     phoneNumber: string;
     starRating: number;
     isActive: boolean;
+
+    [key: string]: any;
+}
+
+export class UpdateRatePlanCommand implements IUpdateRatePlanCommand {
+    name!: string;
+    description!: string;
+    validFrom!: Date;
+    validTo!: Date;
+    pricePerNight!: number;
+    discountPercentage!: number | undefined;
+    isActive!: boolean;
+
+    [key: string]: any;
+
+    constructor(data?: IUpdateRatePlanCommand) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.name = _data["name"];
+            this.description = _data["description"];
+            this.validFrom = _data["validFrom"] ? new Date(_data["validFrom"].toString()) : undefined as any;
+            this.validTo = _data["validTo"] ? new Date(_data["validTo"].toString()) : undefined as any;
+            this.pricePerNight = _data["pricePerNight"];
+            this.discountPercentage = _data["discountPercentage"];
+            this.isActive = _data["isActive"];
+        }
+    }
+
+    static fromJS(data: any): UpdateRatePlanCommand {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateRatePlanCommand();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["name"] = this.name;
+        data["description"] = this.description;
+        data["validFrom"] = this.validFrom ? formatDate(this.validFrom) : undefined as any;
+        data["validTo"] = this.validTo ? formatDate(this.validTo) : undefined as any;
+        data["pricePerNight"] = this.pricePerNight;
+        data["discountPercentage"] = this.discountPercentage;
+        data["isActive"] = this.isActive;
+        return data;
+    }
+}
+
+export interface IUpdateRatePlanCommand {
+    name: string;
+    description: string;
+    validFrom: Date;
+    validTo: Date;
+    pricePerNight: number;
+    discountPercentage: number | undefined;
+    isActive: boolean;
+
+    [key: string]: any;
+}
+
+export class UpdateRoomTypeCommand implements IUpdateRoomTypeCommand {
+    name!: string;
+    description!: string;
+    maxOccupancy!: number;
+    basePrice!: number;
+    isActive!: boolean;
+
+    [key: string]: any;
+
+    constructor(data?: IUpdateRoomTypeCommand) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.name = _data["name"];
+            this.description = _data["description"];
+            this.maxOccupancy = _data["maxOccupancy"];
+            this.basePrice = _data["basePrice"];
+            this.isActive = _data["isActive"];
+        }
+    }
+
+    static fromJS(data: any): UpdateRoomTypeCommand {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateRoomTypeCommand();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["name"] = this.name;
+        data["description"] = this.description;
+        data["maxOccupancy"] = this.maxOccupancy;
+        data["basePrice"] = this.basePrice;
+        data["isActive"] = this.isActive;
+        return data;
+    }
+}
+
+export interface IUpdateRoomTypeCommand {
+    name: string;
+    description: string;
+    maxOccupancy: number;
+    basePrice: number;
+    isActive: boolean;
+
+    [key: string]: any;
+}
+
+export class UpsertRoomInventoryCommand implements IUpsertRoomInventoryCommand {
+    totalRooms!: number;
+    availableRooms!: number;
+    rowVersion!: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IUpsertRoomInventoryCommand) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.totalRooms = _data["totalRooms"];
+            this.availableRooms = _data["availableRooms"];
+            this.rowVersion = _data["rowVersion"];
+        }
+    }
+
+    static fromJS(data: any): UpsertRoomInventoryCommand {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpsertRoomInventoryCommand();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["totalRooms"] = this.totalRooms;
+        data["availableRooms"] = this.availableRooms;
+        data["rowVersion"] = this.rowVersion;
+        return data;
+    }
+}
+
+export interface IUpsertRoomInventoryCommand {
+    totalRooms: number;
+    availableRooms: number;
+    rowVersion: string | undefined;
 
     [key: string]: any;
 }
