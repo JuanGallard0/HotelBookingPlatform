@@ -10,6 +10,7 @@ public class BookingsEndpoints : EndpointGroupBase
     public override void Map(RouteGroupBuilder group)
     {
         group.MapPost(CreateBooking)
+            .WithIdempotency<CreateBookingCommand>()
             .WithSummary("Create a booking")
             .Produces<ApiResponse<BookingDto>>(StatusCodes.Status201Created)
             .Produces<ApiResponse<object?>>(StatusCodes.Status400BadRequest)
@@ -21,12 +22,12 @@ public class BookingsEndpoints : EndpointGroupBase
     }
 
     private static async Task<IResult> CreateBooking(
-        [FromHeader(Name = "Idempotency-Key")] string? idempotencyKey,
+        [FromHeader(Name = "Idempotency-Key")] string? _,
         [FromBody] CreateBookingCommand body,
         ISender sender,
         CancellationToken cancellationToken)
     {
-        var result = await sender.Send(body with { IdempotencyKey = idempotencyKey }, cancellationToken);
+        var result = await sender.Send(body, cancellationToken);
         return result.ToCreatedHttpResult($"/api/v1/bookings/{result.Value?.BookingNumber}");
     }
 }

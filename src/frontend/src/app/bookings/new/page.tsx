@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { format, parse, isValid } from "date-fns";
@@ -154,6 +154,25 @@ export default function NewBookingPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [booking, setBooking] = useState<BookingDto | null>(null);
+  const idempotencyKeyRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    idempotencyKeyRef.current = null;
+  }, [
+    roomTypeId,
+    checkInStr,
+    checkOutStr,
+    guests,
+    numberOfRooms,
+    firstName,
+    lastName,
+    email,
+    phoneNumber,
+    documentType,
+    documentNumber,
+    nationality,
+    specialRequests,
+  ]);
 
   if (!roomTypeId || !checkIn || !checkOut) {
     return (
@@ -186,6 +205,8 @@ export default function NewBookingPage() {
     setLoading(true);
     setError(null);
     try {
+      idempotencyKeyRef.current ??= crypto.randomUUID();
+
       const result = await createBooking(
         {
           roomTypeId,
@@ -203,7 +224,7 @@ export default function NewBookingPage() {
             nationality: nationality || undefined,
           },
           specialRequests: specialRequests || undefined,
-          idempotencyKey: crypto.randomUUID(),
+          idempotencyKey: idempotencyKeyRef.current,
         },
         accessToken,
       );

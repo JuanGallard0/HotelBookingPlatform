@@ -1,4 +1,3 @@
-using System.Text.Json;
 using HotelBookingPlatform.Application.Common.Interfaces;
 using HotelBookingPlatform.Application.Common.Models;
 using HotelBookingPlatform.Domain.Entities;
@@ -7,7 +6,6 @@ namespace HotelBookingPlatform.Application.Bookings.Commands.CreateBooking;
 
 public record CreateBookingCommand : IRequest<Result<BookingDto>>
 {
-    public string? IdempotencyKey { get; init; }
     public int RoomTypeId { get; init; }
     public DateOnly CheckIn { get; init; }
     public DateOnly CheckOut { get; init; }
@@ -21,7 +19,6 @@ public class CreateBookingCommandHandler(
     IApplicationDbContext context,
     IUnitOfWork unitOfWork,
     ICurrentUserService currentUser,
-    IIdempotencyService idempotencyService,
     TimeProvider timeProvider)
     : IRequestHandler<CreateBookingCommand, Result<BookingDto>>
 {
@@ -31,16 +28,6 @@ public class CreateBookingCommandHandler(
     {
         if (!currentUser.IsAuthenticated || !currentUser.UserId.HasValue)
             return Result<BookingDto>.Unauthorized();
-
-        if (!string.IsNullOrEmpty(request.IdempotencyKey))
-        {
-            var cached = await idempotencyService.GetCachedResponseAsync(
-                request.IdempotencyKey, cancellationToken);
-
-            if (cached is not null)
-                return Result<BookingDto>.Success(
-                    JsonSerializer.Deserialize<BookingDto>(cached)!);
-        }
 
         var roomType = await context.RoomTypes
             .Include(rt => rt.Hotel)
@@ -120,14 +107,6 @@ public class CreateBookingCommandHandler(
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
             var dto = MapToDto(booking, roomType.Name);
-
-            if (!string.IsNullOrEmpty(request.IdempotencyKey))
-                await idempotencyService.StoreAsync(
-                    request.IdempotencyKey,
-                    "/api/v1/bookings",
-                    201,
-                    JsonSerializer.Serialize(dto),
-                    cancellationToken);
 
             await unitOfWork.CommitAsync(cancellationToken);
             return Result<BookingDto>.Success(dto);

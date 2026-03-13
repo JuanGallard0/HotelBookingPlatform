@@ -28,6 +28,15 @@ public class IdempotencyRecordConfiguration : IEntityTypeConfiguration<Idempoten
             .IsRequired()
             .HasColumnType("nvarchar(max)");
 
+        builder.Property(ir => ir.ResponseContentType)
+            .HasMaxLength(200);
+
+        builder.Property(ir => ir.ResponseHeadersJson)
+            .HasColumnType("nvarchar(max)");
+
+        builder.Property(ir => ir.ResourceLocation)
+            .HasMaxLength(500);
+
         builder.Property(ir => ir.CreatedAt)
             .IsRequired();
 

@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -92,6 +91,9 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
                     RequestHash = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: true),
                     ResponseStatusCode = table.Column<int>(type: "int", nullable: false),
                     ResponseBody = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ResponseContentType = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    ResponseHeadersJson = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ResourceLocation = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     ExpiresAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },

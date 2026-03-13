@@ -1,15 +1,22 @@
-﻿namespace HotelBookingPlatform.Application.FunctionalTests;
+using DotNet.Testcontainers.Builders;
+
+namespace HotelBookingPlatform.Application.FunctionalTests;
 
 public static class TestDatabaseFactory
 {
     public static async Task<ITestDatabase> CreateAsync()
     {
-        // Testcontainers requires Docker. To use a local SQL Server database instead,
-        // switch to `SqlTestDatabase` and update appsettings.json.
-        var database = new SqlTestcontainersTestDatabase();
-
-        await database.InitialiseAsync();
-
-        return database;
+        try
+        {
+            var dockerDatabase = new SqlTestcontainersTestDatabase();
+            await dockerDatabase.InitialiseAsync();
+            return dockerDatabase;
+        }
+        catch (DockerUnavailableException)
+        {
+            var localDatabase = new SqlTestDatabase();
+            await localDatabase.InitialiseAsync();
+            return localDatabase;
+        }
     }
 }
