@@ -1,15 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import {
-  ArrowLeft,
-  ArrowRight,
-  ArrowUpDown,
-  CalendarRange,
-  ReceiptText,
-} from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUpDown } from "lucide-react";
 
 import { useAuth } from "@/src/context/AuthContext";
 import {
@@ -22,12 +15,7 @@ import {
 } from "@/src/lib/api/bookings";
 import type { UserBookingDto } from "@/src/lib/api/generated/api-client";
 import { Button } from "@/src/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/src/components/ui/card";
+import { Card, CardContent } from "@/src/components/ui/card";
 
 const PAGE_SIZE = 5;
 
@@ -197,7 +185,10 @@ export default function AccountBookingsPage() {
         setTotalRecords(0);
         setTotalPages(1);
         setError(
-          toErrorMessage(err, "No se pudieron cargar las reservas del usuario."),
+          toErrorMessage(
+            err,
+            "No se pudieron cargar las reservas del usuario.",
+          ),
         );
         setLoadedKey(requestKey);
       });
@@ -223,40 +214,18 @@ export default function AccountBookingsPage() {
         <p className="text-sm font-medium uppercase tracking-[0.2em] text-primary">
           Cuenta
         </p>
-        <h1 className="text-3xl font-semibold text-foreground">Mis reservas</h1>
-        <p className="text-sm text-muted-foreground">
-          Consulta real del endpoint `bookings/me`, con filtro, orden y
-          paginacion por query string.
-        </p>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader className="flex flex-row items-center gap-3 space-y-0">
-            <CalendarRange className="h-5 w-5 text-primary" />
-            <CardTitle className="text-base">Reservas visibles</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold text-foreground">
-              {loading ? "..." : totalRecords}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center gap-3 space-y-0">
-            <ReceiptText className="h-5 w-5 text-primary" />
-            <CardTitle className="text-base">Accion rapida</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Link href="/hotels">
-              <Button>Explorar hoteles</Button>
-            </Link>
-          </CardContent>
-        </Card>
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+          <h1 className="text-3xl font-semibold text-foreground">
+            Mis reservas
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {loading ? "Cargando..." : `${totalRecords} reservas visibles`}
+          </p>
+        </div>
       </div>
 
       <Card>
-        <CardContent className="flex flex-col gap-4 p-6 md:flex-row md:items-center md:justify-between">
+        <CardContent className="flex flex-col gap-2 px-3 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-wrap gap-2">
             {statusOptions.map((option) => (
               <Button
@@ -274,11 +243,12 @@ export default function AccountBookingsPage() {
           <label className="flex items-center gap-2 text-sm text-muted-foreground">
             <ArrowUpDown className="h-4 w-4" />
             <select
-              className="rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground"
+              className="rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground"
               value={`${sortBy}:${sortDirection}`}
               onChange={(event) =>
                 updateQuery({
-                  sort: event.target.value as `${UserBookingsSortBy}:${UserBookingsSortDirection}`,
+                  sort: event.target
+                    .value as `${UserBookingsSortBy}:${UserBookingsSortDirection}`,
                   page: 1,
                 })
               }
@@ -295,7 +265,9 @@ export default function AccountBookingsPage() {
 
       {error && (
         <Card>
-          <CardContent className="p-6 text-sm text-red-600">{error}</CardContent>
+          <CardContent className="p-4 text-sm text-red-600">
+            {error}
+          </CardContent>
         </Card>
       )}
 
@@ -303,7 +275,7 @@ export default function AccountBookingsPage() {
         <div className="grid gap-4">
           {loading && (
             <Card>
-              <CardContent className="p-6 text-sm text-muted-foreground">
+              <CardContent className="p-4 text-sm text-muted-foreground">
                 Cargando reservas...
               </CardContent>
             </Card>
@@ -312,7 +284,7 @@ export default function AccountBookingsPage() {
           {!loading &&
             items.map((booking) => (
               <Card key={booking.bookingId ?? booking.bookingNumber}>
-                <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+                <CardContent className="flex flex-col gap-2.5 p-3.5 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">
                       {booking.bookingNumber || `#${booking.bookingId}`}
@@ -322,7 +294,8 @@ export default function AccountBookingsPage() {
                     </h2>
                     <p className="text-sm text-muted-foreground">
                       {booking.roomTypeName || "Habitacion"} ·{" "}
-                      {formatDate(booking.checkIn)} - {formatDate(booking.checkOut)}
+                      {formatDate(booking.checkIn)} -{" "}
+                      {formatDate(booking.checkOut)}
                     </p>
                     <p className="mt-1 text-sm text-muted-foreground">
                       {booking.numberOfGuests ?? 0} huespedes ·{" "}
@@ -345,7 +318,7 @@ export default function AccountBookingsPage() {
 
           {!loading && items.length === 0 && (
             <Card>
-              <CardContent className="p-6 text-sm text-muted-foreground">
+              <CardContent className="p-4 text-sm text-muted-foreground">
                 No hay reservas para el filtro seleccionado.
               </CardContent>
             </Card>
@@ -354,35 +327,31 @@ export default function AccountBookingsPage() {
       )}
 
       {isAuthenticated && !loading && !error && totalPages > 1 && (
-        <Card>
-          <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-muted-foreground">
-              Pagina {page} de {totalPages}
-            </p>
-            <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={page <= 1}
-                onClick={() => updateQuery({ page: page - 1 })}
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Anterior
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={page >= totalPages}
-                onClick={() => updateQuery({ page: page + 1 })}
-              >
-                Siguiente
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="flex items-center justify-center gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            disabled={page <= 1}
+            onClick={() => updateQuery({ page: page - 1 })}
+            aria-label="Pagina anterior"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <p className="text-sm text-muted-foreground">
+            Pagina {page} de {totalPages}
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            disabled={page >= totalPages}
+            onClick={() => updateQuery({ page: page + 1 })}
+            aria-label="Pagina siguiente"
+          >
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </div>
       )}
     </main>
   );
