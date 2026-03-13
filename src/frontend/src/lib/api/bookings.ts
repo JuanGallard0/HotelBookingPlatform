@@ -8,19 +8,21 @@ import {
 } from "@/src/lib/api/generated/api-client";
 import { API_BASE_URL } from "@/src/lib/constants";
 
+const baseFetch: typeof fetch = (input, init) => globalThis.fetch(input, init);
+
 function makeClient(accessToken?: string) {
   // Use empty base on the client so requests route through the Next.js proxy,
   // avoiding cross-origin preflight (OPTIONS) requests to the backend.
   const base = typeof window === "undefined" ? API_BASE_URL : "";
 
   if (!accessToken) {
-    return new BookingsClient(base, { fetch });
+    return new BookingsClient(base, { fetch: baseFetch });
   }
 
   const authenticatedFetch: typeof fetch = (input, init) => {
     const headers = new Headers(init?.headers);
     headers.set("Authorization", `Bearer ${accessToken}`);
-    return fetch(input, { ...init, headers });
+    return globalThis.fetch(input, { ...init, headers });
   };
 
   return new BookingsClient(base, { fetch: authenticatedFetch });

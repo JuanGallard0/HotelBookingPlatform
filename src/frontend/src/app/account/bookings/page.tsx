@@ -103,7 +103,7 @@ function formatMoney(amount?: number, currency?: string) {
 }
 
 export default function AccountBookingsPage() {
-  const { authReady, isAuthenticated, openModal, runWithAuth } = useAuth();
+  const { authReady, isAuthenticated, runWithAuth } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -163,15 +163,19 @@ export default function AccountBookingsPage() {
   }
 
   useEffect(() => {
+    if (authReady && !isAuthenticated) {
+      router.replace("/");
+      return;
+    }
+
     if (!isAuthenticated) {
       return;
     }
 
     let cancelled = false;
 
-    runWithAuth((accessToken) =>
+    runWithAuth(() =>
       getMyBookings({
-        accessToken,
         status: status === "all" ? undefined : status,
         pageNumber: page,
         pageSize: PAGE_SIZE,
@@ -201,7 +205,17 @@ export default function AccountBookingsPage() {
     return () => {
       cancelled = true;
     };
-  }, [isAuthenticated, page, requestKey, runWithAuth, sortBy, sortDirection, status]);
+  }, [
+    authReady,
+    isAuthenticated,
+    page,
+    requestKey,
+    router,
+    runWithAuth,
+    sortBy,
+    sortDirection,
+    status,
+  ]);
 
   return (
     <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-10 sm:px-6 lg:px-8">
@@ -278,17 +292,6 @@ export default function AccountBookingsPage() {
           </label>
         </CardContent>
       </Card>
-
-      {authReady && !isAuthenticated && (
-        <Card>
-          <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-muted-foreground">
-              Debes iniciar sesion para consultar las reservas del usuario actual.
-            </p>
-            <Button onClick={() => openModal("login")}>Iniciar sesion</Button>
-          </CardContent>
-        </Card>
-      )}
 
       {error && (
         <Card>

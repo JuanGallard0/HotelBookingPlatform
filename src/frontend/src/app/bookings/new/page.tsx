@@ -112,7 +112,7 @@ export default function NewBookingPage() {
   // Auth guard: redirect unauthenticated users to the previous page
   useEffect(() => {
     if (authReady && !isAuthenticated) {
-      router.replace("/hotels");
+      router.replace("/");
     }
   }, [authReady, isAuthenticated, router]);
 
@@ -194,7 +194,7 @@ export default function NewBookingPage() {
     try {
       idempotencyKeyRef.current ??= crypto.randomUUID();
 
-      const result = await runWithAuth((accessToken) =>
+      const result = await runWithAuth(() =>
         createBooking(
           {
             roomTypeId,
@@ -214,7 +214,6 @@ export default function NewBookingPage() {
             specialRequests: specialRequests || undefined,
             idempotencyKey: idempotencyKeyRef.current,
           },
-          accessToken,
         ),
       );
       setBooking(result);

@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server";
+import { AUTH_COOKIE_NAMES } from "@/src/lib/auth/cookies";
 
 export const runtime = "nodejs";
 
@@ -16,12 +17,21 @@ function buildTargetUrl(request: NextRequest, path: string[]) {
   return targetUrl;
 }
 
-function buildRequestHeaders(request: NextRequest) {
+function buildRequestHeaders(request: NextRequest, path: string[]) {
   const headers = new Headers(request.headers);
+  const accessToken = request.cookies.get(AUTH_COOKIE_NAMES.accessToken)?.value;
 
   headers.delete("host");
   headers.delete("connection");
   headers.delete("content-length");
+
+  if (
+    accessToken &&
+    !headers.has("authorization") &&
+    !(path[0] === "auth" && path[1] !== "me")
+  ) {
+    headers.set("authorization", `Bearer ${accessToken}`);
+  }
 
   return headers;
 }
@@ -32,7 +42,7 @@ async function proxyRequest(
 ) {
   const { path } = await context.params;
   const targetUrl = buildTargetUrl(request, path);
-  const headers = buildRequestHeaders(request);
+  const headers = buildRequestHeaders(request, path);
 
   // Read body once — ArrayBuffer can be reused across redirect hops
   const body =

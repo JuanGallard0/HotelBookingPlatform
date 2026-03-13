@@ -6,10 +6,3 @@ export interface AuthenticatedUser {
   fullName: string;
   role: string;
 }
-
-export interface AuthResponse {
-  accessToken: string;
-  refreshToken: string;
-  accessTokenExpiresAt: string;
-  user: AuthenticatedUser;
-}

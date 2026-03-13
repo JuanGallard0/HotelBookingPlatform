@@ -21,12 +21,12 @@ if (app.Environment.IsDevelopment())
 else
 {
     app.UseHsts();
+    app.UseHttpsRedirection();
 }
 
 app.UseSerilogRequestLogging();
 
 app.UseHealthChecks("/health");
-app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();

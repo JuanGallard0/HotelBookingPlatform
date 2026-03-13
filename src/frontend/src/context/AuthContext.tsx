@@ -15,18 +15,21 @@ import {
   getMe,
   login,
   logout,
-  refreshToken as refreshAccessToken,
+  refreshSession,
   register,
+  type AuthSession,
 } from "@/src/lib/api/auth";
-import type { AuthResponse, AuthenticatedUser } from "@/src/types/auth";
+import type { AuthenticatedUser } from "@/src/types/auth";
 
 type AuthTab = "login" | "register";
 
-type StoredSession = AuthResponse;
+type SessionState = {
+  user: AuthenticatedUser;
+  accessTokenExpiresAt: string | null;
+};
 
 interface AuthContextValue {
   user: AuthenticatedUser | null;
-  accessToken: string | null;
   isAuthenticated: boolean;
   authReady: boolean;
   isModalOpen: boolean;
@@ -44,73 +47,21 @@ interface AuthContextValue {
     password: string;
   }) => Promise<void>;
   logoutUser: () => Promise<void>;
-  getValidAccessToken: () => Promise<string | null>;
-  runWithAuth: <T>(operation: (accessToken: string) => Promise<T>) => Promise<T>;
+  refreshUserSession: () => Promise<boolean>;
+  runWithAuth: <T>(operation: () => Promise<T>) => Promise<T>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
-const STORAGE_KEY = "hb_auth";
-const REFRESH_SKEW_MS = 60_000;
-
-function persist(session: StoredSession | null) {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  if (session) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-  } else {
-    localStorage.removeItem(STORAGE_KEY);
-  }
-}
-
-function readStorage(): StoredSession | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      return null;
-    }
-
-    const parsed = JSON.parse(raw) as Partial<StoredSession>;
-    if (
-      !parsed.accessToken ||
-      !parsed.refreshToken ||
-      !parsed.accessTokenExpiresAt ||
-      !parsed.user
-    ) {
-      return null;
-    }
-
-    return {
-      accessToken: parsed.accessToken,
-      refreshToken: parsed.refreshToken,
-      accessTokenExpiresAt: parsed.accessTokenExpiresAt,
-      user: parsed.user as AuthenticatedUser,
-    };
-  } catch {
-    return null;
-  }
-}
-
-function isSessionFresh(session: StoredSession | null, skewMs = REFRESH_SKEW_MS) {
-  if (!session?.accessToken || !session.accessTokenExpiresAt) {
-    return false;
-  }
-
-  const expiresAt = Date.parse(session.accessTokenExpiresAt);
-  if (Number.isNaN(expiresAt)) {
-    return false;
-  }
-
-  return expiresAt - Date.now() > skewMs;
-}
 
 function isUnauthorizedError(error: unknown) {
   return error instanceof SwaggerException && error.status === 401;
+}
+
+function toSessionState(session: AuthSession): SessionState {
+  return {
+    user: session.user,
+    accessTokenExpiresAt: session.accessTokenExpiresAt,
+  };
 }
 
 export function useAuth() {
@@ -122,15 +73,14 @@ export function useAuth() {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<StoredSession | null>(() => readStorage());
+  const [session, setSession] = useState<SessionState | null>(null);
   const [authReady, setAuthReady] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalTab, setModalTab] = useState<AuthTab>("login");
-  const refreshPromiseRef = useRef<Promise<StoredSession | null> | null>(null);
+  const refreshPromiseRef = useRef<Promise<boolean> | null>(null);
 
-  const applySession = useCallback((nextSession: StoredSession | null) => {
+  const applySession = useCallback((nextSession: SessionState | null) => {
     setSession(nextSession);
-    persist(nextSession);
   }, []);
 
   const clearSession = useCallback(() => {
@@ -146,91 +96,58 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsModalOpen(false);
   }, []);
 
-  const refreshSession = useCallback(async () => {
-    if (!session?.refreshToken) {
-      clearSession();
-      return null;
-    }
-
+  const refreshUserSession = useCallback(async () => {
     if (refreshPromiseRef.current) {
       return refreshPromiseRef.current;
     }
 
-    refreshPromiseRef.current = refreshAccessToken(session.refreshToken)
-      .then(async (nextSession) => {
-        const resolvedUser =
-          nextSession.user.id > 0
-            ? nextSession.user
-            : nextSession.accessToken
-              ? await getMe(nextSession.accessToken)
-              : null;
-
-        if (!resolvedUser) {
-          clearSession();
-          return null;
-        }
-
-        const normalizedSession: StoredSession = {
-          ...nextSession,
-          user: resolvedUser,
-        };
-
-        applySession(normalizedSession);
-        return normalizedSession;
+    refreshPromiseRef.current = refreshSession()
+      .then((nextSession) => {
+        applySession(toSessionState(nextSession));
+        return true;
       })
       .catch(() => {
         clearSession();
-        return null;
+        return false;
       })
       .finally(() => {
         refreshPromiseRef.current = null;
       });
 
     return refreshPromiseRef.current;
-  }, [applySession, clearSession, session]);
-
-  const getValidAccessToken = useCallback(async () => {
-    if (!session) {
-      return null;
-    }
-
-    if (isSessionFresh(session)) {
-      return session.accessToken;
-    }
-
-    const refreshedSession = await refreshSession();
-    return refreshedSession?.accessToken ?? null;
-  }, [refreshSession, session]);
+  }, [applySession, clearSession]);
 
   const runWithAuth = useCallback(
-    async <T,>(operation: (accessToken: string) => Promise<T>) => {
-      const token = await getValidAccessToken();
-      if (!token) {
-        throw new Error("Debes iniciar sesion para continuar.");
+    async <T,>(operation: () => Promise<T>) => {
+      if (!session?.user) {
+        const refreshed = await refreshUserSession();
+        if (!refreshed) {
+          throw new Error("Debes iniciar sesion para continuar.");
+        }
       }
 
       try {
-        return await operation(token);
+        return await operation();
       } catch (error) {
         if (!isUnauthorizedError(error)) {
           throw error;
         }
 
-        const refreshedSession = await refreshSession();
-        if (!refreshedSession?.accessToken) {
+        const refreshed = await refreshUserSession();
+        if (!refreshed) {
           throw new Error("Tu sesion expiro. Inicia sesion nuevamente.");
         }
 
-        return operation(refreshedSession.accessToken);
+        return operation();
       }
     },
-    [getValidAccessToken, refreshSession],
+    [refreshUserSession, session?.user],
   );
 
   const loginUser = useCallback(
     async (credentials: { email: string; password: string }) => {
       const nextSession = await login(credentials);
-      applySession(nextSession);
+      applySession(toSessionState(nextSession));
     },
     [applySession],
   );
@@ -243,49 +160,52 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       password: string;
     }) => {
       const nextSession = await register(data);
-      applySession(nextSession);
+      applySession(toSessionState(nextSession));
     },
     [applySession],
   );
 
   const logoutUser = useCallback(async () => {
-    const currentRefreshToken = session?.refreshToken;
-
     clearSession();
-
-    if (!currentRefreshToken) {
-      return;
-    }
-
-    try {
-      await logout(currentRefreshToken);
-    } catch {
-      // Ignore logout transport failures; local session is already cleared.
-    }
-  }, [clearSession, session]);
+    await logout();
+  }, [clearSession]);
 
   useEffect(() => {
     let cancelled = false;
 
     async function initializeSession() {
-      if (!session) {
+      try {
+        const refreshed = await refreshUserSession();
+
+        if (cancelled) {
+          return;
+        }
+
+        if (refreshed) {
+          return;
+        }
+
+        const currentUser = await getMe();
+
+        if (cancelled) {
+          return;
+        }
+
+        if (currentUser) {
+          applySession({
+            user: currentUser,
+            accessTokenExpiresAt: null,
+          });
+          return;
+        }
+      } catch {
+        if (!cancelled) {
+          clearSession();
+        }
+      } finally {
         if (!cancelled) {
           setAuthReady(true);
         }
-        return;
-      }
-
-      if (isSessionFresh(session, 0)) {
-        if (!cancelled) {
-          setAuthReady(true);
-        }
-        return;
-      }
-
-      await refreshSession();
-
-      if (!cancelled) {
-        setAuthReady(true);
       }
     }
 
@@ -294,13 +214,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [refreshSession, session]);
+  }, [applySession, clearSession, refreshUserSession]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
       user: session?.user ?? null,
-      accessToken: session?.accessToken ?? null,
-      isAuthenticated: Boolean(session?.accessToken && session.user),
+      isAuthenticated: Boolean(session?.user),
       authReady,
       isModalOpen,
       modalTab,
@@ -309,18 +228,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loginUser,
       registerUser,
       logoutUser,
-      getValidAccessToken,
+      refreshUserSession,
       runWithAuth,
     }),
     [
       authReady,
       closeModal,
-      getValidAccessToken,
       isModalOpen,
       loginUser,
       logoutUser,
       modalTab,
       openModal,
+      refreshUserSession,
       registerUser,
       runWithAuth,
       session,

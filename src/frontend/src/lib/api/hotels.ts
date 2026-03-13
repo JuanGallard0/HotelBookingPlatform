@@ -8,15 +8,17 @@ import {
 } from "@/src/lib/api/generated/api-client";
 import { API_BASE_URL } from "@/src/lib/constants";
 
+const baseFetch: typeof fetch = (input, init) => globalThis.fetch(input, init);
+
 function makeClient(accessToken?: string) {
   if (!accessToken) {
-    return new HotelsClient(API_BASE_URL, { fetch });
+    return new HotelsClient(API_BASE_URL, { fetch: baseFetch });
   }
 
   const authenticatedFetch: typeof fetch = (input, init) => {
     const headers = new Headers(init?.headers);
     headers.set("Authorization", `Bearer ${accessToken}`);
-    return fetch(input, { ...init, headers });
+    return globalThis.fetch(input, { ...init, headers });
   };
 
   return new HotelsClient(API_BASE_URL, { fetch: authenticatedFetch });
