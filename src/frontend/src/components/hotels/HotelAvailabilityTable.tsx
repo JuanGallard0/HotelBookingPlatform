@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { format, parse, isValid } from "date-fns";
 import { es } from "date-fns/locale";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, UserRound } from "lucide-react";
 import { getHotelAvailability } from "@/src/lib/api/hotels";
 import type { AvailableRoomTypeDto } from "@/src/lib/api/generated/api-client";
 import { useAuth } from "@/src/context/AuthContext";
@@ -364,19 +364,7 @@ export function HotelAvailabilityTable({ hotelId }: { hotelId: number }) {
 
                     <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
                       <span className="flex items-center gap-1 text-muted-foreground">
-                        <svg
-                          className="h-3.5 w-3.5"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth={1.8}
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
-                          />
-                        </svg>
+                        <UserRound className="h-3.5 w-3.5" strokeWidth={1.8} />
                         {room.maxOccupancy} huéspedes
                       </span>
                       {discount > 0 && (
@@ -465,20 +453,11 @@ export function HotelAvailabilityTable({ hotelId }: { hotelId: number }) {
                         </TableCell>
                         <TableCell className="py-5 text-center">
                           <span className="inline-flex items-center gap-1.5 text-sm text-foreground">
-                            <svg
+                            <UserRound
                               className="h-4 w-4 text-muted-foreground"
-                              fill="none"
-                              stroke="currentColor"
                               strokeWidth={1.8}
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
-                              />
-                            </svg>
-                            {room.maxOccupancy} huéspedes
+                            />
+                            {room.maxOccupancy} huÃ©spedes
                           </span>
                         </TableCell>
                         <TableCell className="py-5 text-center">
@@ -547,3 +526,4 @@ export function HotelAvailabilityTable({ hotelId }: { hotelId: number }) {
     </section>
   );
 }
+

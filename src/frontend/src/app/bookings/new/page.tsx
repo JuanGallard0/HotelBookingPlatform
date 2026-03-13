@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { format, parse, isValid } from "date-fns";
 import { es } from "date-fns/locale";
+import { ArrowLeft, Check } from "lucide-react";
 import { createBooking, toErrorMessage } from "@/src/lib/api/bookings";
 import { useAuth } from "@/src/context/AuthContext";
 import { Button } from "@/src/components/ui/button";
@@ -31,19 +32,7 @@ function BookingConfirmation({ booking }: { booking: BookingDto }) {
   return (
     <div className="mx-auto max-w-lg text-center py-16 px-4">
       <div className="flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mx-auto mb-6">
-        <svg
-          className="h-8 w-8 text-green-600"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M4.5 12.75l6 6 9-13.5"
-          />
-        </svg>
+        <Check className="h-8 w-8 text-green-600" strokeWidth={2.5} />
       </div>
       <h1 className="text-2xl font-bold text-slate-900 mb-2">
         ¡Reserva confirmada!
@@ -250,19 +239,7 @@ export default function NewBookingPage() {
           onClick={() => router.back()}
           className="mb-6 inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-900 transition-colors"
         >
-          <svg
-            className="h-4 w-4"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M15.75 19.5 8.25 12l7.5-7.5"
-            />
-          </svg>
+          <ArrowLeft className="h-4 w-4" strokeWidth={2} />
           Volver
         </button>
 

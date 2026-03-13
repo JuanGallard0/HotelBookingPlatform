@@ -1,3 +1,4 @@
+using HotelBookingPlatform.Application.Bookings.Commands.ConfirmBooking;
 using HotelBookingPlatform.Application.Bookings.Commands.CreateBooking;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,6 +20,16 @@ public class BookingsEndpoints : EndpointGroupBase
             .Produces<ApiResponse<object?>>(StatusCodes.Status409Conflict)
             .Produces<ApiResponse<object?>>(StatusCodes.Status422UnprocessableEntity)
             .RequireAuthorization();
+
+        group.MapPost("{id:int}/confirm", ConfirmBooking)
+            .WithSummary("Confirm a booking")
+            .Produces<ApiResponse<object?>>(StatusCodes.Status200OK)
+            .Produces<ApiResponse<object?>>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse<object?>>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse<object?>>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse<object?>>(StatusCodes.Status404NotFound)
+            .Produces<ApiResponse<object?>>(StatusCodes.Status422UnprocessableEntity)
+            .RequireAuthorization();
     }
 
     private static async Task<IResult> CreateBooking(
@@ -29,5 +40,14 @@ public class BookingsEndpoints : EndpointGroupBase
     {
         var result = await sender.Send(body, cancellationToken);
         return result.ToCreatedHttpResult($"/api/v1/bookings/{result.Value?.BookingNumber}");
+    }
+
+    private static async Task<IResult> ConfirmBooking(
+        int id,
+        ISender sender,
+        CancellationToken cancellationToken)
+    {
+        var result = await sender.Send(new ConfirmBookingCommand(id), cancellationToken);
+        return result.ToHttpResult();
     }
 }
