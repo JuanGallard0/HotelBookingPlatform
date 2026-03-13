@@ -25,7 +25,7 @@ function useIsMounted() {
 }
 
 export function Navbar() {
-  const { user, openModal, logoutUser } = useAuth();
+  const { isAuthenticated, user, openModal, logoutUser } = useAuth();
   const mounted = useIsMounted();
 
   return (
@@ -48,7 +48,7 @@ export function Navbar() {
           aria-label="Navegacion principal"
           className="flex items-center gap-3"
         >
-          {mounted && user ? (
+          {mounted && isAuthenticated && user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2 rounded-full border border-border bg-muted pl-2 pr-2.5 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring group">
@@ -70,7 +70,7 @@ export function Navbar() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link href="/account/reservations">Mis reservas</Link>
+                  <Link href="/account/bookings">Mis reservas</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem

@@ -118,7 +118,7 @@ function defaultDates() {
 
 export function HotelAvailabilityTable({ hotelId }: { hotelId: number }) {
   const router = useRouter();
-  const { accessToken, openModal } = useAuth();
+  const { isAuthenticated, openModal } = useAuth();
   const [pendingUrl, setPendingUrl] = useState<string | null>(null);
   const defaults = defaultDates();
   const [checkIn, setCheckIn] = useState(defaults.checkIn);
@@ -190,7 +190,7 @@ export function HotelAvailabilityTable({ hotelId }: { hotelId: number }) {
 
   function handleReservar(room: AvailableRoomTypeDto) {
     const url = buildBookingUrl(room);
-    if (accessToken) {
+    if (isAuthenticated) {
       router.push(url);
     } else {
       setPendingUrl(url);

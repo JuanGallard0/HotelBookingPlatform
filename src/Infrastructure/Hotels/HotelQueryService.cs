@@ -3,6 +3,8 @@ using HotelBookingPlatform.Application.Common.Interfaces;
 using HotelBookingPlatform.Application.Hotels.Queries;
 using HotelBookingPlatform.Application.Hotels.Queries.GetAvailableHotels;
 using HotelBookingPlatform.Application.Hotels.Queries.GetHotelAvailability;
+using HotelBookingPlatform.Application.Hotels.Queries.GetHotelById;
+using HotelBookingPlatform.Application.Hotels.Queries.GetHotels;
 
 namespace HotelBookingPlatform.Infrastructure.Hotels;
 
@@ -292,4 +294,102 @@ public sealed class HotelQueryService(IDbConnectionFactory connectionFactory) : 
 
         return roomTypes.AsList();
     }
+
+    public async Task<(IReadOnlyList<HotelDto> Hotels, int TotalCount)> GetHotelsAsync(
+        GetHotelsQuery query,
+        CancellationToken cancellationToken)
+    {
+        using var connection = connectionFactory.CreateConnection();
+
+        var builder = new SqlBuilder();
+
+        var parameters = new
+        {
+            Offset = (query.ResolvedPageNumber - 1) * query.ResolvedPageSize,
+            PageSize = query.ResolvedPageSize,
+        };
+
+        var dataTemplate = builder.AddTemplate(
+            """
+            SELECT
+                h.Id          AS HotelId,
+                h.Name,
+                h.Description,
+                h.Address,
+                h.City,
+                h.Country,
+                h.Email,
+                h.PhoneNumber,
+                h.StarRating,
+                h.IsActive
+            FROM Hotels h
+            /**where**/
+            /**orderby**/
+            OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY
+            """,
+            parameters);
+
+        var countTemplate = builder.AddTemplate(
+            """
+            SELECT COUNT(*)
+            FROM Hotels h
+            /**where**/
+            """,
+            parameters);
+
+        ApplyGetHotelsFilters(builder, query);
+
+        var sortColumn = !string.IsNullOrWhiteSpace(query.SortBy)
+                         && GetHotelsSortColumns.TryGetValue(query.SortBy, out var expr)
+            ? expr
+            : "h.Id";
+
+        var direction = string.Equals(query.ResolvedSortDirection, "desc", StringComparison.OrdinalIgnoreCase)
+            ? "DESC"
+            : "ASC";
+
+        builder.OrderBy($"{sortColumn} {direction}");
+
+        var combinedSql = $"{dataTemplate.RawSql};\n{countTemplate.RawSql}";
+
+        using var multi = await connection.QueryMultipleAsync(
+            new CommandDefinition(
+                combinedSql,
+                dataTemplate.Parameters,
+                cancellationToken: cancellationToken));
+
+        var hotels = (await multi.ReadAsync<HotelDto>()).AsList();
+        var totalCount = await multi.ReadFirstAsync<int>();
+
+        return (hotels, totalCount);
+    }
+
+    private static void ApplyGetHotelsFilters(SqlBuilder builder, GetHotelsQuery query)
+    {
+        if (!string.IsNullOrWhiteSpace(query.Name))
+            builder.Where("h.Name LIKE @Name", new { Name = $"%{query.Name}%" });
+
+        if (!string.IsNullOrWhiteSpace(query.City))
+            builder.Where("h.City = @City", new { query.City });
+
+        if (!string.IsNullOrWhiteSpace(query.Country))
+            builder.Where("h.Country = @Country", new { query.Country });
+
+        if (query.StarRating.HasValue)
+            builder.Where("h.StarRating = @StarRating", new { query.StarRating });
+
+        if (query.IsActive.HasValue)
+            builder.Where("h.IsActive = @IsActive", new { query.IsActive });
+    }
+
+    private static readonly IReadOnlyDictionary<string, string> GetHotelsSortColumns =
+        new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["HotelId"]    = "h.Id",
+            ["Name"]       = "h.Name",
+            ["City"]       = "h.City",
+            ["Country"]    = "h.Country",
+            ["StarRating"] = "h.StarRating",
+            ["IsActive"]   = "h.IsActive",
+        };
 }

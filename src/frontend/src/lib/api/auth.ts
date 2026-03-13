@@ -10,7 +10,9 @@ import type { AuthResponse, AuthenticatedUser } from "@/src/types/auth";
 import { API_BASE_URL } from "@/src/lib/constants";
 
 function makeClient(accessToken?: string) {
-  if (!accessToken) return new AuthClient(API_BASE_URL, { fetch });
+  const base = typeof window === "undefined" ? API_BASE_URL : "";
+
+  if (!accessToken) return new AuthClient(base, { fetch });
 
   const authenticatedFetch: typeof fetch = (input, init) => {
     const headers = new Headers(init?.headers);
@@ -18,7 +20,7 @@ function makeClient(accessToken?: string) {
     return fetch(input, { ...init, headers });
   };
 
-  return new AuthClient(API_BASE_URL, { fetch: authenticatedFetch });
+  return new AuthClient(base, { fetch: authenticatedFetch });
 }
 
 function mapAuthResponse(data: AuthResponseDto): AuthResponse {

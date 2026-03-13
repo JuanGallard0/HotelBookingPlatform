@@ -107,14 +107,14 @@ function BookingConfirmation({ booking }: { booking: BookingDto }) {
 export default function NewBookingPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { accessToken, user } = useAuth();
+  const { authReady, isAuthenticated, runWithAuth, user } = useAuth();
 
   // Auth guard: redirect unauthenticated users to the previous page
   useEffect(() => {
-    if (accessToken === null) {
+    if (authReady && !isAuthenticated) {
       router.replace("/hotels");
     }
-  }, [accessToken, router]);
+  }, [authReady, isAuthenticated, router]);
 
   // Booking context from query params
   const roomTypeId = Number(searchParams.get("roomTypeId") ?? "0");
@@ -189,33 +189,33 @@ export default function NewBookingPage() {
   async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    if (!accessToken) return;
-
     setLoading(true);
     setError(null);
     try {
       idempotencyKeyRef.current ??= crypto.randomUUID();
 
-      const result = await createBooking(
-        {
-          roomTypeId,
-          checkIn: checkIn!,
-          checkOut: checkOut!,
-          numberOfGuests: guests,
-          numberOfRooms,
-          guest: {
-            firstName,
-            lastName,
-            email,
-            phoneNumber,
-            documentType: documentType || undefined,
-            documentNumber: documentNumber || undefined,
-            nationality: nationality || undefined,
+      const result = await runWithAuth((accessToken) =>
+        createBooking(
+          {
+            roomTypeId,
+            checkIn: checkIn!,
+            checkOut: checkOut!,
+            numberOfGuests: guests,
+            numberOfRooms,
+            guest: {
+              firstName,
+              lastName,
+              email,
+              phoneNumber,
+              documentType: documentType || undefined,
+              documentNumber: documentNumber || undefined,
+              nationality: nationality || undefined,
+            },
+            specialRequests: specialRequests || undefined,
+            idempotencyKey: idempotencyKeyRef.current,
           },
-          specialRequests: specialRequests || undefined,
-          idempotencyKey: idempotencyKeyRef.current,
-        },
-        accessToken,
+          accessToken,
+        ),
       );
       setBooking(result);
     } catch (err) {

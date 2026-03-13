@@ -4,6 +4,7 @@ import {
   GuestInfoDto,
   SwaggerException,
   type BookingDto,
+  type UserBookingDto,
 } from "@/src/lib/api/generated/api-client";
 import { API_BASE_URL } from "@/src/lib/constants";
 
@@ -42,6 +43,98 @@ function getApiErrorMessage(error: unknown, fallback: string) {
 
 export function toErrorMessage(error: unknown, fallback: string) {
   return getApiErrorMessage(error, fallback);
+}
+
+export type UserBookingStatus =
+  | "pending"
+  | "confirmed"
+  | "cancelled"
+  | "checked-in"
+  | "checked-out"
+  | "no-show";
+
+export type UserBookingsSortBy =
+  | "BookingId"
+  | "CheckIn"
+  | "CheckOut"
+  | "TotalAmount"
+  | "Status"
+  | "CreatedAt";
+
+export type UserBookingsSortDirection = "asc" | "desc";
+
+export type GetMyBookingsInput = {
+  accessToken?: string;
+  status?: UserBookingStatus;
+  pageNumber?: number;
+  pageSize?: number;
+  sortBy?: UserBookingsSortBy;
+  sortDirection?: UserBookingsSortDirection;
+};
+
+export type GetMyBookingsResult = {
+  items: UserBookingDto[];
+  pageNumber: number;
+  pageSize: number;
+  totalRecords: number;
+  totalPages: number;
+};
+
+const userBookingStatusMap: Record<UserBookingStatus, number> = {
+  pending: 0,
+  confirmed: 1,
+  cancelled: 2,
+  "checked-in": 3,
+  "checked-out": 4,
+  "no-show": 5,
+};
+
+export function getUserBookingStatusLabel(status?: number) {
+  switch (status) {
+    case 0:
+      return "Pendiente";
+    case 1:
+      return "Confirmada";
+    case 2:
+      return "Cancelada";
+    case 3:
+      return "Check-in";
+    case 4:
+      return "Check-out";
+    case 5:
+      return "No show";
+    default:
+      return "Desconocida";
+  }
+}
+
+export async function getMyBookings({
+  accessToken,
+  status,
+  pageNumber = 1,
+  pageSize = 10,
+  sortBy = "CreatedAt",
+  sortDirection = "desc",
+}: GetMyBookingsInput): Promise<GetMyBookingsResult> {
+  const response = await makeClient(accessToken).me(
+    status ? userBookingStatusMap[status] : undefined,
+    pageNumber,
+    pageSize,
+    sortBy,
+    sortDirection,
+  );
+
+  if (!response.success || !response.data) {
+    throw new Error(response.errorMessage ?? "Failed to load bookings.");
+  }
+
+  return {
+    items: response.data.data ?? [],
+    pageNumber: response.data.pageNumber ?? pageNumber,
+    pageSize: response.data.pageSize ?? pageSize,
+    totalRecords: response.data.totalRecords ?? 0,
+    totalPages: response.data.totalPages ?? 1,
+  };
 }
 
 export interface CreateBookingInput {
