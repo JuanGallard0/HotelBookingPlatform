@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, ArrowRight, ArrowUpDown } from "lucide-react";
 
 import { useAuth } from "@/src/context/AuthContext";
 import {
+  cancelBooking,
+  confirmBooking,
   getMyBookings,
   getUserBookingStatusLabel,
   toErrorMessage,
@@ -16,8 +18,19 @@ import {
 import type { UserBookingDto } from "@/src/lib/api/generated/api-client";
 import { Button } from "@/src/components/ui/button";
 import { Card, CardContent } from "@/src/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/src/components/ui/dialog";
+import { Input } from "@/src/components/ui/input";
 
 const PAGE_SIZE = 5;
+const DEFAULT_CANCELLATION_REASON =
+  "Cancelled by user from account bookings.";
 
 const statusOptions: Array<{
   label: string;
@@ -90,8 +103,221 @@ function formatMoney(amount?: number, currency?: string) {
   }).format(amount);
 }
 
+type BookingActionDialogProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title: string;
+  description: string;
+  children?: ReactNode;
+  confirmLabel: string;
+  confirmDisabled?: boolean;
+  confirmLoading?: boolean;
+  confirmVariant?: "default" | "destructive";
+  onConfirm: () => void;
+};
+
+function BookingActionDialog({
+  open,
+  onOpenChange,
+  title,
+  description,
+  children,
+  confirmLabel,
+  confirmDisabled,
+  confirmLoading,
+  confirmVariant = "default",
+  onConfirm,
+}: BookingActionDialogProps) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
+        </DialogHeader>
+
+        {children}
+
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={confirmLoading}
+          >
+            Cancelar
+          </Button>
+          <Button
+            type="button"
+            variant={confirmVariant}
+            onClick={onConfirm}
+            disabled={confirmDisabled || confirmLoading}
+          >
+            {confirmLoading ? "Procesando..." : confirmLabel}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+type InlineBookingRowActionsProps = {
+  booking: UserBookingDto;
+  userEmail: string;
+  runWithAuth: <T>(operation: () => Promise<T>) => Promise<T>;
+  onUpdated: () => void;
+};
+
+function InlineBookingRowActions({
+  booking,
+  userEmail,
+  runWithAuth,
+  onUpdated,
+}: InlineBookingRowActionsProps) {
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [emailInput, setEmailInput] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState<"confirm" | "cancel" | null>(
+    null,
+  );
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!confirmOpen) {
+      setEmailInput("");
+    }
+  }, [confirmOpen]);
+
+  const normalizedUserEmail = useMemo(
+    () => userEmail.trim().toLowerCase(),
+    [userEmail],
+  );
+  const normalizedEmailInput = emailInput.trim().toLowerCase();
+  const canConfirm = normalizedEmailInput === normalizedUserEmail;
+  const maybeBookingId = booking.bookingId;
+
+  if (booking.status !== 0 || maybeBookingId == null) {
+    return null;
+  }
+
+  const bookingId: number = maybeBookingId;
+
+  async function handleConfirm() {
+    if (!canConfirm) {
+      setError("Ingresa el correo de tu cuenta para confirmar la reserva.");
+      return;
+    }
+
+    setIsSubmitting("confirm");
+    setError(null);
+
+    try {
+      await runWithAuth(() => confirmBooking(bookingId));
+      setConfirmOpen(false);
+      onUpdated();
+    } catch (err) {
+      setError(
+        toErrorMessage(err, "No se pudo confirmar la reserva en este momento."),
+      );
+    } finally {
+      setIsSubmitting(null);
+    }
+  }
+
+  async function handleCancel() {
+    setIsSubmitting("cancel");
+    setError(null);
+
+    try {
+      await runWithAuth(() =>
+        cancelBooking(bookingId, DEFAULT_CANCELLATION_REASON),
+      );
+      setCancelOpen(false);
+      onUpdated();
+    } catch (err) {
+      setError(
+        toErrorMessage(err, "No se pudo cancelar la reserva en este momento."),
+      );
+    } finally {
+      setIsSubmitting(null);
+    }
+  }
+
+  return (
+    <>
+      <div className="flex flex-wrap gap-2">
+        <Button
+          type="button"
+          size="sm"
+          onClick={() => {
+            setError(null);
+            setConfirmOpen(true);
+          }}
+        >
+          Confirmar
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() => {
+            setError(null);
+            setCancelOpen(true);
+          }}
+        >
+          Cancelar reserva
+        </Button>
+      </div>
+
+      {error && <p className="text-xs text-red-600">{error}</p>}
+
+      <BookingActionDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Confirmar reserva"
+        description={`Escribe ${userEmail} para confirmar ${booking.bookingNumber ?? `#${bookingId}`}.`}
+        confirmLabel="Confirmar reserva"
+        confirmDisabled={!canConfirm}
+        confirmLoading={isSubmitting === "confirm"}
+        onConfirm={handleConfirm}
+      >
+        <div className="grid gap-2">
+          <label
+            className="text-sm font-medium text-foreground"
+            htmlFor={`confirm-email-${bookingId}`}
+          >
+            Correo electronico
+          </label>
+          <Input
+            id={`confirm-email-${bookingId}`}
+            type="email"
+            value={emailInput}
+            autoComplete="email"
+            placeholder={userEmail}
+            onChange={(event) => setEmailInput(event.target.value)}
+          />
+          <p className="text-xs text-muted-foreground">
+            La confirmacion se habilita cuando el correo coincide con tu cuenta.
+          </p>
+        </div>
+      </BookingActionDialog>
+
+      <BookingActionDialog
+        open={cancelOpen}
+        onOpenChange={setCancelOpen}
+        title="Cancelar reserva"
+        description={`Se cancelara ${booking.bookingNumber ?? `#${bookingId}`}. Esta accion no se puede deshacer.`}
+        confirmLabel="Si, cancelar"
+        confirmLoading={isSubmitting === "cancel"}
+        confirmVariant="destructive"
+        onConfirm={handleCancel}
+      />
+    </>
+  );
+}
+
 export default function AccountBookingsPage() {
-  const { authReady, isAuthenticated, runWithAuth } = useAuth();
+  const { authReady, isAuthenticated, runWithAuth, user } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -101,6 +327,7 @@ export default function AccountBookingsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [error, setError] = useState<string | null>(null);
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
+  const [refreshNonce, setRefreshNonce] = useState(0);
 
   const status =
     searchParams.get("status") === "all"
@@ -118,7 +345,7 @@ export default function AccountBookingsPage() {
 
   const page = Math.max(Number(searchParams.get("page") ?? "1") || 1, 1);
   const requestKey = isAuthenticated
-    ? `${status}:${sortBy}:${sortDirection}:${page}`
+    ? `${status}:${sortBy}:${sortDirection}:${page}:${refreshNonce}`
     : null;
   const loading = requestKey !== null && loadedKey !== requestKey;
 
@@ -200,6 +427,7 @@ export default function AccountBookingsPage() {
     authReady,
     isAuthenticated,
     page,
+    refreshNonce,
     requestKey,
     router,
     runWithAuth,
@@ -311,6 +539,17 @@ export default function AccountBookingsPage() {
                     <p className="text-sm font-semibold text-foreground">
                       {formatMoney(booking.totalAmount, booking.currency)}
                     </p>
+                    {user?.email && (
+                      <InlineBookingRowActions
+                        booking={booking}
+                        userEmail={user.email}
+                        runWithAuth={runWithAuth}
+                        onUpdated={() => {
+                          setLoadedKey(null);
+                          setRefreshNonce((current) => current + 1);
+                        }}
+                      />
+                    )}
                   </div>
                 </CardContent>
               </Card>

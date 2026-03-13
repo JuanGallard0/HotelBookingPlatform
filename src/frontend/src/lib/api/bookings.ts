@@ -1,5 +1,6 @@
 import {
   BookingsClient,
+  CancelBookingRequest,
   CreateBookingCommand,
   GuestInfoDto,
   SwaggerException,
@@ -193,4 +194,30 @@ export async function createBooking(
   }
 
   return response.data;
+}
+
+export async function confirmBooking(
+  bookingId: number,
+  accessToken?: string,
+): Promise<void> {
+  const response = await makeClient(accessToken).confirm(bookingId);
+
+  if (!response.success) {
+    throw new Error(response.errorMessage ?? "Failed to confirm booking.");
+  }
+}
+
+export async function cancelBooking(
+  bookingId: number,
+  reason: string,
+  accessToken?: string,
+): Promise<void> {
+  const response = await makeClient(accessToken).cancel(
+    bookingId,
+    new CancelBookingRequest({ reason }),
+  );
+
+  if (!response.success) {
+    throw new Error(response.errorMessage ?? "Failed to cancel booking.");
+  }
 }

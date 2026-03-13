@@ -791,6 +791,110 @@ export class HotelsClient {
     }
 
     /**
+     * Browse all hotels
+     * @param name (optional) 
+     * @param city (optional) 
+     * @param country (optional) 
+     * @param starRating (optional) 
+     * @param isActive (optional) 
+     * @param pageNumber (optional) 
+     * @param pageSize (optional) 
+     * @param sortBy (optional) 
+     * @param sortDirection (optional) 
+     * @return OK
+     */
+    list(name: string | undefined, city: string | undefined, country: string | undefined, starRating: number | undefined, isActive: boolean | undefined, pageNumber: number | undefined, pageSize: number | undefined, sortBy: string | undefined, sortDirection: string | undefined): Promise<ApiResponseOfPagedResponseOfHotelDto> {
+        let url_ = this.baseUrl + "/api/v1/hotels/list?";
+        if (name === null)
+            throw new globalThis.Error("The parameter 'name' cannot be null.");
+        else if (name !== undefined)
+            url_ += "Name=" + encodeURIComponent("" + name) + "&";
+        if (city === null)
+            throw new globalThis.Error("The parameter 'city' cannot be null.");
+        else if (city !== undefined)
+            url_ += "City=" + encodeURIComponent("" + city) + "&";
+        if (country === null)
+            throw new globalThis.Error("The parameter 'country' cannot be null.");
+        else if (country !== undefined)
+            url_ += "Country=" + encodeURIComponent("" + country) + "&";
+        if (starRating === null)
+            throw new globalThis.Error("The parameter 'starRating' cannot be null.");
+        else if (starRating !== undefined)
+            url_ += "StarRating=" + encodeURIComponent("" + starRating) + "&";
+        if (isActive === null)
+            throw new globalThis.Error("The parameter 'isActive' cannot be null.");
+        else if (isActive !== undefined)
+            url_ += "IsActive=" + encodeURIComponent("" + isActive) + "&";
+        if (pageNumber === null)
+            throw new globalThis.Error("The parameter 'pageNumber' cannot be null.");
+        else if (pageNumber !== undefined)
+            url_ += "PageNumber=" + encodeURIComponent("" + pageNumber) + "&";
+        if (pageSize === null)
+            throw new globalThis.Error("The parameter 'pageSize' cannot be null.");
+        else if (pageSize !== undefined)
+            url_ += "PageSize=" + encodeURIComponent("" + pageSize) + "&";
+        if (sortBy === null)
+            throw new globalThis.Error("The parameter 'sortBy' cannot be null.");
+        else if (sortBy !== undefined)
+            url_ += "SortBy=" + encodeURIComponent("" + sortBy) + "&";
+        if (sortDirection === null)
+            throw new globalThis.Error("The parameter 'sortDirection' cannot be null.");
+        else if (sortDirection !== undefined)
+            url_ += "SortDirection=" + encodeURIComponent("" + sortDirection) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processList(_response);
+        });
+    }
+
+    protected processList(response: Response): Promise<ApiResponseOfPagedResponseOfHotelDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ApiResponseOfPagedResponseOfHotelDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ApiResponseOfObject.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ApiResponseOfObject.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            let result403: any = null;
+            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result403 = ApiResponseOfObject.fromJS(resultData403);
+            return throwException("Forbidden", status, _responseText, _headers, result403);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ApiResponseOfPagedResponseOfHotelDto>(null as any);
+    }
+
+    /**
      * Get hotel by id
      * @return OK
      */
@@ -1642,6 +1746,82 @@ export class ApiResponseOfPagedResponseOfAvailableHotelDto implements IApiRespon
 export interface IApiResponseOfPagedResponseOfAvailableHotelDto {
     success?: boolean;
     data?: PagedResponseOfAvailableHotelDto | undefined;
+    errorMessage?: string | undefined;
+    errorCode?: string | undefined;
+    validationErrors?: { [key: string]: string[]; } | undefined;
+
+    [key: string]: any;
+}
+
+export class ApiResponseOfPagedResponseOfHotelDto implements IApiResponseOfPagedResponseOfHotelDto {
+    success?: boolean;
+    data?: PagedResponseOfHotelDto | undefined;
+    errorMessage?: string | undefined;
+    errorCode?: string | undefined;
+    validationErrors?: { [key: string]: string[]; } | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IApiResponseOfPagedResponseOfHotelDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.success = _data["success"];
+            this.data = _data["data"] ? PagedResponseOfHotelDto.fromJS(_data["data"]) : undefined as any;
+            this.errorMessage = _data["errorMessage"];
+            this.errorCode = _data["errorCode"];
+            if (_data["validationErrors"]) {
+                this.validationErrors = {} as any;
+                for (let key in _data["validationErrors"]) {
+                    if (_data["validationErrors"].hasOwnProperty(key))
+                        (this.validationErrors as any)![key] = _data["validationErrors"][key] !== undefined ? _data["validationErrors"][key] : [];
+                }
+            }
+        }
+    }
+
+    static fromJS(data: any): ApiResponseOfPagedResponseOfHotelDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new ApiResponseOfPagedResponseOfHotelDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["success"] = this.success;
+        data["data"] = this.data ? this.data.toJSON() : undefined as any;
+        data["errorMessage"] = this.errorMessage;
+        data["errorCode"] = this.errorCode;
+        if (this.validationErrors) {
+            data["validationErrors"] = {};
+            for (let key in this.validationErrors) {
+                if (this.validationErrors.hasOwnProperty(key))
+                    (data["validationErrors"] as any)[key] = (this.validationErrors as any)[key];
+            }
+        }
+        return data;
+    }
+}
+
+export interface IApiResponseOfPagedResponseOfHotelDto {
+    success?: boolean;
+    data?: PagedResponseOfHotelDto | undefined;
     errorMessage?: string | undefined;
     errorCode?: string | undefined;
     validationErrors?: { [key: string]: string[]; } | undefined;
@@ -2723,6 +2903,86 @@ export class PagedResponseOfAvailableHotelDto implements IPagedResponseOfAvailab
 
 export interface IPagedResponseOfAvailableHotelDto {
     data?: AvailableHotelDto[];
+    pageNumber?: number;
+    pageSize?: number;
+    totalRecords?: number;
+    totalPages?: number;
+    hasPreviousPage?: boolean;
+    hasNextPage?: boolean;
+
+    [key: string]: any;
+}
+
+export class PagedResponseOfHotelDto implements IPagedResponseOfHotelDto {
+    data?: HotelDto[];
+    pageNumber?: number;
+    pageSize?: number;
+    totalRecords?: number;
+    totalPages?: number;
+    hasPreviousPage?: boolean;
+    hasNextPage?: boolean;
+
+    [key: string]: any;
+
+    constructor(data?: IPagedResponseOfHotelDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            if (Array.isArray(_data["data"])) {
+                this.data = [] as any;
+                for (let item of _data["data"])
+                    this.data!.push(HotelDto.fromJS(item));
+            }
+            this.pageNumber = _data["pageNumber"];
+            this.pageSize = _data["pageSize"];
+            this.totalRecords = _data["totalRecords"];
+            this.totalPages = _data["totalPages"];
+            this.hasPreviousPage = _data["hasPreviousPage"];
+            this.hasNextPage = _data["hasNextPage"];
+        }
+    }
+
+    static fromJS(data: any): PagedResponseOfHotelDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new PagedResponseOfHotelDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        if (Array.isArray(this.data)) {
+            data["data"] = [];
+            for (let item of this.data)
+                data["data"].push(item ? item.toJSON() : undefined as any);
+        }
+        data["pageNumber"] = this.pageNumber;
+        data["pageSize"] = this.pageSize;
+        data["totalRecords"] = this.totalRecords;
+        data["totalPages"] = this.totalPages;
+        data["hasPreviousPage"] = this.hasPreviousPage;
+        data["hasNextPage"] = this.hasNextPage;
+        return data;
+    }
+}
+
+export interface IPagedResponseOfHotelDto {
+    data?: HotelDto[];
     pageNumber?: number;
     pageSize?: number;
     totalRecords?: number;

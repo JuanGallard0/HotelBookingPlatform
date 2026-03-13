@@ -319,6 +319,10 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<string>("ResourceLocation")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<string>("ResponseBody")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -329,10 +333,6 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
 
                     b.Property<string>("ResponseHeadersJson")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ResourceLocation")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
 
                     b.Property<int>("ResponseStatusCode")
                         .HasColumnType("int");
