@@ -40,6 +40,19 @@ function toDateOnly(d: Date) {
   return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
 }
 
+function tomorrow() {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function today() {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
 function DatePickerField({
   label,
   value,
@@ -81,7 +94,8 @@ function DatePickerField({
               onChange(day ? format(day, "yyyy-MM-dd") : "");
               setOpen(false);
             }}
-            fromDate={fromDate ?? new Date()}
+            disabled={{ before: fromDate ?? today() }}
+            startMonth={fromDate ?? today()}
             locale={es}
             initialFocus
           />
@@ -183,6 +197,13 @@ export function HotelAvailabilityTable({ hotelId }: { hotelId: number }) {
     }
   }
 
+  const minCheckOutDate = (() => {
+    if (!checkIn) return tomorrow();
+    const d = parse(checkIn, "yyyy-MM-dd", new Date());
+    d.setDate(d.getDate() + 1);
+    return d;
+  })();
+
   return (
     <section id="availability" className="mt-10">
       {/* Login prompt dialog */}
@@ -250,11 +271,7 @@ export function HotelAvailabilityTable({ hotelId }: { hotelId: number }) {
               label="Check-out"
               value={checkOut}
               onChange={setCheckOut}
-              fromDate={
-                checkIn
-                  ? new Date(new Date(checkIn).getTime() + 86400000)
-                  : new Date()
-              }
+              fromDate={minCheckOutDate}
             />
 
             <div className="flex flex-col gap-1">

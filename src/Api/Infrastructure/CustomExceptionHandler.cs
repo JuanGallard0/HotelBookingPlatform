@@ -36,6 +36,7 @@ public class CustomExceptionHandler : IExceptionHandler
         BookingStatusException ex => Result.Conflict(ex.Message),
         InsufficientInventoryException ex => Result.Conflict(ex.Message),
         InvalidBookingDatesException ex => Result.UnprocessableEntity(ex.Message),
-        _ => null
+        InvalidOperationException ex => Result.Failure(ex.Message),
+        _ => Result.Failure("An unexpected error occurred.")
     };
 }

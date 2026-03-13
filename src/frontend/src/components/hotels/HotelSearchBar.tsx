@@ -22,6 +22,19 @@ interface HotelSearchBarProps {
   replace?: boolean;
 }
 
+function tomorrow() {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function today() {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
 function DatePickerField({
   label,
   value,
@@ -66,7 +79,8 @@ function DatePickerField({
               onChange(day ? format(day, "yyyy-MM-dd") : "");
               setOpen(false);
             }}
-            fromDate={fromDate ?? new Date()}
+            disabled={{ before: fromDate ?? today() }}
+            startMonth={fromDate ?? today()}
             locale={es}
             initialFocus
           />
@@ -86,7 +100,9 @@ export function HotelSearchBar({
   const [name, setName] = useState(searchParams.get("name") ?? "");
   const [checkIn, setCheckIn] = useState(searchParams.get("checkIn") ?? "");
   const [checkOut, setCheckOut] = useState(searchParams.get("checkOut") ?? "");
-  const [guests, setGuests] = useState(searchParams.get("numberOfGuests") ?? "");
+  const [guests, setGuests] = useState(
+    searchParams.get("numberOfGuests") ?? "",
+  );
   const [rooms, setRooms] = useState(searchParams.get("numberOfRooms") ?? "");
 
   const labelCls = cn(
@@ -124,7 +140,7 @@ export function HotelSearchBar({
   const minCheckOut =
     checkInDate && isValid(checkInDate)
       ? new Date(checkInDate.getTime() + 86400000)
-      : new Date();
+      : tomorrow();
 
   return (
     <form

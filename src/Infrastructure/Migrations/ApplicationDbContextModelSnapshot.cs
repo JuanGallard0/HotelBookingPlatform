@@ -83,8 +83,8 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
 
                     b.Property<string>("BookingNumber")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<string>("CancellationReason")
                         .HasMaxLength(500)

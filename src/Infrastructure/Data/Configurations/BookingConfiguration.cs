@@ -12,7 +12,7 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
 
         builder.Property(b => b.BookingNumber)
             .IsRequired()
-            .HasMaxLength(20);
+            .HasMaxLength(30);
 
         builder.Property(b => b.CheckInDate)
             .IsRequired();

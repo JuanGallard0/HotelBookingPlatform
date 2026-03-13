@@ -8,8 +8,12 @@ import {
 import { API_BASE_URL } from "@/src/lib/constants";
 
 function makeClient(accessToken?: string) {
+  // Use empty base on the client so requests route through the Next.js proxy,
+  // avoiding cross-origin preflight (OPTIONS) requests to the backend.
+  const base = typeof window === "undefined" ? API_BASE_URL : "";
+
   if (!accessToken) {
-    return new BookingsClient(API_BASE_URL, { fetch });
+    return new BookingsClient(base, { fetch });
   }
 
   const authenticatedFetch: typeof fetch = (input, init) => {
@@ -18,7 +22,7 @@ function makeClient(accessToken?: string) {
     return fetch(input, { ...init, headers });
   };
 
-  return new BookingsClient(API_BASE_URL, { fetch: authenticatedFetch });
+  return new BookingsClient(base, { fetch: authenticatedFetch });
 }
 
 function getApiErrorMessage(error: unknown, fallback: string) {

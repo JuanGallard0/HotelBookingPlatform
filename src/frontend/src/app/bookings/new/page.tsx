@@ -178,7 +178,7 @@ export default function NewBookingPage() {
     );
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
 
     if (!accessToken) return;
@@ -249,14 +249,18 @@ export default function NewBookingPage() {
           Completar reserva
         </h1>
 
-        <div className="grid gap-8 lg:grid-cols-3">
+        <div className="grid space-y-6 lg:space-y-0 lg:gap-8 lg:grid-cols-3">
           {/* ── Form ── */}
-          <form onSubmit={handleSubmit} className="lg:col-span-2 space-y-8">
+          <form
+            id="booking-form"
+            onSubmit={handleSubmit}
+            className="lg:col-span-2 space-y-8"
+          >
             {/* Guest info */}
             <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
               <div className="px-6 py-5 border-b border-border">
                 <h2 className="text-lg font-semibold text-card-foreground">
-                  Datos del huésped
+                  Datos del huésped principal
                 </h2>
               </div>
               <div className="px-6 py-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -360,10 +364,11 @@ export default function NewBookingPage() {
               </p>
             )}
 
+            {/* Desktop-only submit button */}
             <Button
               type="submit"
               size="lg"
-              className="w-full"
+              className="hidden lg:block w-full"
               disabled={loading}
             >
               {loading ? "Procesando…" : "Confirmar reserva"}
@@ -446,6 +451,24 @@ export default function NewBookingPage() {
               </div>
             </div>
           </aside>
+        </div>
+
+        {/* Mobile-only submit button — rendered after the summary block */}
+        <div className="lg:hidden mt-8 space-y-3">
+          {error && (
+            <p className="text-sm text-red-600 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+              {error}
+            </p>
+          )}
+          <Button
+            type="submit"
+            form="booking-form"
+            size="lg"
+            className="w-full"
+            disabled={loading}
+          >
+            {loading ? "Procesando…" : "Confirmar reserva"}
+          </Button>
         </div>
       </div>
     </main>

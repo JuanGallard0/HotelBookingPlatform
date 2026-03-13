@@ -34,17 +34,31 @@ async function proxyRequest(
   const targetUrl = buildTargetUrl(request, path);
   const headers = buildRequestHeaders(request);
 
+  // Read body once — ArrayBuffer can be reused across redirect hops
+  const body =
+    request.method !== "GET" && request.method !== "HEAD"
+      ? await request.arrayBuffer()
+      : undefined;
+
   const init: RequestInit = {
     method: request.method,
     headers,
-    redirect: "follow",
+    body,
+    redirect: "manual",
   };
 
-  if (request.method !== "GET" && request.method !== "HEAD") {
-    init.body = await request.arrayBuffer();
+  // Follow redirects manually so the Authorization header is preserved.
+  // Node.js fetch strips Authorization when auto-following cross-origin
+  // redirects (e.g. HTTP → HTTPS), which breaks bearer-token auth.
+  let response = await fetch(targetUrl, init);
+  let hops = 0;
+  while (response.status >= 300 && response.status < 400 && hops < 10) {
+    const location = response.headers.get("location");
+    if (!location) break;
+    response = await fetch(location, init);
+    hops++;
   }
 
-  const response = await fetch(targetUrl, init);
   const responseHeaders = new Headers(response.headers);
 
   responseHeaders.delete("content-encoding");

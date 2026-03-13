@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HotelBookingPlatform.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260310214657_InitialSetup")]
+    [Migration("20260312231314_InitialSetup")]
     partial class InitialSetup
     {
         /// <inheritdoc />
@@ -86,8 +86,8 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
 
                     b.Property<string>("BookingNumber")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<string>("CancellationReason")
                         .HasMaxLength(500)
