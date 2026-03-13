@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ChevronDown, Tag, Trash2 } from "lucide-react";
 import type { RatePlanDetailsDto } from "@/src/lib/api/generated/api-client";
 import { toAdminErrorMessage } from "@/src/lib/api/admin-hotels";
+import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
+import { cn } from "@/src/lib/utils";
 
 type RatePlanFormState = {
   name: string;
@@ -63,6 +66,7 @@ export function AdminRatePlanEditor({
   ) => Promise<void>;
   onDelete: (ratePlanId: number) => Promise<void>;
 }) {
+  const [open, setOpen] = useState(false);
   const [form, setForm] = useState(() => toRatePlanFormState(ratePlan));
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
@@ -113,95 +117,113 @@ export function AdminRatePlanEditor({
   }
 
   return (
-    <form
-      className="grid gap-3 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 md:grid-cols-2"
-      onSubmit={saveRatePlan}
-    >
-      <Input
-        value={form.name}
-        onChange={(event) =>
-          setForm((current) => ({ ...current, name: event.target.value }))
-        }
-        placeholder="Nombre"
-      />
-      <Input
-        type="number"
-        min={0}
-        step="0.01"
-        value={form.pricePerNight}
-        onChange={(event) =>
-          setForm((current) => ({
-            ...current,
-            pricePerNight: event.target.value,
-          }))
-        }
-        placeholder="Precio"
-      />
-      <Input
-        type="date"
-        value={form.validFrom}
-        onChange={(event) =>
-          setForm((current) => ({
-            ...current,
-            validFrom: event.target.value,
-          }))
-        }
-      />
-      <Input
-        type="date"
-        value={form.validTo}
-        onChange={(event) =>
-          setForm((current) => ({ ...current, validTo: event.target.value }))
-        }
-      />
-      <Input
-        value={form.discountPercentage}
-        onChange={(event) =>
-          setForm((current) => ({
-            ...current,
-            discountPercentage: event.target.value,
-          }))
-        }
-        placeholder="Descuento %"
-      />
-      <label className="flex items-center gap-2 text-sm text-slate-600">
-        <input
-          checked={form.isActive}
-          onChange={(event) =>
-            setForm((current) => ({
-              ...current,
-              isActive: event.target.checked,
-            }))
-          }
-          type="checkbox"
-        />
-        Activo
-      </label>
-      <textarea
-        className="min-h-20 rounded-lg border border-input bg-white px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:col-span-2"
-        value={form.description}
-        onChange={(event) =>
-          setForm((current) => ({
-            ...current,
-            description: event.target.value,
-          }))
-        }
-        placeholder="Descripcion"
-      />
-      {error ? <p className="text-sm text-red-600 md:col-span-2">{error}</p> : null}
-      <div className="flex gap-3 md:col-span-2">
-        <Button disabled={busy === "save"} type="submit">
-          {busy === "save" ? "Guardando..." : "Guardar"}
-        </Button>
-        <Button
-          disabled={busy === "delete"}
-          onClick={removeRatePlan}
-          type="button"
-          variant="destructive"
+    <div className="rounded-xl border border-white/8 border-l-2 border-l-emerald-500/40 bg-emerald-500/5">
+      {/* Clickable header row */}
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left"
+      >
+        <div className="flex items-center gap-2 min-w-0">
+          <ChevronDown
+            className={cn(
+              "h-3 w-3 shrink-0 text-slate-400 transition-transform",
+              open && "rotate-180",
+            )}
+          />
+          <Tag className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-slate-100 truncate">{ratePlan.name}</p>
+            <p className="text-xs text-slate-400">
+              ${ratePlan.pricePerNight}/noche
+              {ratePlan.discountPercentage ? ` · ${ratePlan.discountPercentage}% dto.` : ""}
+            </p>
+          </div>
+        </div>
+        <Badge variant={ratePlan.isActive ? "secondary" : "outline"} className="text-xs shrink-0">
+          {ratePlan.isActive ? "Activo" : "Inactivo"}
+        </Badge>
+      </button>
+
+      {open && (
+        <form
+          className="grid gap-3 border-t border-white/10 p-4 md:grid-cols-2"
+          onSubmit={saveRatePlan}
         >
-          Eliminar
-        </Button>
-      </div>
-    </form>
+          <Input
+            value={form.name}
+            onChange={(event) =>
+              setForm((current) => ({ ...current, name: event.target.value }))
+            }
+            placeholder="Nombre"
+          />
+          <Input
+            type="number"
+            min={0}
+            step="0.01"
+            value={form.pricePerNight}
+            onChange={(event) =>
+              setForm((current) => ({ ...current, pricePerNight: event.target.value }))
+            }
+            placeholder="Precio"
+          />
+          <Input
+            type="date"
+            value={form.validFrom}
+            onChange={(event) =>
+              setForm((current) => ({ ...current, validFrom: event.target.value }))
+            }
+          />
+          <Input
+            type="date"
+            value={form.validTo}
+            onChange={(event) =>
+              setForm((current) => ({ ...current, validTo: event.target.value }))
+            }
+          />
+          <Input
+            value={form.discountPercentage}
+            onChange={(event) =>
+              setForm((current) => ({ ...current, discountPercentage: event.target.value }))
+            }
+            placeholder="Descuento %"
+          />
+          <label className="flex items-center gap-2 text-sm text-slate-300">
+            <input
+              checked={form.isActive}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, isActive: event.target.checked }))
+              }
+              type="checkbox"
+            />
+            Activo
+          </label>
+          <textarea
+            className="min-h-20 rounded-lg border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:col-span-2"
+            value={form.description}
+            onChange={(event) =>
+              setForm((current) => ({ ...current, description: event.target.value }))
+            }
+            placeholder="Descripcion"
+          />
+          {error ? <p className="text-sm text-red-400 md:col-span-2">{error}</p> : null}
+          <div className="flex gap-3 md:col-span-2">
+            <Button disabled={busy === "save"} type="submit" size="sm">
+              {busy === "save" ? "Guardando..." : "Guardar"}
+            </Button>
+            <Button
+              disabled={busy === "delete"}
+              onClick={removeRatePlan}
+              type="button"
+              variant="destructive"
+              size="sm"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Eliminar
+            </Button>
+          </div>
+        </form>
+      )}
+    </div>
   );
 }

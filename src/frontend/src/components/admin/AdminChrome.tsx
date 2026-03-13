@@ -107,7 +107,7 @@ export function AdminChrome({ children }: { children: ReactNode }) {
   const { user, logoutUser } = useAuth();
 
   return (
-    <div className="flex min-h-screen flex-col bg-[radial-gradient(circle_at_top,#1e293b,transparent_22%),linear-gradient(180deg,#020617_0%,#0f172a_45%,#111827_100%)] text-slate-100">
+    <div className="dark flex min-h-screen flex-col bg-[radial-gradient(circle_at_top,#1e293b,transparent_22%),linear-gradient(180deg,#020617_0%,#0f172a_45%,#111827_100%)] text-slate-100">
       <header className="sticky top-0 z-40 border-b border-white/10 bg-slate-950/80 backdrop-blur">
         <div className="mx-auto flex h-18 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
@@ -122,7 +122,10 @@ export function AdminChrome({ children }: { children: ReactNode }) {
                   <span className="sr-only">Abrir navegacion de admin</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-[22rem] border-white/10 bg-slate-950 p-0 text-slate-100">
+              <SheetContent
+                side="left"
+                className="w-[22rem] border-white/10 bg-slate-950 p-0 text-slate-100"
+              >
                 <SheetHeader className="border-b border-white/10 bg-slate-950 px-5 py-5">
                   <SheetTitle className="flex items-center gap-3 text-slate-100">
                     <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-500 text-slate-950">
@@ -131,7 +134,8 @@ export function AdminChrome({ children }: { children: ReactNode }) {
                     Centro administrativo
                   </SheetTitle>
                   <SheetDescription className="text-slate-400">
-                    Gestiona hoteles, configuracion e inventario desde un panel dedicado.
+                    Gestiona hoteles, configuracion e inventario desde un panel
+                    dedicado.
                   </SheetDescription>
                 </SheetHeader>
                 <div className="flex h-full flex-col gap-6 px-5 py-6">
@@ -166,7 +170,10 @@ export function AdminChrome({ children }: { children: ReactNode }) {
               </SheetContent>
             </Sheet>
 
-            <Link href="/admin/hotels" className="inline-flex items-center gap-3">
+            <Link
+              href="/admin/hotels"
+              className="inline-flex items-center gap-3"
+            >
               <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-400 text-slate-950 shadow-[0_0_30px_rgba(251,191,36,0.2)]">
                 <Building2 className="h-5 w-5" />
               </span>
@@ -215,7 +222,7 @@ export function AdminChrome({ children }: { children: ReactNode }) {
               </p>
               <h1 className="mt-1 inline-flex items-center gap-2 text-lg font-semibold text-slate-100">
                 <LayoutDashboard className="h-5 w-5 text-amber-300" />
-                Administracion hotelera
+                Administracion de hoteles
               </h1>
             </div>
             <Badge className="rounded-full border border-emerald-400/25 bg-emerald-400/10 text-emerald-200 hover:bg-emerald-400/10">
@@ -229,8 +236,12 @@ export function AdminChrome({ children }: { children: ReactNode }) {
       <footer className="mt-8 border-t border-white/10 bg-slate-950/60">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-5 text-sm text-slate-400 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
           <div>
-            <p className="font-medium text-slate-100">Hotel Operations Console</p>
-            <p>Configuracion, catalogo e inventario con control centralizado.</p>
+            <p className="font-medium text-slate-100">
+              Hotel Operations Console
+            </p>
+            <p>
+              Configuracion, catalogo e inventario con control centralizado.
+            </p>
           </div>
           <div className="flex items-center gap-4">
             <Link href="/admin/hotels" className="hover:text-slate-100">

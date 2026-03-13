@@ -26,7 +26,7 @@ function nights(checkIn: Date, checkOut: Date) {
   );
 }
 
-// â”€â”€ Booking Confirmation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- Booking Confirmation -----------------------------------------------------
 
 function BookingConfirmation({ booking }: { booking: BookingDto }) {
   return (
@@ -35,7 +35,7 @@ function BookingConfirmation({ booking }: { booking: BookingDto }) {
         <Check className="h-8 w-8 text-green-600" strokeWidth={2.5} />
       </div>
       <h1 className="text-2xl font-bold text-slate-900 mb-2">
-        Â¡Reserva confirmada!
+        ¡Reserva confirmada!
       </h1>
       <p className="text-slate-500 mb-8">
         Tu reserva ha sido creada exitosamente.
@@ -43,14 +43,14 @@ function BookingConfirmation({ booking }: { booking: BookingDto }) {
 
       <div className="rounded-xl border border-border bg-card p-6 text-left space-y-3">
         <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">NÃºmero de reserva</span>
+          <span className="text-muted-foreground">Número de reserva</span>
           <span className="font-semibold text-card-foreground">
             {booking.bookingNumber}
           </span>
         </div>
         <Separator />
         <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">HabitaciÃ³n</span>
+          <span className="text-muted-foreground">Habitación</span>
           <span className="font-medium text-card-foreground">
             {booking.roomTypeName}
           </span>
@@ -102,7 +102,7 @@ function BookingConfirmation({ booking }: { booking: BookingDto }) {
   );
 }
 
-// â”€â”€ Main Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- Main Page ----------------------------------------------------------------
 
 export default function NewBookingPage() {
   const searchParams = useSearchParams();
@@ -130,7 +130,7 @@ export default function NewBookingPage() {
   const checkOut = parseDate(checkOutStr);
   const nightCount = checkIn && checkOut ? nights(checkIn, checkOut) : 0;
 
-  // Form state â€” prefill with logged-in user data where available
+  // Form state — prefill with logged-in user data where available
   const [firstName, setFirstName] = useState(user?.firstName ?? "");
   const [lastName, setLastName] = useState(user?.lastName ?? "");
   const [email, setEmail] = useState(user?.email ?? "");
@@ -168,7 +168,7 @@ export default function NewBookingPage() {
       <main className="flex-1 flex items-center justify-center py-20 px-4">
         <div className="text-center">
           <p className="text-slate-500 mb-4">
-            ParÃ¡metros de reserva invÃ¡lidos.
+            Parámetros de reserva inválidos.
           </p>
           <Link href="/hotels">
             <Button variant="outline">Ver hoteles</Button>
@@ -195,26 +195,24 @@ export default function NewBookingPage() {
       idempotencyKeyRef.current ??= crypto.randomUUID();
 
       const result = await runWithAuth(() =>
-        createBooking(
-          {
-            roomTypeId,
-            checkIn: checkIn!,
-            checkOut: checkOut!,
-            numberOfGuests: guests,
-            numberOfRooms,
-            guest: {
-              firstName,
-              lastName,
-              email,
-              phoneNumber,
-              documentType: documentType || undefined,
-              documentNumber: documentNumber || undefined,
-              nationality: nationality || undefined,
-            },
-            specialRequests: specialRequests || undefined,
-            idempotencyKey: idempotencyKeyRef.current,
+        createBooking({
+          roomTypeId,
+          checkIn: checkIn!,
+          checkOut: checkOut!,
+          numberOfGuests: guests,
+          numberOfRooms,
+          guest: {
+            firstName,
+            lastName,
+            email,
+            phoneNumber,
+            documentType: documentType || undefined,
+            documentNumber: documentNumber || undefined,
+            nationality: nationality || undefined,
           },
-        ),
+          specialRequests: specialRequests || undefined,
+          idempotencyKey: idempotencyKeyRef.current,
+        }),
       );
       setBooking(result);
     } catch (err) {
@@ -247,7 +245,7 @@ export default function NewBookingPage() {
         </h1>
 
         <div className="grid space-y-6 lg:space-y-0 lg:gap-8 lg:grid-cols-3">
-          {/* â”€â”€ Form â”€â”€ */}
+          {/* -- Form -- */}
           <form
             id="booking-form"
             onSubmit={handleSubmit}
@@ -257,7 +255,7 @@ export default function NewBookingPage() {
             <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
               <div className="px-6 py-5 border-b border-border">
                 <h2 className="text-lg font-semibold text-card-foreground">
-                  Datos del huÃ©sped principal
+                  Datos del huésped principal
                 </h2>
               </div>
               <div className="px-6 py-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -278,11 +276,11 @@ export default function NewBookingPage() {
                     required
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    placeholder="GarcÃ­a"
+                    placeholder="García"
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="email">Correo electrÃ³nico *</Label>
+                  <Label htmlFor="email">Correo electrónico *</Label>
                   <Input
                     id="email"
                     type="email"
@@ -293,7 +291,7 @@ export default function NewBookingPage() {
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="phoneNumber">TelÃ©fono *</Label>
+                  <Label htmlFor="phoneNumber">Teléfono *</Label>
                   <Input
                     id="phoneNumber"
                     type="tel"
@@ -313,7 +311,7 @@ export default function NewBookingPage() {
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="documentNumber">NÃºmero de documento</Label>
+                  <Label htmlFor="documentNumber">Número de documento</Label>
                   <Input
                     id="documentNumber"
                     value={documentNumber}
@@ -327,7 +325,7 @@ export default function NewBookingPage() {
                     id="nationality"
                     value={nationality}
                     onChange={(e) => setNationality(e.target.value)}
-                    placeholder="EspaÃ±ola"
+                    placeholder="Española"
                   />
                 </div>
               </div>
@@ -349,7 +347,7 @@ export default function NewBookingPage() {
                   rows={4}
                   value={specialRequests}
                   onChange={(e) => setSpecialRequests(e.target.value)}
-                  placeholder="Cama supletoria, llegada tardÃ­a, habitaciÃ³n altaâ€¦"
+                  placeholder="Cama supletoria, llegada tardía, habitación alta..."
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
                 />
               </div>
@@ -368,11 +366,11 @@ export default function NewBookingPage() {
               className="hidden lg:block w-full"
               disabled={loading}
             >
-              {loading ? "Procesandoâ€¦" : "Confirmar reserva"}
+              {loading ? "Procesando..." : "Reservar"}
             </Button>
           </form>
 
-          {/* â”€â”€ Summary â”€â”€ */}
+          {/* -- Summary -- */}
           <aside className="lg:col-span-1">
             <div className="sticky top-6 rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
               <div className="px-6 py-5 border-b border-border">
@@ -383,7 +381,7 @@ export default function NewBookingPage() {
               <div className="px-6 py-6 space-y-4 text-sm">
                 <div>
                   <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-0.5">
-                    HabitaciÃ³n
+                    Habitación
                   </p>
                   <p className="font-semibold text-card-foreground">
                     {roomName}
@@ -420,7 +418,7 @@ export default function NewBookingPage() {
                   </div>
                   <div>
                     <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-0.5">
-                      HuÃ©spedes
+                      Huéspedes
                     </p>
                     <p className="text-card-foreground">{guests}</p>
                   </div>
@@ -450,7 +448,7 @@ export default function NewBookingPage() {
           </aside>
         </div>
 
-        {/* Mobile-only submit button â€” rendered after the summary block */}
+        {/* Mobile-only submit button — rendered after the summary block */}
         <div className="lg:hidden mt-8 space-y-3">
           {error && (
             <p className="text-sm text-red-600 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
@@ -464,7 +462,7 @@ export default function NewBookingPage() {
             className="w-full"
             disabled={loading}
           >
-            {loading ? "Procesandoâ€¦" : "Confirmar reserva"}
+            {loading ? "Procesando..." : "Confirmar reserva"}
           </Button>
         </div>
       </div>
