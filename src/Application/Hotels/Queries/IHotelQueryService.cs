@@ -1,5 +1,7 @@
 using HotelBookingPlatform.Application.Hotels.Queries.GetAvailableHotels;
 using HotelBookingPlatform.Application.Hotels.Queries.GetHotelAvailability;
+using HotelBookingPlatform.Application.Hotels.Queries.GetHotelDetails;
+using HotelBookingPlatform.Application.Hotels.Queries.GetHotelInventory;
 using HotelBookingPlatform.Application.Hotels.Queries.GetHotels;
 using HotelBookingPlatform.Application.Hotels.Queries.GetHotelById;
 
@@ -17,5 +19,13 @@ public interface IHotelQueryService
 
     Task<(IReadOnlyList<HotelDto> Hotels, int TotalCount)> GetHotelsAsync(
         GetHotelsQuery query,
+        CancellationToken cancellationToken);
+
+    Task<HotelDetailsDto?> GetHotelDetailsAsync(
+        int hotelId,
+        CancellationToken cancellationToken);
+
+    Task<HotelInventoryDto?> GetHotelInventoryAsync(
+        GetHotelInventoryQuery query,
         CancellationToken cancellationToken);
 }

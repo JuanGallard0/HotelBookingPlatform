@@ -4,6 +4,8 @@ using HotelBookingPlatform.Application.Hotels.Queries;
 using HotelBookingPlatform.Application.Hotels.Queries.GetAvailableHotels;
 using HotelBookingPlatform.Application.Hotels.Queries.GetHotelAvailability;
 using HotelBookingPlatform.Application.Hotels.Queries.GetHotelById;
+using HotelBookingPlatform.Application.Hotels.Queries.GetHotelDetails;
+using HotelBookingPlatform.Application.Hotels.Queries.GetHotelInventory;
 using HotelBookingPlatform.Application.Hotels.Queries.GetHotels;
 
 namespace HotelBookingPlatform.Infrastructure.Hotels;
@@ -392,4 +394,229 @@ public sealed class HotelQueryService(IDbConnectionFactory connectionFactory) : 
             ["StarRating"] = "h.StarRating",
             ["IsActive"]   = "h.IsActive",
         };
+
+    public async Task<HotelDetailsDto?> GetHotelDetailsAsync(
+        int hotelId,
+        CancellationToken cancellationToken)
+    {
+        using var connection = connectionFactory.CreateConnection();
+
+        const string sql =
+            """
+            SELECT
+                h.Id AS HotelId,
+                h.Name,
+                h.Description,
+                h.Address,
+                h.City,
+                h.Country,
+                h.Email,
+                h.PhoneNumber,
+                h.StarRating,
+                h.IsActive
+            FROM Hotels h
+            WHERE h.Id = @HotelId;
+
+            SELECT
+                rt.Id AS RoomTypeId,
+                rt.Name,
+                rt.Description,
+                rt.MaxOccupancy,
+                rt.BasePrice,
+                rt.IsActive
+            FROM RoomTypes rt
+            WHERE rt.HotelId = @HotelId
+            ORDER BY rt.Id;
+
+            SELECT
+                rp.Id AS RatePlanId,
+                rp.RoomTypeId,
+                rp.Name,
+                rp.Description,
+                rp.ValidFrom,
+                rp.ValidTo,
+                rp.PricePerNight,
+                rp.DiscountPercentage,
+                rp.IsActive
+            FROM RatePlans rp
+            INNER JOIN RoomTypes rt ON rt.Id = rp.RoomTypeId
+            WHERE rt.HotelId = @HotelId
+            ORDER BY rp.RoomTypeId, rp.ValidFrom, rp.Id;
+            """;
+
+        using var multi = await connection.QueryMultipleAsync(
+            new CommandDefinition(
+                sql,
+                new { HotelId = hotelId },
+                cancellationToken: cancellationToken));
+
+        var hotel = await multi.ReadFirstOrDefaultAsync<HotelDetailsRow>();
+        if (hotel is null)
+            return null;
+
+        var roomTypes = (await multi.ReadAsync<RoomTypeDetailsRow>()).AsList();
+        var ratePlans = (await multi.ReadAsync<RatePlanDetailsRow>()).AsList();
+
+        var ratePlansByRoomType = ratePlans
+            .GroupBy(rp => rp.RoomTypeId)
+            .ToDictionary(
+                group => group.Key,
+                group => (IReadOnlyList<RatePlanDetailsDto>)group
+                    .Select(rp => new RatePlanDetailsDto
+                    {
+                        RatePlanId = rp.RatePlanId,
+                        Name = rp.Name,
+                        Description = rp.Description,
+                        ValidFrom = DateOnly.FromDateTime(rp.ValidFrom),
+                        ValidTo = DateOnly.FromDateTime(rp.ValidTo),
+                        PricePerNight = rp.PricePerNight,
+                        DiscountPercentage = rp.DiscountPercentage,
+                        IsActive = rp.IsActive
+                    })
+                    .ToList());
+
+        return new HotelDetailsDto
+        {
+            HotelId = hotel.HotelId,
+            Name = hotel.Name,
+            Description = hotel.Description,
+            Address = hotel.Address,
+            City = hotel.City,
+            Country = hotel.Country,
+            Email = hotel.Email,
+            PhoneNumber = hotel.PhoneNumber,
+            StarRating = hotel.StarRating,
+            IsActive = hotel.IsActive,
+            RoomTypes = roomTypes.Select(rt => new RoomTypeDetailsDto
+            {
+                RoomTypeId = rt.RoomTypeId,
+                Name = rt.Name,
+                Description = rt.Description,
+                MaxOccupancy = rt.MaxOccupancy,
+                BasePrice = rt.BasePrice,
+                IsActive = rt.IsActive,
+                RatePlans = ratePlansByRoomType.GetValueOrDefault(rt.RoomTypeId, [])
+            }).ToList()
+        };
+    }
+
+    public async Task<HotelInventoryDto?> GetHotelInventoryAsync(
+        GetHotelInventoryQuery query,
+        CancellationToken cancellationToken)
+    {
+        using var connection = connectionFactory.CreateConnection();
+
+        const string sql =
+            """
+            SELECT h.Id AS HotelId
+            FROM Hotels h
+            WHERE h.Id = @HotelId;
+
+            SELECT
+                rt.Id AS RoomTypeId,
+                rt.Name
+            FROM RoomTypes rt
+            WHERE rt.HotelId = @HotelId
+            ORDER BY rt.Id;
+
+            SELECT
+                ri.RoomTypeId,
+                ri.Date,
+                ri.TotalRooms,
+                ri.AvailableRooms,
+                ri.RowVersion
+            FROM RoomInventories ri
+            INNER JOIN RoomTypes rt ON rt.Id = ri.RoomTypeId
+            WHERE rt.HotelId = @HotelId
+              AND ri.Date >= @From
+              AND ri.Date <= @To
+            ORDER BY ri.RoomTypeId, ri.Date;
+            """;
+
+        using var multi = await connection.QueryMultipleAsync(
+            new CommandDefinition(
+                sql,
+                new
+                {
+                    query.HotelId,
+                    From = query.From.ToDateTime(TimeOnly.MinValue),
+                    To = query.To.ToDateTime(TimeOnly.MinValue)
+                },
+                cancellationToken: cancellationToken));
+
+        var hotel = await multi.ReadFirstOrDefaultAsync<HotelInventoryHeaderRow>();
+        if (hotel is null)
+            return null;
+
+        var roomTypes = (await multi.ReadAsync<HotelInventoryRoomTypeRow>()).AsList();
+        var inventoryRows = (await multi.ReadAsync<InventoryDayRow>()).AsList();
+
+        var inventoryByRoomType = inventoryRows
+            .GroupBy(row => row.RoomTypeId)
+            .ToDictionary(
+                group => group.Key,
+                group => (IReadOnlyList<InventoryDayDto>)group.Select(row => new InventoryDayDto
+                {
+                    Date = DateOnly.FromDateTime(row.Date),
+                    TotalRooms = row.TotalRooms,
+                    AvailableRooms = row.AvailableRooms,
+                    ReservedRooms = row.TotalRooms - row.AvailableRooms,
+                    RowVersion = Convert.ToBase64String(row.RowVersion)
+                }).ToList());
+
+        return new HotelInventoryDto
+        {
+            HotelId = hotel.HotelId,
+            From = query.From,
+            To = query.To,
+            RoomTypes = roomTypes.Select(rt => new RoomTypeInventoryDto
+            {
+                RoomTypeId = rt.RoomTypeId,
+                Name = rt.Name,
+                Days = inventoryByRoomType.GetValueOrDefault(rt.RoomTypeId, [])
+            }).ToList()
+        };
+    }
+
+    private sealed record HotelDetailsRow(
+        int HotelId,
+        string Name,
+        string Description,
+        string Address,
+        string City,
+        string Country,
+        string Email,
+        string PhoneNumber,
+        int StarRating,
+        bool IsActive);
+
+    private sealed record RoomTypeDetailsRow(
+        int RoomTypeId,
+        string Name,
+        string Description,
+        int MaxOccupancy,
+        decimal BasePrice,
+        bool IsActive);
+
+    private sealed record RatePlanDetailsRow(
+        int RatePlanId,
+        int RoomTypeId,
+        string Name,
+        string Description,
+        DateTime ValidFrom,
+        DateTime ValidTo,
+        decimal PricePerNight,
+        decimal? DiscountPercentage,
+        bool IsActive);
+
+    private sealed record HotelInventoryHeaderRow(int HotelId);
+
+    private sealed record HotelInventoryRoomTypeRow(int RoomTypeId, string Name);
+
+    private sealed record InventoryDayRow(
+        int RoomTypeId,
+        DateTime Date,
+        int TotalRooms,
+        int AvailableRooms,
+        byte[] RowVersion);
 }

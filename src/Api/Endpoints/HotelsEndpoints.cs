@@ -1,10 +1,13 @@
 using HotelBookingPlatform.Application.Common.Models;
 using HotelBookingPlatform.Application.Hotels.Commands.CreateHotel;
+using HotelBookingPlatform.Application.Hotels.Commands.CreateRoomType;
 using HotelBookingPlatform.Application.Hotels.Commands.DeleteHotel;
 using HotelBookingPlatform.Application.Hotels.Commands.UpdateHotel;
 using HotelBookingPlatform.Application.Hotels.Queries.GetAvailableHotels;
 using HotelBookingPlatform.Application.Hotels.Queries.GetHotelAvailability;
 using HotelBookingPlatform.Application.Hotels.Queries.GetHotelById;
+using HotelBookingPlatform.Application.Hotels.Queries.GetHotelDetails;
+using HotelBookingPlatform.Application.Hotels.Queries.GetHotelInventory;
 using HotelBookingPlatform.Application.Hotels.Queries.GetHotels;
 using Microsoft.AspNetCore.Mvc;
 
@@ -35,6 +38,15 @@ public class HotelsEndpoints : EndpointGroupBase
             .Produces<ApiResponse<HotelDto>>(StatusCodes.Status200OK)
             .Produces<ApiResponse<object?>>(StatusCodes.Status404NotFound);
 
+        group.MapGet("{hotelId:int}/details", GetHotelDetails)
+            .WithSummary("Get hotel details for management")
+            .Produces<ApiResponse<HotelDetailsDto>>(StatusCodes.Status200OK)
+            .Produces<ApiResponse<object?>>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse<object?>>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse<object?>>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse<object?>>(StatusCodes.Status404NotFound)
+            .RequireAuthorization("AdminOnly");
+
         group.MapGet("{id:int}/availability", GetHotelAvailability)
             .WithSummary("Get available room types for a hotel")
             .Produces<ApiResponse<HotelAvailabilityDto>>(StatusCodes.Status200OK)
@@ -42,22 +54,49 @@ public class HotelsEndpoints : EndpointGroupBase
             .Produces<ApiResponse<object?>>(StatusCodes.Status404NotFound)
             .Produces<ApiResponse<object?>>(StatusCodes.Status422UnprocessableEntity);
 
+        group.MapGet("{hotelId:int}/inventory", GetHotelInventory)
+            .WithSummary("Get hotel inventory for a calendar range")
+            .Produces<ApiResponse<HotelInventoryDto>>(StatusCodes.Status200OK)
+            .Produces<ApiResponse<object?>>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse<object?>>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse<object?>>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse<object?>>(StatusCodes.Status404NotFound)
+            .RequireAuthorization("AdminOnly");
+
         group.MapPost(CreateHotel)
             .WithSummary("Create a hotel")
             .Produces<ApiResponse<int>>(StatusCodes.Status201Created)
-            .Produces<ApiResponse<object?>>(StatusCodes.Status400BadRequest);
+            .Produces<ApiResponse<object?>>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse<object?>>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse<object?>>(StatusCodes.Status403Forbidden)
+            .RequireAuthorization("AdminOnly");
+
+        group.MapPost("{hotelId:int}/room-types", CreateRoomType)
+            .WithSummary("Create a room type for a hotel")
+            .Produces<ApiResponse<int>>(StatusCodes.Status201Created)
+            .Produces<ApiResponse<object?>>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse<object?>>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse<object?>>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse<object?>>(StatusCodes.Status404NotFound)
+            .RequireAuthorization("AdminOnly");
 
         group.MapPut("{id:int}", UpdateHotel)
             .WithSummary("Update a hotel")
             .Produces<ApiResponse<object?>>(StatusCodes.Status200OK)
             .Produces<ApiResponse<object?>>(StatusCodes.Status400BadRequest)
-            .Produces<ApiResponse<object?>>(StatusCodes.Status404NotFound);
+            .Produces<ApiResponse<object?>>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse<object?>>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse<object?>>(StatusCodes.Status404NotFound)
+            .RequireAuthorization("AdminOnly");
 
         group.MapDelete("{id:int}", DeleteHotel)
             .WithSummary("Delete a hotel")
             .Produces<ApiResponse<object?>>(StatusCodes.Status200OK)
             .Produces<ApiResponse<object?>>(StatusCodes.Status404NotFound)
-            .Produces<ApiResponse<object?>>(StatusCodes.Status409Conflict);
+            .Produces<ApiResponse<object?>>(StatusCodes.Status409Conflict)
+            .Produces<ApiResponse<object?>>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse<object?>>(StatusCodes.Status403Forbidden)
+            .RequireAuthorization("AdminOnly");
     }
 
 
@@ -76,6 +115,15 @@ public class HotelsEndpoints : EndpointGroupBase
         CancellationToken cancellationToken)
     {
         var result = await sender.Send(new GetHotelByIdQuery(id), cancellationToken);
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> GetHotelDetails(
+        int hotelId,
+        ISender sender,
+        CancellationToken cancellationToken)
+    {
+        var result = await sender.Send(new GetHotelDetailsQuery(hotelId), cancellationToken);
         return result.ToHttpResult();
     }
 
@@ -99,6 +147,22 @@ public class HotelsEndpoints : EndpointGroupBase
         return result.ToHttpResult();
     }
 
+    private static async Task<IResult> GetHotelInventory(
+        int hotelId,
+        DateOnly from,
+        DateOnly to,
+        ISender sender,
+        CancellationToken cancellationToken)
+    {
+        var result = await sender.Send(new GetHotelInventoryQuery
+        {
+            HotelId = hotelId,
+            From = from,
+            To = to
+        }, cancellationToken);
+        return result.ToHttpResult();
+    }
+
     private static async Task<IResult> GetAvailableHotels(
         [AsParameters] GetAvailableHotelsQuery query,
         ISender sender,
@@ -115,6 +179,16 @@ public class HotelsEndpoints : EndpointGroupBase
     {
         var result = await sender.Send(command, cancellationToken);
         return result.ToCreatedHttpResult($"/api/v1/hotels/{result.Value}");
+    }
+
+    private static async Task<IResult> CreateRoomType(
+        int hotelId,
+        [FromBody] CreateRoomTypeCommand body,
+        ISender sender,
+        CancellationToken cancellationToken)
+    {
+        var result = await sender.Send(body with { HotelId = hotelId }, cancellationToken);
+        return result.ToCreatedHttpResult($"/api/v1/room-types/{result.Value}");
     }
 
     private static async Task<IResult> UpdateHotel(
