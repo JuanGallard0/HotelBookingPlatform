@@ -380,6 +380,72 @@ export class BookingsClient {
     }
 
     /**
+     * Get booking detail for the current user
+     * @return OK
+     */
+    bookings(id: number): Promise<ApiResponseOfBookingDetailsDto> {
+        let url_ = this.baseUrl + "/api/v1/bookings/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processBookings(_response);
+        });
+    }
+
+    protected processBookings(response: Response): Promise<ApiResponseOfBookingDetailsDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ApiResponseOfBookingDetailsDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ApiResponseOfObject.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ApiResponseOfObject.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ApiResponseOfObject.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ApiResponseOfBookingDetailsDto>(null as any);
+    }
+
+    /**
      * Create a booking
      * @param idempotency_Key (optional) 
      * @return Created
@@ -2094,6 +2160,82 @@ export interface IApiResponseOfAuthResponseDto {
     [key: string]: any;
 }
 
+export class ApiResponseOfBookingDetailsDto implements IApiResponseOfBookingDetailsDto {
+    success?: boolean;
+    data?: BookingDetailsDto | undefined;
+    errorMessage?: string | undefined;
+    errorCode?: string | undefined;
+    validationErrors?: { [key: string]: string[]; } | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IApiResponseOfBookingDetailsDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.success = _data["success"];
+            this.data = _data["data"] ? BookingDetailsDto.fromJS(_data["data"]) : undefined as any;
+            this.errorMessage = _data["errorMessage"];
+            this.errorCode = _data["errorCode"];
+            if (_data["validationErrors"]) {
+                this.validationErrors = {} as any;
+                for (let key in _data["validationErrors"]) {
+                    if (_data["validationErrors"].hasOwnProperty(key))
+                        (this.validationErrors as any)![key] = _data["validationErrors"][key] !== undefined ? _data["validationErrors"][key] : [];
+                }
+            }
+        }
+    }
+
+    static fromJS(data: any): ApiResponseOfBookingDetailsDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new ApiResponseOfBookingDetailsDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["success"] = this.success;
+        data["data"] = this.data ? this.data.toJSON() : undefined as any;
+        data["errorMessage"] = this.errorMessage;
+        data["errorCode"] = this.errorCode;
+        if (this.validationErrors) {
+            data["validationErrors"] = {};
+            for (let key in this.validationErrors) {
+                if (this.validationErrors.hasOwnProperty(key))
+                    (data["validationErrors"] as any)[key] = (this.validationErrors as any)[key];
+            }
+        }
+        return data;
+    }
+}
+
+export interface IApiResponseOfBookingDetailsDto {
+    success?: boolean;
+    data?: BookingDetailsDto | undefined;
+    errorMessage?: string | undefined;
+    errorCode?: string | undefined;
+    validationErrors?: { [key: string]: string[]; } | undefined;
+
+    [key: string]: any;
+}
+
 export class ApiResponseOfBookingDto implements IApiResponseOfBookingDto {
     success?: boolean;
     data?: BookingDto | undefined;
@@ -3158,6 +3300,154 @@ export interface IAvailableRoomTypeDto {
     discountPercentage?: number | undefined;
     totalPrice?: number;
     currency?: string;
+
+    [key: string]: any;
+}
+
+export class BookingDetailsDto implements IBookingDetailsDto {
+    bookingId?: number;
+    bookingNumber?: string;
+    hotelName?: string;
+    roomTypeName?: string;
+    status?: number;
+    checkIn?: Date;
+    checkOut?: Date;
+    nights?: number;
+    numberOfRooms?: number;
+    numberOfGuests?: number;
+    totalAmount?: number;
+    currency?: string;
+    specialRequests?: string | undefined;
+    confirmedAt?: Date | undefined;
+    cancelledAt?: Date | undefined;
+    cancellationReason?: string | undefined;
+    createdAt?: Date;
+    guestFirstName?: string;
+    guestLastName?: string;
+    guestEmail?: string;
+    guestPhoneNumber?: string;
+    guestDocumentType?: string | undefined;
+    guestDocumentNumber?: string | undefined;
+    guestDateOfBirth?: Date | undefined;
+    guestNationality?: string | undefined;
+    guestFullName?: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IBookingDetailsDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.bookingId = _data["bookingId"];
+            this.bookingNumber = _data["bookingNumber"];
+            this.hotelName = _data["hotelName"];
+            this.roomTypeName = _data["roomTypeName"];
+            this.status = _data["status"];
+            this.checkIn = _data["checkIn"] ? new Date(_data["checkIn"].toString()) : undefined as any;
+            this.checkOut = _data["checkOut"] ? new Date(_data["checkOut"].toString()) : undefined as any;
+            this.nights = _data["nights"];
+            this.numberOfRooms = _data["numberOfRooms"];
+            this.numberOfGuests = _data["numberOfGuests"];
+            this.totalAmount = _data["totalAmount"];
+            this.currency = _data["currency"];
+            this.specialRequests = _data["specialRequests"];
+            this.confirmedAt = _data["confirmedAt"] ? new Date(_data["confirmedAt"].toString()) : undefined as any;
+            this.cancelledAt = _data["cancelledAt"] ? new Date(_data["cancelledAt"].toString()) : undefined as any;
+            this.cancellationReason = _data["cancellationReason"];
+            this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : undefined as any;
+            this.guestFirstName = _data["guestFirstName"];
+            this.guestLastName = _data["guestLastName"];
+            this.guestEmail = _data["guestEmail"];
+            this.guestPhoneNumber = _data["guestPhoneNumber"];
+            this.guestDocumentType = _data["guestDocumentType"];
+            this.guestDocumentNumber = _data["guestDocumentNumber"];
+            this.guestDateOfBirth = _data["guestDateOfBirth"] ? new Date(_data["guestDateOfBirth"].toString()) : undefined as any;
+            this.guestNationality = _data["guestNationality"];
+            this.guestFullName = _data["guestFullName"];
+        }
+    }
+
+    static fromJS(data: any): BookingDetailsDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new BookingDetailsDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["bookingId"] = this.bookingId;
+        data["bookingNumber"] = this.bookingNumber;
+        data["hotelName"] = this.hotelName;
+        data["roomTypeName"] = this.roomTypeName;
+        data["status"] = this.status;
+        data["checkIn"] = this.checkIn ? formatDate(this.checkIn) : undefined as any;
+        data["checkOut"] = this.checkOut ? formatDate(this.checkOut) : undefined as any;
+        data["nights"] = this.nights;
+        data["numberOfRooms"] = this.numberOfRooms;
+        data["numberOfGuests"] = this.numberOfGuests;
+        data["totalAmount"] = this.totalAmount;
+        data["currency"] = this.currency;
+        data["specialRequests"] = this.specialRequests;
+        data["confirmedAt"] = this.confirmedAt ? this.confirmedAt.toISOString() : undefined as any;
+        data["cancelledAt"] = this.cancelledAt ? this.cancelledAt.toISOString() : undefined as any;
+        data["cancellationReason"] = this.cancellationReason;
+        data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : undefined as any;
+        data["guestFirstName"] = this.guestFirstName;
+        data["guestLastName"] = this.guestLastName;
+        data["guestEmail"] = this.guestEmail;
+        data["guestPhoneNumber"] = this.guestPhoneNumber;
+        data["guestDocumentType"] = this.guestDocumentType;
+        data["guestDocumentNumber"] = this.guestDocumentNumber;
+        data["guestDateOfBirth"] = this.guestDateOfBirth ? formatDate(this.guestDateOfBirth) : undefined as any;
+        data["guestNationality"] = this.guestNationality;
+        data["guestFullName"] = this.guestFullName;
+        return data;
+    }
+}
+
+export interface IBookingDetailsDto {
+    bookingId?: number;
+    bookingNumber?: string;
+    hotelName?: string;
+    roomTypeName?: string;
+    status?: number;
+    checkIn?: Date;
+    checkOut?: Date;
+    nights?: number;
+    numberOfRooms?: number;
+    numberOfGuests?: number;
+    totalAmount?: number;
+    currency?: string;
+    specialRequests?: string | undefined;
+    confirmedAt?: Date | undefined;
+    cancelledAt?: Date | undefined;
+    cancellationReason?: string | undefined;
+    createdAt?: Date;
+    guestFirstName?: string;
+    guestLastName?: string;
+    guestEmail?: string;
+    guestPhoneNumber?: string;
+    guestDocumentType?: string | undefined;
+    guestDocumentNumber?: string | undefined;
+    guestDateOfBirth?: Date | undefined;
+    guestNationality?: string | undefined;
+    guestFullName?: string | undefined;
 
     [key: string]: any;
 }

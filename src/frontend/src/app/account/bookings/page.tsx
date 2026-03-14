@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, ArrowRight, ArrowUpDown } from "lucide-react";
@@ -539,6 +540,13 @@ export default function AccountBookingsPage() {
                     <p className="text-sm font-semibold text-foreground">
                       {formatMoney(booking.totalAmount, booking.currency)}
                     </p>
+                    {booking.bookingId != null && (
+                      <Button asChild type="button" size="sm" variant="outline">
+                        <Link href={`/account/bookings/${booking.bookingId}`}>
+                          Ver detalle
+                        </Link>
+                      </Button>
+                    )}
                     {user?.email && (
                       <InlineBookingRowActions
                         booking={booking}

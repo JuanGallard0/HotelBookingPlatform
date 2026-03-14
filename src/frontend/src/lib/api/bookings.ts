@@ -1,4 +1,5 @@
 import {
+  type BookingDetailsDto,
   BookingsClient,
   CancelBookingRequest,
   CreateBookingCommand,
@@ -10,11 +11,12 @@ import {
 import { API_BASE_URL } from "@/src/lib/constants";
 
 const baseFetch: typeof fetch = (input, init) => globalThis.fetch(input, init);
+const browserBaseUrl = typeof window === "undefined" ? API_BASE_URL : "";
 
 function makeClient(accessToken?: string) {
   // Use empty base on the client so requests route through the Next.js proxy,
   // avoiding cross-origin preflight (OPTIONS) requests to the backend.
-  const base = typeof window === "undefined" ? API_BASE_URL : "";
+  const base = browserBaseUrl;
 
   if (!accessToken) {
     return new BookingsClient(base, { fetch: baseFetch });
@@ -83,6 +85,8 @@ export type GetMyBookingsResult = {
   totalPages: number;
 };
 
+export type BookingDetails = BookingDetailsDto;
+
 const userBookingStatusMap: Record<UserBookingStatus, number> = {
   pending: 0,
   confirmed: 1,
@@ -138,6 +142,19 @@ export async function getMyBookings({
     totalRecords: response.data.totalRecords ?? 0,
     totalPages: response.data.totalPages ?? 1,
   };
+}
+
+export async function getBookingById(
+  bookingId: number,
+  accessToken?: string,
+): Promise<BookingDetails> {
+  const response = await makeClient(accessToken).bookings(bookingId);
+
+  if (!response.success || !response.data) {
+    throw new Error(response.errorMessage ?? "Failed to load booking detail.");
+  }
+
+  return response.data;
 }
 
 export interface CreateBookingInput {
