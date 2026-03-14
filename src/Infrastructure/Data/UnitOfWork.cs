@@ -7,6 +7,8 @@ internal sealed class UnitOfWork(ApplicationDbContext context) : IUnitOfWork, IA
 {
     private IDbContextTransaction? _transaction;
 
+    public bool IsTransactionActive => _transaction is not null;
+
     public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
     {
         if (_transaction is not null)

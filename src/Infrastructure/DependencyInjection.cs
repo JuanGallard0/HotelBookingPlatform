@@ -4,6 +4,7 @@ using HotelBookingPlatform.Application.Bookings.Queries;
 using HotelBookingPlatform.Application.Hotels.Queries;
 using HotelBookingPlatform.Domain.Enums;
 using HotelBookingPlatform.Infrastructure.Authentication;
+using HotelBookingPlatform.Infrastructure.Auditing;
 using HotelBookingPlatform.Infrastructure.Bookings;
 using HotelBookingPlatform.Infrastructure.Data;
 using HotelBookingPlatform.Infrastructure.Data.Interceptors;
@@ -38,6 +39,7 @@ public static class DependencyInjection
 
         builder.Services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+        builder.Services.AddScoped<IAuditLogService, AuditLogService>();
         builder.Services.AddScoped<ApplicationDbContextInitialiser>();
 
         builder.Services.AddSingleton<IDbConnectionFactory>(_ => new SqlConnectionFactory(connectionString));

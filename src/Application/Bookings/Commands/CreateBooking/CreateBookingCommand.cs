@@ -1,6 +1,8 @@
 using HotelBookingPlatform.Application.Common.Interfaces;
 using HotelBookingPlatform.Application.Common.Models;
 using HotelBookingPlatform.Domain.Entities;
+using System.Diagnostics;
+using System.Text.Json;
 
 namespace HotelBookingPlatform.Application.Bookings.Commands.CreateBooking;
 
@@ -18,6 +20,7 @@ public record CreateBookingCommand : IRequest<Result<BookingDto>>
 public class CreateBookingCommandHandler(
     IApplicationDbContext context,
     IUnitOfWork unitOfWork,
+    IAuditLogService auditLogService,
     ICurrentUserService currentUser,
     TimeProvider timeProvider)
     : IRequestHandler<CreateBookingCommand, Result<BookingDto>>
@@ -73,7 +76,6 @@ public class CreateBookingCommandHandler(
         var pricePerNight = ratePlan?.GetEffectivePrice() ?? roomType.BasePrice;
         var totalAmount = pricePerNight * nights * request.NumberOfRooms;
 
-        await unitOfWork.BeginTransactionAsync(cancellationToken);
         try
         {
             var guest = await context.Guests
@@ -106,21 +108,36 @@ public class CreateBookingCommandHandler(
             context.Bookings.Add(booking);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
-            var dto = MapToDto(booking, roomType.Name);
+            auditLogService.Add(new AuditLogEntry(
+                nameof(Booking),
+                booking.Id,
+                "BookingCreated",
+                NewValues: Serialize(new
+                {
+                    booking.BookingNumber,
+                    booking.Status,
+                    booking.RoomTypeId,
+                    booking.CheckInDate,
+                    booking.CheckOutDate,
+                    booking.NumberOfGuests,
+                    booking.NumberOfRooms,
+                    booking.TotalAmount,
+                    booking.SpecialRequests
+                }),
+                AdditionalInfo: Serialize(new
+                {
+                    GuestId = booking.GuestId,
+                    TraceId = Activity.Current?.TraceId.ToString(),
+                    currentUser.Email
+                })));
 
-            await unitOfWork.CommitAsync(cancellationToken);
+            var dto = MapToDto(booking, roomType.Name);
             return Result<BookingDto>.Success(dto);
         }
         catch (DbUpdateConcurrencyException)
         {
-            await unitOfWork.RollbackAsync(cancellationToken);
             return Result<BookingDto>.Conflict(
                 "Rooms are no longer available for the selected dates. Please try again.");
-        }
-        catch
-        {
-            await unitOfWork.RollbackAsync(cancellationToken);
-            throw;
         }
     }
 
@@ -157,4 +174,6 @@ public class CreateBookingCommandHandler(
         var random = Guid.NewGuid().ToString("N").ToUpperInvariant()[..8];
         return $"BKG-{date:yyyyMMdd}-{random}";
     }
+
+    private static string Serialize(object value) => JsonSerializer.Serialize(value);
 }

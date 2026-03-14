@@ -1,6 +1,9 @@
 using HotelBookingPlatform.Application.Common.Interfaces;
 using HotelBookingPlatform.Application.Common.Models;
+using HotelBookingPlatform.Domain.Entities;
 using HotelBookingPlatform.Domain.Exceptions;
+using System.Diagnostics;
+using System.Text.Json;
 
 namespace HotelBookingPlatform.Application.Bookings.Commands.ConfirmBooking;
 
@@ -9,6 +12,7 @@ public record ConfirmBookingCommand(int BookingId) : IRequest<Result>;
 public class ConfirmBookingCommandHandler(
     IApplicationDbContext context,
     IUnitOfWork unitOfWork,
+    IAuditLogService auditLogService,
     ICurrentUserService currentUser)
     : IRequestHandler<ConfirmBookingCommand, Result>
 {
@@ -26,6 +30,8 @@ public class ConfirmBookingCommandHandler(
         if (booking.UserId != currentUser.UserId.Value)
             return Result.Forbidden();
 
+        var previousStatus = booking.Status;
+
         try
         {
             booking.Confirm();
@@ -35,8 +41,23 @@ public class ConfirmBookingCommandHandler(
             return Result.UnprocessableEntity(ex.Message);
         }
 
+        auditLogService.Add(new AuditLogEntry(
+            nameof(Booking),
+            booking.Id,
+            "BookingConfirmed",
+            OldValues: Serialize(new { Status = previousStatus }),
+            NewValues: Serialize(new { booking.Status, booking.ConfirmedAt }),
+            AdditionalInfo: Serialize(new
+            {
+                booking.BookingNumber,
+                TraceId = Activity.Current?.TraceId.ToString(),
+                currentUser.Email
+            })));
+
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }
+
+    private static string Serialize(object value) => JsonSerializer.Serialize(value);
 }

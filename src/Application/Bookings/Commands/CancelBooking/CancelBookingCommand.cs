@@ -1,6 +1,9 @@
 using HotelBookingPlatform.Application.Common.Interfaces;
 using HotelBookingPlatform.Application.Common.Models;
+using HotelBookingPlatform.Domain.Entities;
 using HotelBookingPlatform.Domain.Exceptions;
+using System.Diagnostics;
+using System.Text.Json;
 
 namespace HotelBookingPlatform.Application.Bookings.Commands.CancelBooking;
 
@@ -9,6 +12,7 @@ public record CancelBookingCommand(int BookingId, string Reason) : IRequest<Resu
 public class CancelBookingCommandHandler(
     IApplicationDbContext context,
     IUnitOfWork unitOfWork,
+    IAuditLogService auditLogService,
     ICurrentUserService currentUser)
     : IRequestHandler<CancelBookingCommand, Result>
 {
@@ -27,6 +31,8 @@ public class CancelBookingCommandHandler(
         if (booking.UserId != currentUser.UserId.Value)
             return Result.Forbidden();
 
+        var previousStatus = booking.Status;
+
         try
         {
             booking.Cancel(request.Reason);
@@ -36,8 +42,31 @@ public class CancelBookingCommandHandler(
             return Result.UnprocessableEntity(ex.Message);
         }
 
+        auditLogService.Add(new AuditLogEntry(
+            nameof(Booking),
+            booking.Id,
+            "BookingCancelled",
+            OldValues: Serialize(new
+            {
+                Status = previousStatus
+            }),
+            NewValues: Serialize(new
+            {
+                booking.Status,
+                booking.CancelledAt,
+                booking.CancellationReason
+            }),
+            AdditionalInfo: Serialize(new
+            {
+                booking.BookingNumber,
+                TraceId = Activity.Current?.TraceId.ToString(),
+                currentUser.Email
+            })));
+
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }
+
+    private static string Serialize(object value) => JsonSerializer.Serialize(value);
 }
