@@ -65,6 +65,13 @@ export class AuthClient {
             result409 = ApiResponseOfObject.fromJS(resultData409);
             return throwException("Conflict", status, _responseText, _headers, result409);
             });
+        } else if (status === 429) {
+            return response.text().then((_responseText) => {
+            let result429: any = null;
+            let resultData429 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result429 = ApiResponseOfObject.fromJS(resultData429);
+            return throwException("Too Many Requests", status, _responseText, _headers, result429);
+            });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
@@ -120,6 +127,13 @@ export class AuthClient {
             let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
             result401 = ApiResponseOfObject.fromJS(resultData401);
             return throwException("Unauthorized", status, _responseText, _headers, result401);
+            });
+        } else if (status === 429) {
+            return response.text().then((_responseText) => {
+            let result429: any = null;
+            let resultData429 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result429 = ApiResponseOfObject.fromJS(resultData429);
+            return throwException("Too Many Requests", status, _responseText, _headers, result429);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -177,6 +191,13 @@ export class AuthClient {
             result401 = ApiResponseOfObject.fromJS(resultData401);
             return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
+        } else if (status === 429) {
+            return response.text().then((_responseText) => {
+            let result429: any = null;
+            let resultData429 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result429 = ApiResponseOfObject.fromJS(resultData429);
+            return throwException("Too Many Requests", status, _responseText, _headers, result429);
+            });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
@@ -225,6 +246,13 @@ export class AuthClient {
             let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
             result400 = ApiResponseOfObject.fromJS(resultData400);
             return throwException("Bad Request", status, _responseText, _headers, result400);
+            });
+        } else if (status === 429) {
+            return response.text().then((_responseText) => {
+            let result429: any = null;
+            let resultData429 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result429 = ApiResponseOfObject.fromJS(resultData429);
+            return throwException("Too Many Requests", status, _responseText, _headers, result429);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -520,6 +548,13 @@ export class BookingsClient {
             result422 = ApiResponseOfObject.fromJS(resultData422);
             return throwException("Unprocessable Entity", status, _responseText, _headers, result422);
             });
+        } else if (status === 429) {
+            return response.text().then((_responseText) => {
+            let result429: any = null;
+            let resultData429 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result429 = ApiResponseOfObject.fromJS(resultData429);
+            return throwException("Too Many Requests", status, _responseText, _headers, result429);
+            });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
@@ -595,6 +630,13 @@ export class BookingsClient {
             let resultData422 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
             result422 = ApiResponseOfObject.fromJS(resultData422);
             return throwException("Unprocessable Entity", status, _responseText, _headers, result422);
+            });
+        } else if (status === 429) {
+            return response.text().then((_responseText) => {
+            let result429: any = null;
+            let resultData429 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result429 = ApiResponseOfObject.fromJS(resultData429);
+            return throwException("Too Many Requests", status, _responseText, _headers, result429);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -676,6 +718,13 @@ export class BookingsClient {
             result422 = ApiResponseOfObject.fromJS(resultData422);
             return throwException("Unprocessable Entity", status, _responseText, _headers, result422);
             });
+        } else if (status === 429) {
+            return response.text().then((_responseText) => {
+            let result429: any = null;
+            let resultData429 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result429 = ApiResponseOfObject.fromJS(resultData429);
+            return throwException("Too Many Requests", status, _responseText, _headers, result429);
+            });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
@@ -697,9 +746,7 @@ export class HotelsClient {
 
     /**
      * Search available hotels
-     * @param name (optional) 
-     * @param city (optional) 
-     * @param country (optional) 
+     * @param search (optional) 
      * @param starRating (optional) 
      * @param checkIn (optional) 
      * @param checkOut (optional) 
@@ -711,20 +758,12 @@ export class HotelsClient {
      * @param sortDirection (optional) 
      * @return OK
      */
-    getAvailableHotels(name: string | undefined, city: string | undefined, country: string | undefined, starRating: number | undefined, checkIn: Date | undefined, checkOut: Date | undefined, numberOfGuests: number | undefined, numberOfRooms: number | undefined, pageNumber: number | undefined, pageSize: number | undefined, sortBy: string | undefined, sortDirection: string | undefined): Promise<ApiResponseOfPagedResponseOfAvailableHotelDto> {
+    getAvailableHotels(search: string | undefined, starRating: number | undefined, checkIn: Date | undefined, checkOut: Date | undefined, numberOfGuests: number | undefined, numberOfRooms: number | undefined, pageNumber: number | undefined, pageSize: number | undefined, sortBy: string | undefined, sortDirection: string | undefined): Promise<ApiResponseOfPagedResponseOfAvailableHotelDto> {
         let url_ = this.baseUrl + "/api/v1/hotels?";
-        if (name === null)
-            throw new globalThis.Error("The parameter 'name' cannot be null.");
-        else if (name !== undefined)
-            url_ += "Name=" + encodeURIComponent("" + name) + "&";
-        if (city === null)
-            throw new globalThis.Error("The parameter 'city' cannot be null.");
-        else if (city !== undefined)
-            url_ += "City=" + encodeURIComponent("" + city) + "&";
-        if (country === null)
-            throw new globalThis.Error("The parameter 'country' cannot be null.");
-        else if (country !== undefined)
-            url_ += "Country=" + encodeURIComponent("" + country) + "&";
+        if (search === null)
+            throw new globalThis.Error("The parameter 'search' cannot be null.");
+        else if (search !== undefined)
+            url_ += "Search=" + encodeURIComponent("" + search) + "&";
         if (starRating === null)
             throw new globalThis.Error("The parameter 'starRating' cannot be null.");
         else if (starRating !== undefined)

@@ -70,8 +70,6 @@ export function HotelCatalog() {
   const [sortBy, setSortBy] = useState<SortOption>("Name");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [filters, setFilters] = useState<HotelFilterValues>({
-    country: "",
-    city: "",
     starRating: null,
   });
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
@@ -93,7 +91,7 @@ export function HotelCatalog() {
   // fetchKey encodes everything that should trigger a new fetch.
   // loading is derived: true whenever the last resolved key differs from
   // what we currently need — no setLoading(true) inside any effect.
-  const fetchKey = `${currentSearchStr}|${page}|${sortBy}|${sortDir}|${filters.country}|${filters.city}|${filters.starRating ?? ""}`;
+  const fetchKey = `${currentSearchStr}|${page}|${sortBy}|${sortDir}|${filters.starRating ?? ""}`;
   const loading = loadedKey !== fetchKey;
 
   useEffect(() => {
@@ -132,9 +130,7 @@ export function HotelCatalog() {
 
     new HotelsClient()
       .getAvailableHotels(
-        sp.get("name") ?? undefined,
-        filters.city || undefined,
-        filters.country || undefined,
+        sp.get("search") ?? undefined,
         filters.starRating ?? undefined,
         checkIn,
         checkOut,

@@ -5,8 +5,6 @@ import { Separator } from "@/src/components/ui/separator";
 import { cn } from "@/src/lib/utils";
 
 export interface HotelFilterValues {
-  country: string;
-  city: string;
   starRating: number | null;
 }
 
@@ -15,49 +13,17 @@ interface HotelFiltersProps {
   onChange: (values: HotelFilterValues) => void;
 }
 
-const CA_DATA = [
-  { country: "Guatemala", city: "Ciudad de Guatemala" },
-  { country: "Belice", city: "Belmopan" },
-  { country: "Honduras", city: "Tegucigalpa" },
-  { country: "El Salvador", city: "San Salvador" },
-  { country: "Nicaragua", city: "Managua" },
-  { country: "Costa Rica", city: "San Jose" },
-  { country: "Panama", city: "Ciudad de Panama" },
-] as const;
-
-const CA_COUNTRIES = CA_DATA.map((d) => d.country);
 
 export function HotelFilters({ values, onChange }: HotelFiltersProps) {
-  const hasFilters =
-    values.country !== "" || values.city !== "" || values.starRating !== null;
-
-  function setCountry(country: string) {
-    const match = CA_DATA.find((d) => d.country === country);
-    const cityStillValid = match?.city === values.city;
-
-    onChange({
-      ...values,
-      country,
-      city: cityStillValid ? values.city : "",
-    });
-  }
-
-  function setCity(city: string) {
-    onChange({ ...values, city });
-  }
+  const hasFilters = values.starRating !== null;
 
   function setStarRating(starRating: number | null) {
     onChange({ ...values, starRating });
   }
 
   function clearAll() {
-    onChange({ country: "", city: "", starRating: null });
+    onChange({ starRating: null });
   }
-
-  const visibleCities =
-    values.country !== ""
-      ? CA_DATA.filter((d) => d.country === values.country).map((d) => d.city)
-      : CA_DATA.map((d) => d.city);
 
   return (
     <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm">
@@ -124,60 +90,6 @@ export function HotelFilters({ values, onChange }: HotelFiltersProps) {
             mas
           </p>
         )}
-      </div>
-
-      <Separator />
-
-      <div className="flex flex-col gap-2">
-        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Pais
-        </span>
-        <div className="flex flex-wrap gap-1.5">
-          {CA_COUNTRIES.map((country) => (
-            <button
-              key={country}
-              type="button"
-              onClick={() =>
-                setCountry(values.country === country ? "" : country)
-              }
-              aria-pressed={values.country === country}
-              className={cn(
-                "rounded-full border px-2.5 py-1 text-xs font-medium transition",
-                values.country === country
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-muted text-muted-foreground hover:border-primary/40 hover:bg-primary/10",
-              )}
-            >
-              {country}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <Separator />
-
-      <div className="flex flex-col gap-2">
-        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Ciudad
-        </span>
-        <div className="flex flex-wrap gap-1.5">
-          {visibleCities.map((city) => (
-            <button
-              key={city}
-              type="button"
-              onClick={() => setCity(values.city === city ? "" : city)}
-              aria-pressed={values.city === city}
-              className={cn(
-                "rounded-full border px-2.5 py-1 text-xs font-medium transition",
-                values.city === city
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-muted text-muted-foreground hover:border-primary/40 hover:bg-primary/10",
-              )}
-            >
-              {city}
-            </button>
-          ))}
-        </div>
       </div>
     </div>
   );

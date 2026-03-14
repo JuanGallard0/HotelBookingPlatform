@@ -4,9 +4,7 @@ namespace HotelBookingPlatform.Application.Hotels.Queries.GetAvailableHotels;
 
 public record GetAvailableHotelsQuery : PagedSortedRequest, IRequest<Result<PagedResponse<AvailableHotelDto>>>
 {
-    public string? Name { get; init; }
-    public string? City { get; init; }
-    public string? Country { get; init; }
+    public string? Search { get; init; }
     public int? StarRating { get; init; }
 
     public DateOnly? CheckIn { get; init; }

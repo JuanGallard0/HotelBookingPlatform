@@ -97,7 +97,7 @@ export function HotelSearchBar({
 }: HotelSearchBarProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [name, setName] = useState(searchParams.get("name") ?? "");
+  const [name, setName] = useState(searchParams.get("search") ?? "");
   const [checkIn, setCheckIn] = useState(searchParams.get("checkIn") ?? "");
   const [checkOut, setCheckOut] = useState(searchParams.get("checkOut") ?? "");
   const [guests, setGuests] = useState(
@@ -121,7 +121,7 @@ export function HotelSearchBar({
   function handleSearch(e: SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
     const params = new URLSearchParams();
-    if (name) params.set("name", name);
+    if (name) params.set("search", name);
     if (checkIn) params.set("checkIn", checkIn);
     if (checkOut) params.set("checkOut", checkOut);
     if (guests) params.set("numberOfGuests", guests);
@@ -148,10 +148,10 @@ export function HotelSearchBar({
       className={cn("flex flex-col gap-3 sm:flex-row sm:items-end", className)}
     >
       <div className="flex flex-1 flex-col gap-1">
-        <Label className={labelCls}>Hotel</Label>
+        <Label className={labelCls}>Hotel / Ciudad / País</Label>
         <Input
           type="text"
-          placeholder="Nombre del hotel"
+          placeholder="Nombre del hotel, ciudad o país"
           value={name}
           onChange={(e) => setName(e.target.value)}
           className={inputCls}

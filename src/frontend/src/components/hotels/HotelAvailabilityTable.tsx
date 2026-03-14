@@ -105,24 +105,13 @@ function DatePickerField({
   );
 }
 
-function defaultDates() {
-  const now = new Date();
-  const checkIn = new Date(
-    Date.UTC(now.getFullYear(), now.getMonth(), now.getDate() + 1),
-  );
-  const checkOut = new Date(
-    Date.UTC(now.getFullYear(), now.getMonth(), now.getDate() + 2),
-  );
-  return { checkIn: toDateOnly(checkIn), checkOut: toDateOnly(checkOut) };
-}
 
 export function HotelAvailabilityTable({ hotelId }: { hotelId: number }) {
   const router = useRouter();
   const { isAuthenticated, openModal } = useAuth();
   const [pendingUrl, setPendingUrl] = useState<string | null>(null);
-  const defaults = defaultDates();
-  const [checkIn, setCheckIn] = useState(defaults.checkIn);
-  const [checkOut, setCheckOut] = useState(defaults.checkOut);
+  const [checkIn, setCheckIn] = useState("");
+  const [checkOut, setCheckOut] = useState("");
   const [guests, setGuests] = useState(1);
   const [numberOfRooms, setNumberOfRooms] = useState(1);
   const [rooms, setRooms] = useState<AvailableRoomTypeDto[] | null>(null);
@@ -155,22 +144,24 @@ export function HotelAvailabilityTable({ hotelId }: { hotelId: number }) {
   );
 
   useEffect(() => {
-    const d = defaultDates();
-    fetchAvailability(d.checkIn, d.checkOut, 1, 1);
-  }, [fetchAvailability]);
+    if (!checkIn || !checkOut) return;
+    fetchAvailability(checkIn, checkOut, guests, numberOfRooms);
+  }, [checkIn, checkOut, guests, numberOfRooms, fetchAvailability]);
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
+    if (!checkIn || !checkOut) return;
     await fetchAvailability(checkIn, checkOut, guests, numberOfRooms);
   }
 
   function handleClear() {
-    const d = defaultDates();
-    setCheckIn(d.checkIn);
-    setCheckOut(d.checkOut);
+    setCheckIn("");
+    setCheckOut("");
     setGuests(1);
     setNumberOfRooms(1);
-    fetchAvailability(d.checkIn, d.checkOut, 1, 1);
+    setRooms(null);
+    setSearched(false);
+    setError(null);
   }
 
   function buildBookingUrl(room: AvailableRoomTypeDto) {
@@ -304,9 +295,6 @@ export function HotelAvailabilityTable({ hotelId }: { hotelId: number }) {
               />
             </div>
 
-            <Button type="submit" disabled={loading}>
-              {loading ? "Buscando…" : "Buscar"}
-            </Button>
             <Button
               type="button"
               variant="outline"
@@ -457,7 +445,7 @@ export function HotelAvailabilityTable({ hotelId }: { hotelId: number }) {
                               className="h-4 w-4 text-muted-foreground"
                               strokeWidth={1.8}
                             />
-                            {room.maxOccupancy} huÃ©spedes
+                            {room.maxOccupancy} huéspedes
                           </span>
                         </TableCell>
                         <TableCell className="py-5 text-center">

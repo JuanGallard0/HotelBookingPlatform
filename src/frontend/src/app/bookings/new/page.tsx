@@ -298,7 +298,6 @@ export default function NewBookingPage() {
                     required
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
-                    placeholder="+34 600 000 000"
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
@@ -307,7 +306,6 @@ export default function NewBookingPage() {
                     id="documentType"
                     value={documentType}
                     onChange={(e) => setDocumentType(e.target.value)}
-                    placeholder="DNI / Pasaporte"
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
@@ -316,7 +314,6 @@ export default function NewBookingPage() {
                     id="documentNumber"
                     value={documentNumber}
                     onChange={(e) => setDocumentNumber(e.target.value)}
-                    placeholder="12345678A"
                   />
                 </div>
                 <div className="flex flex-col gap-1.5 sm:col-span-2">
@@ -325,7 +322,6 @@ export default function NewBookingPage() {
                     id="nationality"
                     value={nationality}
                     onChange={(e) => setNationality(e.target.value)}
-                    placeholder="Española"
                   />
                 </div>
               </div>
@@ -347,7 +343,7 @@ export default function NewBookingPage() {
                   rows={4}
                   value={specialRequests}
                   onChange={(e) => setSpecialRequests(e.target.value)}
-                  placeholder="Cama supletoria, llegada tardía, habitación alta..."
+
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
                 />
               </div>
