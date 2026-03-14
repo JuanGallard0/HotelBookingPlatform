@@ -13,6 +13,12 @@ public class CustomExceptionHandler(ILogger<CustomExceptionHandler> logger) : IE
     {
         if (exception is ValidationException validationEx)
         {
+            logger.LogWarning(
+                exception,
+                "Validation failure for {Method} {Path}",
+                httpContext.Request.Method,
+                httpContext.Request.Path);
+
             await TypedResults.Json(
                 ApiResponse<object?>.ValidationFail(
                     "One or more validation failures have occurred.",

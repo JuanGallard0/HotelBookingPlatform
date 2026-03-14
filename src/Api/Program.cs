@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Security.Claims;
 using HotelBookingPlatform.Infrastructure.Data;
 using Scalar.AspNetCore;
 using Serilog;
@@ -24,8 +26,26 @@ else
     app.UseHttpsRedirection();
 }
 
-app.UseSerilogRequestLogging();
+app.UseMiddleware<RequestCorrelationMiddleware>();
+app.UseMiddleware<RequestMetricsMiddleware>();
+app.UseSerilogRequestLogging(options =>
+{
+    options.MessageTemplate =
+        "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+    options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+    {
+        diagnosticContext.Set(
+            "CorrelationId",
+            RequestCorrelationMiddleware.GetCorrelationId(httpContext) ?? httpContext.TraceIdentifier);
+        diagnosticContext.Set("TraceId", Activity.Current?.TraceId.ToString() ?? httpContext.TraceIdentifier);
+        diagnosticContext.Set("SpanId", Activity.Current?.SpanId.ToString() ?? string.Empty);
+        diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value ?? string.Empty);
+        diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
+        diagnosticContext.Set("UserId", httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty);
+    };
+});
 
+app.UseExceptionHandler(options => { });
 app.UseHealthChecks("/health");
 app.UseStaticFiles();
 app.UseAuthentication();
@@ -33,9 +53,6 @@ app.UseAuthorization();
 
 app.MapOpenApi();
 app.MapScalarApiReference();
-
-
-app.UseExceptionHandler(options => { });
 
 app.Map("/", () => Results.Redirect("/scalar"));
 
