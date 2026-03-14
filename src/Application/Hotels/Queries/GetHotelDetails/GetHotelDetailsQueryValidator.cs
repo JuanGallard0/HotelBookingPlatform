@@ -5,6 +5,6 @@ public class GetHotelDetailsQueryValidator : AbstractValidator<GetHotelDetailsQu
     public GetHotelDetailsQueryValidator()
     {
         RuleFor(x => x.HotelId)
-            .GreaterThan(0).WithMessage("Hotel id must be greater than 0.");
+            .GreaterThan(0).WithMessage("El id del hotel debe ser mayor que 0.");
     }
 }

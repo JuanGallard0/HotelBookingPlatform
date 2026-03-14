@@ -7,6 +7,6 @@ public sealed class GetBookingByIdQueryValidator : AbstractValidator<GetBookingB
     public GetBookingByIdQueryValidator()
     {
         RuleFor(x => x.BookingId)
-            .GreaterThan(0);
+            .GreaterThan(0).WithMessage("El id de la reserva debe ser mayor que 0.");
     }
 }

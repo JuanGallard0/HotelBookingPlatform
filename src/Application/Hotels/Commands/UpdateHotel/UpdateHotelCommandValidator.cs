@@ -5,38 +5,38 @@ public class UpdateHotelCommandValidator : AbstractValidator<UpdateHotelCommand>
     public UpdateHotelCommandValidator()
     {
         RuleFor(x => x.Id)
-            .GreaterThan(0).WithMessage("Hotel id must be greater than 0.");
+            .GreaterThan(0).WithMessage("El id del hotel debe ser mayor que 0.");
 
         RuleFor(x => x.Name)
-            .NotEmpty().WithMessage("Name is required.")
-            .MaximumLength(200).WithMessage("Name must not exceed 200 characters.");
+            .NotEmpty().WithMessage("El nombre es obligatorio.")
+            .MaximumLength(200).WithMessage("El nombre no debe exceder los 200 caracteres.");
 
         RuleFor(x => x.Description)
-            .NotEmpty().WithMessage("Description is required.")
-            .MaximumLength(2000).WithMessage("Description must not exceed 2000 characters.");
+            .NotEmpty().WithMessage("La descripción es obligatoria.")
+            .MaximumLength(2000).WithMessage("La descripción no debe exceder los 2000 caracteres.");
 
         RuleFor(x => x.Address)
-            .NotEmpty().WithMessage("Address is required.")
-            .MaximumLength(500).WithMessage("Address must not exceed 500 characters.");
+            .NotEmpty().WithMessage("La dirección es obligatoria.")
+            .MaximumLength(500).WithMessage("La dirección no debe exceder los 500 caracteres.");
 
         RuleFor(x => x.City)
-            .NotEmpty().WithMessage("City is required.")
-            .MaximumLength(100).WithMessage("City must not exceed 100 characters.");
+            .NotEmpty().WithMessage("La ciudad es obligatoria.")
+            .MaximumLength(100).WithMessage("La ciudad no debe exceder los 100 caracteres.");
 
         RuleFor(x => x.Country)
-            .NotEmpty().WithMessage("Country is required.")
-            .MaximumLength(100).WithMessage("Country must not exceed 100 characters.");
+            .NotEmpty().WithMessage("El país es obligatorio.")
+            .MaximumLength(100).WithMessage("El país no debe exceder los 100 caracteres.");
 
         RuleFor(x => x.Email)
-            .NotEmpty().WithMessage("Email is required.")
-            .EmailAddress().WithMessage("Email must be a valid email address.")
-            .MaximumLength(200).WithMessage("Email must not exceed 200 characters.");
+            .NotEmpty().WithMessage("El correo electrónico es obligatorio.")
+            .EmailAddress().WithMessage("El correo electrónico debe ser una dirección válida.")
+            .MaximumLength(200).WithMessage("El correo electrónico no debe exceder los 200 caracteres.");
 
         RuleFor(x => x.PhoneNumber)
-            .NotEmpty().WithMessage("Phone number is required.")
-            .MaximumLength(20).WithMessage("Phone number must not exceed 20 characters.");
+            .NotEmpty().WithMessage("El número de teléfono es obligatorio.")
+            .MaximumLength(20).WithMessage("El número de teléfono no debe exceder los 20 caracteres.");
 
         RuleFor(x => x.StarRating)
-            .InclusiveBetween(1, 5).WithMessage("Star rating must be between 1 and 5.");
+            .InclusiveBetween(1, 5).WithMessage("La calificación de estrellas debe estar entre 1 y 5.");
     }
 }

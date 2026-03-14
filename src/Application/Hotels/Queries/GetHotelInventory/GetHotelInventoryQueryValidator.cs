@@ -5,10 +5,10 @@ public class GetHotelInventoryQueryValidator : AbstractValidator<GetHotelInvento
     public GetHotelInventoryQueryValidator()
     {
         RuleFor(x => x.HotelId)
-            .GreaterThan(0).WithMessage("Hotel id must be greater than 0.");
+            .GreaterThan(0).WithMessage("El id del hotel debe ser mayor que 0.");
 
         RuleFor(x => x.To)
             .GreaterThanOrEqualTo(x => x.From)
-            .WithMessage("'to' must be greater than or equal to 'from'.");
+            .WithMessage("'hasta' debe ser mayor o igual a 'desde'.");
     }
 }

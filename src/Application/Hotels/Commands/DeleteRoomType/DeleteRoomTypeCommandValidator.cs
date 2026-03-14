@@ -5,6 +5,6 @@ public class DeleteRoomTypeCommandValidator : AbstractValidator<DeleteRoomTypeCo
     public DeleteRoomTypeCommandValidator()
     {
         RuleFor(x => x.RoomTypeId)
-            .GreaterThan(0).WithMessage("Room type id must be greater than 0.");
+            .GreaterThan(0).WithMessage("El id del tipo de habitación debe ser mayor que 0.");
     }
 }

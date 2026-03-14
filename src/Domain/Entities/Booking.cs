@@ -31,17 +31,17 @@ public class Booking : BaseAuditableEntity
     {
         if (CheckOutDate <= CheckInDate)
         {
-            throw new InvalidBookingDatesException("Check-out date must be after check-in date.");
+            throw new InvalidBookingDatesException("La fecha de salida debe ser posterior a la fecha de entrada.");
         }
 
         if (NumberOfNights > MaximumNightsAllowed)
         {
-            throw new InvalidBookingDatesException($"Maximum booking duration is {MaximumNightsAllowed} nights.");
+            throw new InvalidBookingDatesException($"La duración máxima de la reserva es de {MaximumNightsAllowed} noches.");
         }
 
         if (CheckInDate < DateOnly.FromDateTime(DateTime.UtcNow))
         {
-            throw new InvalidBookingDatesException("Check-in date cannot be in the past.");
+            throw new InvalidBookingDatesException("La fecha de entrada no puede ser en el pasado.");
         }
     }
 
@@ -49,7 +49,7 @@ public class Booking : BaseAuditableEntity
     {
         if (Status != BookingStatus.Pending)
         {
-            throw new BookingStatusException("confirm", Status.ToString());
+            throw new BookingStatusException("confirmar", Status.ToString());
         }
 
         Status = BookingStatus.Confirmed;
@@ -62,12 +62,12 @@ public class Booking : BaseAuditableEntity
     {
         if (Status == BookingStatus.Cancelled)
         {
-            throw new BookingStatusException("Booking is already cancelled.");
+            throw new BookingStatusException("La reserva ya está cancelada.");
         }
 
         if (Status == BookingStatus.CheckedOut)
         {
-            throw new BookingStatusException("cancel", Status.ToString());
+            throw new BookingStatusException("cancelar", Status.ToString());
         }
 
         Status = BookingStatus.Cancelled;

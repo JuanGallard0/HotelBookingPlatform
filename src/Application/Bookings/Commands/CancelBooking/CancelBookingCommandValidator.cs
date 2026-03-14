@@ -5,10 +5,10 @@ public class CancelBookingCommandValidator : AbstractValidator<CancelBookingComm
     public CancelBookingCommandValidator()
     {
         RuleFor(x => x.BookingId)
-            .GreaterThan(0).WithMessage("Booking id must be greater than 0.");
+            .GreaterThan(0).WithMessage("El id de la reserva debe ser mayor que 0.");
 
         RuleFor(x => x.Reason)
-            .NotEmpty().WithMessage("Cancellation reason is required.")
-            .MaximumLength(500).WithMessage("Cancellation reason must not exceed 500 characters.");
+            .NotEmpty().WithMessage("El motivo de cancelación es obligatorio.")
+            .MaximumLength(500).WithMessage("El motivo de cancelación no debe exceder los 500 caracteres.");
     }
 }

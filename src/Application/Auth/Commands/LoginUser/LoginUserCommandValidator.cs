@@ -5,12 +5,12 @@ public class LoginUserCommandValidator : AbstractValidator<LoginUserCommand>
     public LoginUserCommandValidator()
     {
         RuleFor(x => x.Email)
-            .NotEmpty().WithMessage("Email is required.")
-            .EmailAddress().WithMessage("Email must be a valid email address.")
-            .MaximumLength(256).WithMessage("Email must not exceed 256 characters.");
+            .NotEmpty().WithMessage("El correo electrónico es obligatorio.")
+            .EmailAddress().WithMessage("El correo electrónico debe ser una dirección válida.")
+            .MaximumLength(256).WithMessage("El correo electrónico no debe exceder los 256 caracteres.");
 
         RuleFor(x => x.Password)
-            .NotEmpty().WithMessage("Password is required.")
-            .MaximumLength(128).WithMessage("Password must not exceed 128 characters.");
+            .NotEmpty().WithMessage("La contraseña es obligatoria.")
+            .MaximumLength(128).WithMessage("La contraseña no debe exceder los 128 caracteres.");
     }
 }

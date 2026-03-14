@@ -5,6 +5,6 @@ public class ConfirmBookingCommandValidator : AbstractValidator<ConfirmBookingCo
     public ConfirmBookingCommandValidator()
     {
         RuleFor(x => x.BookingId)
-            .GreaterThan(0).WithMessage("Booking id must be greater than 0.");
+            .GreaterThan(0).WithMessage("El id de la reserva debe ser mayor que 0.");
     }
 }

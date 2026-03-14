@@ -5,19 +5,19 @@ public class CreateRoomTypeCommandValidator : AbstractValidator<CreateRoomTypeCo
     public CreateRoomTypeCommandValidator()
     {
         RuleFor(x => x.HotelId)
-            .GreaterThan(0).WithMessage("Hotel id must be greater than 0.");
+            .GreaterThan(0).WithMessage("El id del hotel debe ser mayor que 0.");
 
         RuleFor(x => x.Name)
-            .NotEmpty().WithMessage("Name is required.")
-            .MaximumLength(100).WithMessage("Name must not exceed 100 characters.");
+            .NotEmpty().WithMessage("El nombre es obligatorio.")
+            .MaximumLength(100).WithMessage("El nombre no debe exceder los 100 caracteres.");
 
         RuleFor(x => x.Description)
-            .MaximumLength(1000).WithMessage("Description must not exceed 1000 characters.");
+            .MaximumLength(1000).WithMessage("La descripción no debe exceder los 1000 caracteres.");
 
         RuleFor(x => x.MaxOccupancy)
-            .GreaterThan(0).WithMessage("Max occupancy must be greater than 0.");
+            .GreaterThan(0).WithMessage("La ocupación máxima debe ser mayor que 0.");
 
         RuleFor(x => x.BasePrice)
-            .GreaterThanOrEqualTo(0).WithMessage("Base price must be greater than or equal to 0.");
+            .GreaterThanOrEqualTo(0).WithMessage("El precio base debe ser mayor o igual a 0.");
     }
 }

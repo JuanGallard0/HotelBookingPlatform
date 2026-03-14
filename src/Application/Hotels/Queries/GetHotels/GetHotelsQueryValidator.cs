@@ -10,6 +10,6 @@ public class GetHotelsQueryValidator : PagedSortedRequestValidator<GetHotelsQuer
         RuleFor(x => x.StarRating)
             .InclusiveBetween(1, 5)
             .When(x => x.StarRating.HasValue)
-            .WithMessage("Star rating must be between 1 and 5.");
+            .WithMessage("La calificación de estrellas debe estar entre 1 y 5.");
     }
 }
