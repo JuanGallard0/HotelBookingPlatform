@@ -11,11 +11,11 @@ import {
   confirmBooking,
   getMyBookings,
   getUserBookingStatusLabel,
-  toErrorMessage,
   type UserBookingsSortBy,
   type UserBookingsSortDirection,
   type UserBookingStatus,
 } from "@/src/lib/api/bookings";
+import { handleApiError } from "@/src/lib/api/handle-error";
 import type { UserBookingDto } from "@/src/lib/api/generated/api-client";
 import { Button } from "@/src/components/ui/button";
 import { Card, CardContent } from "@/src/components/ui/card";
@@ -181,7 +181,6 @@ function InlineBookingRowActions({
   const [isSubmitting, setIsSubmitting] = useState<"confirm" | "cancel" | null>(
     null,
   );
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!confirmOpen) {
@@ -205,21 +204,17 @@ function InlineBookingRowActions({
 
   async function handleConfirm() {
     if (!canConfirm) {
-      setError("Ingresa el correo de tu cuenta para confirmar la reserva.");
+      handleApiError(new Error("Ingresa el correo de tu cuenta para confirmar la reserva."));
       return;
     }
 
     setIsSubmitting("confirm");
-    setError(null);
-
     try {
       await runWithAuth(() => confirmBooking(bookingId));
       setConfirmOpen(false);
       onUpdated();
     } catch (err) {
-      setError(
-        toErrorMessage(err, "No se pudo confirmar la reserva en este momento."),
-      );
+      handleApiError(err, "No se pudo confirmar la reserva en este momento.");
     } finally {
       setIsSubmitting(null);
     }
@@ -227,8 +222,6 @@ function InlineBookingRowActions({
 
   async function handleCancel() {
     setIsSubmitting("cancel");
-    setError(null);
-
     try {
       await runWithAuth(() =>
         cancelBooking(bookingId, DEFAULT_CANCELLATION_REASON),
@@ -236,9 +229,7 @@ function InlineBookingRowActions({
       setCancelOpen(false);
       onUpdated();
     } catch (err) {
-      setError(
-        toErrorMessage(err, "No se pudo cancelar la reserva en este momento."),
-      );
+      handleApiError(err, "No se pudo cancelar la reserva en este momento.");
     } finally {
       setIsSubmitting(null);
     }
@@ -250,10 +241,7 @@ function InlineBookingRowActions({
         <Button
           type="button"
           size="sm"
-          onClick={() => {
-            setError(null);
-            setConfirmOpen(true);
-          }}
+          onClick={() => setConfirmOpen(true)}
         >
           Confirmar
         </Button>
@@ -261,16 +249,11 @@ function InlineBookingRowActions({
           type="button"
           size="sm"
           variant="outline"
-          onClick={() => {
-            setError(null);
-            setCancelOpen(true);
-          }}
+          onClick={() => setCancelOpen(true)}
         >
           Cancelar reserva
         </Button>
       </div>
-
-      {error && <p className="text-xs text-red-600">{error}</p>}
 
       <BookingActionDialog
         open={confirmOpen}
@@ -326,7 +309,6 @@ export default function AccountBookingsPage() {
   const [items, setItems] = useState<UserBookingDto[]>([]);
   const [totalRecords, setTotalRecords] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
-  const [error, setError] = useState<string | null>(null);
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
   const [refreshNonce, setRefreshNonce] = useState(0);
 
@@ -404,7 +386,6 @@ export default function AccountBookingsPage() {
         setItems(result.items);
         setTotalRecords(result.totalRecords);
         setTotalPages(Math.max(result.totalPages, 1));
-        setError(null);
         setLoadedKey(requestKey);
       })
       .catch((err) => {
@@ -412,12 +393,7 @@ export default function AccountBookingsPage() {
         setItems([]);
         setTotalRecords(0);
         setTotalPages(1);
-        setError(
-          toErrorMessage(
-            err,
-            "No se pudieron cargar las reservas del usuario.",
-          ),
-        );
+        handleApiError(err, "No se pudieron cargar las reservas del usuario.");
         setLoadedKey(requestKey);
       });
 

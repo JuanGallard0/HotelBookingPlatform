@@ -20,8 +20,8 @@ import type { HotelDto } from "@/src/lib/api/generated/api-client";
 import {
   createAdminHotel,
   deleteAdminHotel,
-  toAdminErrorMessage,
 } from "@/src/lib/api/admin-hotels";
+import { handleApiError } from "@/src/lib/api/handle-error";
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
 import { Card, CardContent } from "@/src/components/ui/card";
@@ -133,12 +133,10 @@ export function AdminHotelsDashboard({
   const router = useRouter();
   const [hotels, setHotels] = useState(initialHotels);
   const [form, setForm] = useState<CreateHotelFormState>(emptyForm);
-  const [createError, setCreateError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<HotelDto | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const [search, setSearch] = useState("");
   const [starFilter, setStarFilter] = useState<number | null>(null);
@@ -207,13 +205,12 @@ export function AdminHotelsDashboard({
   async function handleDeleteHotel() {
     if (!deleteTarget) return;
     setIsDeleting(true);
-    setDeleteError(null);
     try {
       await deleteAdminHotel(deleteTarget.hotelId!);
       setHotels((current) => current.filter((h) => h.hotelId !== deleteTarget.hotelId));
       setDeleteTarget(null);
     } catch (error) {
-      setDeleteError(toAdminErrorMessage(error, "No se pudo eliminar el hotel."));
+      handleApiError(error, "No se pudo eliminar el hotel.");
     } finally {
       setIsDeleting(false);
     }
@@ -222,8 +219,6 @@ export function AdminHotelsDashboard({
   async function handleCreateHotel(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSubmitting(true);
-    setCreateError(null);
-
     try {
       const hotelId = await createAdminHotel({
         name: form.name,
@@ -257,7 +252,7 @@ export function AdminHotelsDashboard({
         router.push(`/admin/hotels/${hotelId}`);
       }
     } catch (error) {
-      setCreateError(toAdminErrorMessage(error, "No se pudo crear el hotel."));
+      handleApiError(error, "No se pudo crear el hotel.");
     } finally {
       setIsSubmitting(false);
     }
@@ -412,7 +407,7 @@ export function AdminHotelsDashboard({
                   variant="outline"
                   size="icon"
                   className="shrink-0 border-red-400/20 text-red-400 hover:border-red-400/40 hover:bg-red-400/10 hover:text-red-300"
-                  onClick={(e) => { e.stopPropagation(); setDeleteTarget(hotel); setDeleteError(null); }}
+                  onClick={(e) => { e.stopPropagation(); setDeleteTarget(hotel); }}
                   aria-label="Eliminar hotel"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -461,11 +456,6 @@ export function AdminHotelsDashboard({
               Esta acción no se puede deshacer.
             </DialogDescription>
           </DialogHeader>
-          {deleteError && (
-            <p className="rounded-lg border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm text-red-300">
-              {deleteError}
-            </p>
-          )}
           <DialogFooter>
             <Button
               variant="outline"
@@ -567,11 +557,6 @@ export function AdminHotelsDashboard({
               />
             </div>
 
-            {createError ? (
-              <div className="rounded-2xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm text-red-300">
-                {createError}
-              </div>
-            ) : null}
           </form>
 
           <DialogFooter className="border-white/10 bg-transparent">

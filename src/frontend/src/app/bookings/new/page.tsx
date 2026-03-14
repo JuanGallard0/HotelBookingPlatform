@@ -6,7 +6,8 @@ import Link from "next/link";
 import { format, parse, isValid } from "date-fns";
 import { es } from "date-fns/locale";
 import { ArrowLeft, Check } from "lucide-react";
-import { createBooking, toErrorMessage } from "@/src/lib/api/bookings";
+import { createBooking } from "@/src/lib/api/bookings";
+import { handleApiError } from "@/src/lib/api/handle-error";
 import { useAuth } from "@/src/context/AuthContext";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
@@ -134,6 +135,14 @@ export default function NewBookingPage() {
   const [firstName, setFirstName] = useState(user?.firstName ?? "");
   const [lastName, setLastName] = useState(user?.lastName ?? "");
   const [email, setEmail] = useState(user?.email ?? "");
+
+  useEffect(() => {
+    if (user) {
+      setFirstName((v) => v || (user.firstName ?? ""));
+      setLastName((v) => v || (user.lastName ?? ""));
+      setEmail((v) => v || (user.email ?? ""));
+    }
+  }, [user]);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [documentType, setDocumentType] = useState("");
   const [documentNumber, setDocumentNumber] = useState("");
@@ -141,7 +150,6 @@ export default function NewBookingPage() {
   const [specialRequests, setSpecialRequests] = useState("");
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [booking, setBooking] = useState<BookingDto | null>(null);
   const idempotencyKeyRef = useRef<string | null>(null);
 
@@ -190,7 +198,6 @@ export default function NewBookingPage() {
     e.preventDefault();
 
     setLoading(true);
-    setError(null);
     try {
       idempotencyKeyRef.current ??= crypto.randomUUID();
 
@@ -216,12 +223,7 @@ export default function NewBookingPage() {
       );
       setBooking(result);
     } catch (err) {
-      setError(
-        toErrorMessage(
-          err,
-          "No se pudo completar la reserva. Intenta de nuevo.",
-        ),
-      );
+      handleApiError(err, "No se pudo completar la reserva. Intenta de nuevo.");
     } finally {
       setLoading(false);
     }
@@ -349,12 +351,6 @@ export default function NewBookingPage() {
               </div>
             </div>
 
-            {error && (
-              <p className="text-sm text-red-600 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
-                {error}
-              </p>
-            )}
-
             {/* Desktop-only submit button */}
             <Button
               type="submit"
@@ -446,11 +442,6 @@ export default function NewBookingPage() {
 
         {/* Mobile-only submit button — rendered after the summary block */}
         <div className="lg:hidden mt-8 space-y-3">
-          {error && (
-            <p className="text-sm text-red-600 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
-              {error}
-            </p>
-          )}
           <Button
             type="submit"
             form="booking-form"

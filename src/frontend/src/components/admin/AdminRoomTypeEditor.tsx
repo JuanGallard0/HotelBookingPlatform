@@ -6,7 +6,7 @@ import type {
   RatePlanDetailsDto,
   RoomTypeDetailsDto,
 } from "@/src/lib/api/generated/api-client";
-import { toAdminErrorMessage } from "@/src/lib/api/admin-hotels";
+import { handleApiError } from "@/src/lib/api/handle-error";
 import { AdminRatePlanEditor } from "@/src/components/admin/AdminRatePlanEditor";
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
@@ -119,7 +119,6 @@ export function AdminRoomTypeEditor({
   const [newRatePlanForm, setNewRatePlanForm] = useState(() =>
     emptyRatePlanForm(monthStart),
   );
-  const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
 
   useEffect(() => {
@@ -129,8 +128,6 @@ export function AdminRoomTypeEditor({
   async function saveRoomType(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy("save-room-type");
-    setError(null);
-
     try {
       await onSave({
         name: form.name,
@@ -140,7 +137,7 @@ export function AdminRoomTypeEditor({
         isActive: form.isActive,
       });
     } catch (saveError) {
-      setError(toAdminErrorMessage(saveError, "No se pudo actualizar el room type."));
+      handleApiError(saveError, "No se pudo actualizar el room type.");
     } finally {
       setBusy(null);
     }
@@ -149,12 +146,10 @@ export function AdminRoomTypeEditor({
   async function removeRoomType() {
     setConfirmDeleteOpen(false);
     setBusy("delete-room-type");
-    setError(null);
-
     try {
       await onDelete();
     } catch (deleteError) {
-      setError(toAdminErrorMessage(deleteError, "No se pudo eliminar el room type."));
+      handleApiError(deleteError, "No se pudo eliminar el room type.");
     } finally {
       setBusy(null);
     }
@@ -163,8 +158,6 @@ export function AdminRoomTypeEditor({
   async function createRatePlan(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy("create-rate-plan");
-    setError(null);
-
     try {
       await onCreateRatePlan({
         name: newRatePlanForm.name,
@@ -180,7 +173,7 @@ export function AdminRoomTypeEditor({
       setNewRatePlanForm(emptyRatePlanForm(monthStart));
       setAddRatePlanOpen(false);
     } catch (createError) {
-      setError(toAdminErrorMessage(createError, "No se pudo crear el rate plan."));
+      handleApiError(createError, "No se pudo crear el rate plan.");
     } finally {
       setBusy(null);
     }
@@ -299,7 +292,6 @@ export function AdminRoomTypeEditor({
           </div>
         </form>
 
-        {error ? <p className="text-sm text-red-400">{error}</p> : null}
 
         <div className="space-y-3 border-l-2 border-l-emerald-500/30 pl-4">
           <p className="text-xs font-semibold uppercase tracking-widest text-emerald-400/70">

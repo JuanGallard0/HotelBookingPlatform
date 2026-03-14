@@ -9,8 +9,8 @@ import {
   getAdminHotelDetails,
   getAdminHotelInventory,
   isAdminAccessError,
-  toAdminErrorMessage,
 } from "@/src/lib/api/admin-hotels";
+import { handleApiError } from "@/src/lib/api/handle-error";
 import type {
   HotelDetailsDto,
   HotelInventoryDto,
@@ -34,7 +34,6 @@ export function AdminHotelDetailPageClient({
   const { authReady, runWithAuth } = useAuth();
   const [hotel, setHotel] = useState<HotelDetailsDto | null>(null);
   const [inventory, setInventory] = useState<HotelInventoryDto | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [accessDenied, setAccessDenied] = useState(false);
 
   useEffect(() => {
@@ -60,7 +59,6 @@ export function AdminHotelDetailPageClient({
       .then((result) => {
         if (!cancelled) {
           setAccessDenied(false);
-          setError(null);
           setHotel(result.nextHotel);
           setInventory(result.nextInventory);
         }
@@ -71,13 +69,7 @@ export function AdminHotelDetailPageClient({
             setAccessDenied(true);
             return;
           }
-
-          setError(
-            toAdminErrorMessage(
-              loadError,
-              "No se pudo cargar el detalle del hotel.",
-            ),
-          );
+          handleApiError(loadError, "No se pudo cargar el detalle del hotel.");
         }
       });
 
@@ -103,7 +95,7 @@ export function AdminHotelDetailPageClient({
       <main className="flex-1">
         <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
           <div className="rounded-3xl border border-white/10 bg-white/5 p-8 text-sm text-slate-300 shadow-sm">
-            {error ?? "Cargando detalle del hotel..."}
+            Cargando detalle del hotel...
           </div>
         </div>
       </main>

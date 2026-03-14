@@ -11,9 +11,9 @@ import {
   confirmBooking,
   getBookingById,
   getUserBookingStatusLabel,
-  toErrorMessage,
   type BookingDetails,
 } from "@/src/lib/api/bookings";
+import { handleApiError } from "@/src/lib/api/handle-error";
 import { Button } from "@/src/components/ui/button";
 import {
   Card,
@@ -150,11 +150,9 @@ export default function BookingDetailPage() {
 
   const [booking, setBooking] = useState<BookingDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [emailInput, setEmailInput] = useState("");
-  const [actionError, setActionError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<"confirm" | "cancel" | null>(
     null,
   );
@@ -171,7 +169,7 @@ export default function BookingDetailPage() {
   function loadBooking() {
     if (!Number.isInteger(bookingId) || bookingId <= 0) {
       setBooking(null);
-      setError("El identificador de reserva no es valido.");
+      handleApiError(new Error("El identificador de reserva no es valido."));
       setIsLoading(false);
       return;
     }
@@ -181,13 +179,10 @@ export default function BookingDetailPage() {
     runWithAuth(() => getBookingById(bookingId))
       .then((result) => {
         setBooking(result);
-        setError(null);
       })
       .catch((err) => {
         setBooking(null);
-        setError(
-          toErrorMessage(err, "No se pudo cargar el detalle de la reserva."),
-        );
+        handleApiError(err, "No se pudo cargar el detalle de la reserva.");
       })
       .finally(() => {
         setIsLoading(false);
@@ -219,21 +214,17 @@ export default function BookingDetailPage() {
     if (!booking) return;
 
     if (!canConfirm) {
-      setActionError("Ingresa el correo de tu cuenta para confirmar la reserva.");
+      handleApiError(new Error("Ingresa el correo de tu cuenta para confirmar la reserva."));
       return;
     }
 
-    setActionError(null);
     setIsSubmitting("confirm");
-
     try {
       await runWithAuth(() => confirmBooking(booking.bookingId));
       setConfirmOpen(false);
       loadBooking();
     } catch (err) {
-      setActionError(
-        toErrorMessage(err, "No se pudo confirmar la reserva en este momento."),
-      );
+      handleApiError(err, "No se pudo confirmar la reserva en este momento.");
     } finally {
       setIsSubmitting(null);
     }
@@ -242,9 +233,7 @@ export default function BookingDetailPage() {
   async function handleCancel() {
     if (!booking) return;
 
-    setActionError(null);
     setIsSubmitting("cancel");
-
     try {
       await runWithAuth(() =>
         cancelBooking(booking.bookingId, DEFAULT_CANCELLATION_REASON),
@@ -252,9 +241,7 @@ export default function BookingDetailPage() {
       setCancelOpen(false);
       loadBooking();
     } catch (err) {
-      setActionError(
-        toErrorMessage(err, "No se pudo cancelar la reserva en este momento."),
-      );
+      handleApiError(err, "No se pudo cancelar la reserva en este momento.");
     } finally {
       setIsSubmitting(null);
     }
@@ -296,13 +283,7 @@ export default function BookingDetailPage() {
         </Card>
       )}
 
-      {!isLoading && error && (
-        <Card>
-          <CardContent className="p-4 text-sm text-red-600">{error}</CardContent>
-        </Card>
-      )}
-
-      {!isLoading && !error && !booking && (
+      {!isLoading && !booking && (
         <Card>
           <CardContent className="p-4 text-sm text-muted-foreground">
             No se encontro la reserva solicitada.
@@ -310,7 +291,7 @@ export default function BookingDetailPage() {
         </Card>
       )}
 
-      {!isLoading && !error && booking && (
+      {!isLoading && booking && (
         <>
           <Card>
             <CardHeader>
@@ -434,9 +415,6 @@ export default function BookingDetailPage() {
                   </>
                 )}
               </div>
-              {actionError && (
-                <p className="text-sm text-red-600">{actionError}</p>
-              )}
             </CardContent>
           </Card>
         </>

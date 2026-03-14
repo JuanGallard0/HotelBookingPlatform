@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { ChevronDown, Tag, Trash2 } from "lucide-react";
 import type { RatePlanDetailsDto } from "@/src/lib/api/generated/api-client";
-import { toAdminErrorMessage } from "@/src/lib/api/admin-hotels";
+import { handleApiError } from "@/src/lib/api/handle-error";
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
 import {
@@ -77,7 +77,6 @@ export function AdminRatePlanEditor({
   const [open, setOpen] = useState(false);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [form, setForm] = useState(() => toRatePlanFormState(ratePlan));
-  const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
 
   useEffect(() => {
@@ -87,8 +86,6 @@ export function AdminRatePlanEditor({
   async function saveRatePlan(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy("save");
-    setError(null);
-
     try {
       await onSave(ratePlan.ratePlanId ?? 0, {
         name: form.name,
@@ -102,7 +99,7 @@ export function AdminRatePlanEditor({
         isActive: form.isActive,
       });
     } catch (saveError) {
-      setError(toAdminErrorMessage(saveError, "No se pudo actualizar el rate plan."));
+      handleApiError(saveError, "No se pudo actualizar el rate plan.");
     } finally {
       setBusy(null);
     }
@@ -111,12 +108,10 @@ export function AdminRatePlanEditor({
   async function removeRatePlan() {
     setConfirmDeleteOpen(false);
     setBusy("delete");
-    setError(null);
-
     try {
       await onDelete(ratePlan.ratePlanId ?? 0);
     } catch (deleteError) {
-      setError(toAdminErrorMessage(deleteError, "No se pudo eliminar el rate plan."));
+      handleApiError(deleteError, "No se pudo eliminar el rate plan.");
     } finally {
       setBusy(null);
     }
@@ -226,7 +221,6 @@ export function AdminRatePlanEditor({
               }
             />
           </div>
-          {error ? <p className="text-sm text-red-400 md:col-span-2">{error}</p> : null}
           <div className="flex gap-3 md:col-span-2">
             <Button disabled={busy === "save"} type="submit" size="sm">
               {busy === "save" ? "Guardando..." : "Guardar"}

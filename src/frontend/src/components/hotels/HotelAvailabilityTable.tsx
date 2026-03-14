@@ -6,6 +6,7 @@ import { format, parse, isValid } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, UserRound } from "lucide-react";
 import { getHotelAvailability } from "@/src/lib/api/hotels";
+import { handleApiError } from "@/src/lib/api/handle-error";
 import type { AvailableRoomTypeDto } from "@/src/lib/api/generated/api-client";
 import { useAuth } from "@/src/context/AuthContext";
 import { cn } from "@/src/lib/utils";
@@ -116,13 +117,11 @@ export function HotelAvailabilityTable({ hotelId }: { hotelId: number }) {
   const [numberOfRooms, setNumberOfRooms] = useState(1);
   const [rooms, setRooms] = useState<AvailableRoomTypeDto[] | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [searched, setSearched] = useState(false);
 
   const fetchAvailability = useCallback(
     async (ci: string, co: string, g: number, r: number) => {
       setLoading(true);
-      setError(null);
       try {
         const dto = await getHotelAvailability(
           hotelId,
@@ -132,8 +131,8 @@ export function HotelAvailabilityTable({ hotelId }: { hotelId: number }) {
           r,
         );
         setRooms(dto.availableRoomTypes ?? []);
-      } catch {
-        setError("No se pudo cargar la disponibilidad. Intenta de nuevo.");
+      } catch (err) {
+        handleApiError(err, "No se pudo cargar la disponibilidad. Intenta de nuevo.");
         setRooms(null);
       } finally {
         setLoading(false);
@@ -161,7 +160,6 @@ export function HotelAvailabilityTable({ hotelId }: { hotelId: number }) {
     setNumberOfRooms(1);
     setRooms(null);
     setSearched(false);
-    setError(null);
   }
 
   function buildBookingUrl(room: AvailableRoomTypeDto) {
@@ -307,9 +305,7 @@ export function HotelAvailabilityTable({ hotelId }: { hotelId: number }) {
         </form>
 
         {/* Results */}
-        {error && <p className="px-6 py-6 text-sm text-red-600">{error}</p>}
-
-        {searched && !error && rooms !== null && rooms.length === 0 && (
+        {searched && rooms !== null && rooms.length === 0 && (
           <p className="px-6 py-6 text-sm text-slate-500">
             No hay habitaciones disponibles para los criterios seleccionados.
           </p>

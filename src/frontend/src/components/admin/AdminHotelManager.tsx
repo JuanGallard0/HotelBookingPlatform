@@ -23,10 +23,11 @@ import {
   deleteAdminRoomType,
   getAdminHotelDetails,
   getAdminHotelInventory,
-  toAdminErrorMessage,
   updateAdminHotel,
   upsertAdminInventory,
 } from "@/src/lib/api/admin-hotels";
+import { handleApiError } from "@/src/lib/api/handle-error";
+import { toast } from "sonner";
 import { AdminRoomTypeEditor } from "@/src/components/admin/AdminRoomTypeEditor";
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
@@ -214,8 +215,6 @@ export function AdminHotelManager({
   const [bulkForm, setBulkForm] = useState(() =>
     defaultBulkInventoryForm(initialHotel, initialInventory),
   );
-  const [status, setStatus] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [createRoomTypeOpen, setCreateRoomTypeOpen] = useState(false);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
@@ -266,14 +265,11 @@ export function AdminHotelManager({
     successMessage: string,
   ) {
     setBusyKey(key);
-    setError(null);
-    setStatus(null);
-
     try {
       await action();
-      setStatus(successMessage);
+      toast.success(successMessage);
     } catch (actionError) {
-      setError(toAdminErrorMessage(actionError, "No se pudo completar la accion."));
+      handleApiError(actionError, "No se pudo completar la accion.");
     } finally {
       setBusyKey(null);
     }
@@ -392,18 +388,6 @@ export function AdminHotelManager({
           </Badge>
         </div>
       </div>
-
-      {status ? (
-        <div className="rounded-2xl border border-emerald-400/25 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-300">
-          {status}
-        </div>
-      ) : null}
-
-      {error ? (
-        <div className="rounded-2xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm text-red-300">
-          {error}
-        </div>
-      ) : null}
 
       <Tabs defaultValue="configuration" className="gap-5">
         <TabsList variant="line" className="rounded-none bg-transparent p-0">

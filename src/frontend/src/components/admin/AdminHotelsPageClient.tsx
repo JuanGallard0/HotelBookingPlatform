@@ -6,14 +6,13 @@ import { useAuth } from "@/src/context/AuthContext";
 import {
   getAdminHotels,
   isAdminAccessError,
-  toAdminErrorMessage,
 } from "@/src/lib/api/admin-hotels";
+import { handleApiError } from "@/src/lib/api/handle-error";
 import type { HotelDto } from "@/src/lib/api/generated/api-client";
 
 export function AdminHotelsPageClient() {
   const { authReady, runWithAuth } = useAuth();
   const [hotels, setHotels] = useState<HotelDto[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [accessDenied, setAccessDenied] = useState(false);
 
   useEffect(() => {
@@ -27,7 +26,6 @@ export function AdminHotelsPageClient() {
       .then((response) => {
         if (!cancelled) {
           setAccessDenied(false);
-          setError(null);
           setHotels(response);
         }
       })
@@ -38,13 +36,7 @@ export function AdminHotelsPageClient() {
             setHotels([]);
             return;
           }
-
-          setError(
-            toAdminErrorMessage(
-              loadError,
-              "No se pudieron cargar los hoteles.",
-            ),
-          );
+          handleApiError(loadError, "No se pudieron cargar los hoteles.");
         }
       });
 
@@ -58,7 +50,7 @@ export function AdminHotelsPageClient() {
       <main className="flex-1">
         <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
           <div className="rounded-3xl border border-white/10 bg-white/5 p-8 text-sm text-slate-300 shadow-sm">
-            {error ?? "Cargando modulo administrativo..."}
+            Cargando modulo administrativo...
           </div>
         </div>
       </main>
@@ -71,12 +63,6 @@ export function AdminHotelsPageClient() {
         {accessDenied ? (
           <div className="rounded-2xl border border-amber-400/20 bg-amber-400/10 px-4 py-3 text-sm text-amber-200">
             No tienes permisos de administrador para acceder a este modulo.
-          </div>
-        ) : null}
-
-        {error ? (
-          <div className="rounded-2xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm text-red-200">
-            {error}
           </div>
         ) : null}
 

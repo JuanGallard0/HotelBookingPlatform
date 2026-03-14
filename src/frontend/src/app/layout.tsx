@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Toaster } from "@/src/components/ui/sonner";
 import { AuthProvider } from "@/src/context/AuthContext";
 import { AuthModal } from "@/src/components/auth/AuthModal";
 import { AppChrome } from "@/src/components/layout/AppChrome";
@@ -33,6 +34,7 @@ export default function RootLayout({
             <AppChrome>{children}</AppChrome>
             <AuthModal />
           </AuthProvider>
+          <Toaster richColors closeButton />
         </div>
       </body>
     </html>

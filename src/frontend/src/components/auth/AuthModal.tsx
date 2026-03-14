@@ -17,6 +17,7 @@ import { Input } from "@/src/components/ui/input";
 import { Label } from "@/src/components/ui/label";
 import { Button } from "@/src/components/ui/button";
 import { useAuth } from "@/src/context/AuthContext";
+import { handleApiError } from "@/src/lib/api/handle-error";
 
 function InputField({
   id,
@@ -54,18 +55,16 @@ function LoginForm({ onSuccess }: { onSuccess: () => void }) {
   const { loginUser } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    setError(null);
     try {
       await loginUser({ email, password });
       onSuccess();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al iniciar sesión");
+      handleApiError(err, "Error al iniciar sesión");
     } finally {
       setLoading(false);
     }
@@ -89,13 +88,6 @@ function LoginForm({ onSuccess }: { onSuccess: () => void }) {
         onChange={setPassword}
         autoComplete="current-password"
       />
-
-      {error && (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
-          {error}
-        </p>
-      )}
-
       <Button type="submit" disabled={loading} className="w-full">
         {loading ? "Iniciando sesión…" : "Iniciar sesión"}
       </Button>
@@ -110,22 +102,20 @@ function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (password !== confirm) {
-      setError("Las contraseñas no coinciden");
+      handleApiError(new Error("Las contraseñas no coinciden"));
       return;
     }
     setLoading(true);
-    setError(null);
     try {
       await registerUser({ email, firstName, lastName, password });
       onSuccess();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al registrarse");
+      handleApiError(err, "Error al registrarse");
     } finally {
       setLoading(false);
     }
@@ -173,13 +163,6 @@ function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
         onChange={setConfirm}
         autoComplete="new-password"
       />
-
-      {error && (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
-          {error}
-        </p>
-      )}
-
       <Button type="submit" disabled={loading} className="w-full">
         {loading ? "Registrando…" : "Crear cuenta"}
       </Button>
