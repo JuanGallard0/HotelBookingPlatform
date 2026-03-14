@@ -49,6 +49,7 @@ app.UseExceptionHandler(options => { });
 app.UseHealthChecks("/health");
 app.UseStaticFiles();
 app.UseAuthentication();
+app.UseRateLimiter();
 app.UseAuthorization();
 
 app.MapOpenApi();

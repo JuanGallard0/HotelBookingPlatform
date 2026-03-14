@@ -31,6 +31,7 @@ public class BookingsEndpoints : EndpointGroupBase
 
         group.MapPost(CreateBooking)
             .WithIdempotency<CreateBookingCommand>()
+            .RequireRateLimiting(RateLimitingPolicyNames.BookingWrite)
             .WithSummary("Create a booking")
             .Produces<ApiResponse<BookingDto>>(StatusCodes.Status201Created)
             .Produces<ApiResponse<object?>>(StatusCodes.Status400BadRequest)
@@ -38,9 +39,11 @@ public class BookingsEndpoints : EndpointGroupBase
             .Produces<ApiResponse<object?>>(StatusCodes.Status404NotFound)
             .Produces<ApiResponse<object?>>(StatusCodes.Status409Conflict)
             .Produces<ApiResponse<object?>>(StatusCodes.Status422UnprocessableEntity)
+            .Produces<ApiResponse<object?>>(StatusCodes.Status429TooManyRequests)
             .RequireAuthorization();
 
         group.MapPost("{id:int}/confirm", ConfirmBooking)
+            .RequireRateLimiting(RateLimitingPolicyNames.BookingWrite)
             .WithSummary("Confirm a booking")
             .Produces<ApiResponse<object?>>(StatusCodes.Status200OK)
             .Produces<ApiResponse<object?>>(StatusCodes.Status400BadRequest)
@@ -48,9 +51,11 @@ public class BookingsEndpoints : EndpointGroupBase
             .Produces<ApiResponse<object?>>(StatusCodes.Status403Forbidden)
             .Produces<ApiResponse<object?>>(StatusCodes.Status404NotFound)
             .Produces<ApiResponse<object?>>(StatusCodes.Status422UnprocessableEntity)
+            .Produces<ApiResponse<object?>>(StatusCodes.Status429TooManyRequests)
             .RequireAuthorization();
 
         group.MapPost("{id:int}/cancel", CancelBooking)
+            .RequireRateLimiting(RateLimitingPolicyNames.BookingWrite)
             .WithSummary("Cancel a booking")
             .Produces<ApiResponse<object?>>(StatusCodes.Status200OK)
             .Produces<ApiResponse<object?>>(StatusCodes.Status400BadRequest)
@@ -58,6 +63,7 @@ public class BookingsEndpoints : EndpointGroupBase
             .Produces<ApiResponse<object?>>(StatusCodes.Status403Forbidden)
             .Produces<ApiResponse<object?>>(StatusCodes.Status404NotFound)
             .Produces<ApiResponse<object?>>(StatusCodes.Status422UnprocessableEntity)
+            .Produces<ApiResponse<object?>>(StatusCodes.Status429TooManyRequests)
             .RequireAuthorization();
     }
 

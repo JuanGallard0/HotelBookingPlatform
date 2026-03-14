@@ -16,30 +16,38 @@ public class AuthEndpoints : EndpointGroupBase
     {
         group.MapPost(Register, "register")
             .AllowAnonymous()
+            .RequireRateLimiting(RateLimitingPolicyNames.Auth)
             .WithSummary("Register a customer account")
             .Produces<ApiResponse<AuthResponseDto>>(StatusCodes.Status200OK)
             .Produces<ApiResponse<object?>>(StatusCodes.Status400BadRequest)
-            .Produces<ApiResponse<object?>>(StatusCodes.Status409Conflict);
+            .Produces<ApiResponse<object?>>(StatusCodes.Status409Conflict)
+            .Produces<ApiResponse<object?>>(StatusCodes.Status429TooManyRequests);
 
         group.MapPost(Login, "login")
             .AllowAnonymous()
+            .RequireRateLimiting(RateLimitingPolicyNames.Auth)
             .WithSummary("Authenticate a user and issue JWT tokens")
             .Produces<ApiResponse<AuthResponseDto>>(StatusCodes.Status200OK)
             .Produces<ApiResponse<object?>>(StatusCodes.Status400BadRequest)
-            .Produces<ApiResponse<object?>>(StatusCodes.Status401Unauthorized);
+            .Produces<ApiResponse<object?>>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse<object?>>(StatusCodes.Status429TooManyRequests);
 
         group.MapPost(Refresh, "refresh")
             .AllowAnonymous()
+            .RequireRateLimiting(RateLimitingPolicyNames.Auth)
             .WithSummary("Rotate a refresh token and issue a new access token")
             .Produces<ApiResponse<AuthResponseDto>>(StatusCodes.Status200OK)
             .Produces<ApiResponse<object?>>(StatusCodes.Status400BadRequest)
-            .Produces<ApiResponse<object?>>(StatusCodes.Status401Unauthorized);
+            .Produces<ApiResponse<object?>>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse<object?>>(StatusCodes.Status429TooManyRequests);
 
         group.MapPost(Logout, "logout")
             .AllowAnonymous()
+            .RequireRateLimiting(RateLimitingPolicyNames.Auth)
             .WithSummary("Revoke a refresh token")
             .Produces<ApiResponse<object?>>(StatusCodes.Status200OK)
-            .Produces<ApiResponse<object?>>(StatusCodes.Status400BadRequest);
+            .Produces<ApiResponse<object?>>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse<object?>>(StatusCodes.Status429TooManyRequests);
 
         group.MapGet(Me)
             .RequireAuthorization()
