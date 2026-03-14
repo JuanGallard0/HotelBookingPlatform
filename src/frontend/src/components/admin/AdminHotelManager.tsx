@@ -308,7 +308,7 @@ export function AdminHotelManager({
       await refreshHotelDetails();
       setNewRoomTypeForm(emptyRoomTypeForm());
       setCreateRoomTypeOpen(false);
-    }, "Room type creado.");
+    }, "Tipo de habitación creado.");
   }
 
   async function handleSelectInventoryDay(roomTypeId: number, date: string) {

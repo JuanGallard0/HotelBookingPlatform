@@ -22,6 +22,7 @@ import {
   deleteAdminHotel,
 } from "@/src/lib/api/admin-hotels";
 import { handleApiError } from "@/src/lib/api/handle-error";
+import { toast } from "sonner";
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
 import { Card, CardContent } from "@/src/components/ui/card";
@@ -209,6 +210,7 @@ export function AdminHotelsDashboard({
       await deleteAdminHotel(deleteTarget.hotelId!);
       setHotels((current) => current.filter((h) => h.hotelId !== deleteTarget.hotelId));
       setDeleteTarget(null);
+      toast.success("Hotel eliminado.");
     } catch (error) {
       handleApiError(error, "No se pudo eliminar el hotel.");
     } finally {
@@ -249,6 +251,7 @@ export function AdminHotelsDashboard({
         ]);
         setForm(emptyForm);
         setCreateOpen(false);
+        toast.success("Hotel creado.");
         router.push(`/admin/hotels/${hotelId}`);
       }
     } catch (error) {

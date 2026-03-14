@@ -95,7 +95,7 @@ export async function getAdminHotels(accessToken?: string) {
   );
 
   if (!response.success || !response.data) {
-    throw new Error(response.errorMessage ?? "Failed to load hotels.");
+    throw new Error(response.errorMessage ?? "No se pudieron cargar los hoteles.");
   }
 
   return (response.data.data ?? []) as HotelDto[];
@@ -108,7 +108,7 @@ export async function getAdminHotelDetails(
   const response = await makeHotelsClient(accessToken).details(hotelId);
 
   if (!response.success || !response.data) {
-    throw new Error(response.errorMessage ?? "Failed to load hotel details.");
+    throw new Error(response.errorMessage ?? "No se pudieron cargar los detalles del hotel.");
   }
 
   return response.data as HotelDetailsDto;
@@ -140,7 +140,7 @@ export async function getAdminHotelInventory(
   };
 
   if (!response.ok || !payload.success || !payload.data) {
-    throw new Error(payload.errorMessage ?? "Failed to load inventory.");
+    throw new Error(payload.errorMessage ?? "No se pudo cargar el inventario.");
   }
 
   return payload.data as HotelInventoryDto;
@@ -155,7 +155,7 @@ export async function createAdminHotel(
   );
 
   if (!response.success) {
-    throw new Error(response.errorMessage ?? "Failed to create hotel.");
+    throw new Error(response.errorMessage ?? "No se pudo crear el hotel.");
   }
 
   return response.data ?? null;
@@ -172,7 +172,7 @@ export async function updateAdminHotel(
   );
 
   if (!response.success) {
-    throw new Error(response.errorMessage ?? "Failed to update hotel.");
+    throw new Error(response.errorMessage ?? "No se pudo actualizar el hotel.");
   }
 }
 
@@ -180,7 +180,7 @@ export async function deleteAdminHotel(hotelId: number, accessToken?: string) {
   const response = await makeHotelsClient(accessToken).hotelsDELETE(hotelId);
 
   if (!response.success) {
-    throw new Error(response.errorMessage ?? "Failed to delete hotel.");
+    throw new Error(response.errorMessage ?? "No se pudo eliminar el hotel.");
   }
 }
 
@@ -195,7 +195,7 @@ export async function createAdminRoomType(
   );
 
   if (!response.success) {
-    throw new Error(response.errorMessage ?? "Failed to create room type.");
+    throw new Error(response.errorMessage ?? "No se pudo crear el tipo de habitación.");
   }
 
   return response.data ?? null;
@@ -212,7 +212,7 @@ export async function updateAdminRoomType(
   );
 
   if (!response.success) {
-    throw new Error(response.errorMessage ?? "Failed to update room type.");
+    throw new Error(response.errorMessage ?? "No se pudo actualizar el tipo de habitación.");
   }
 }
 
@@ -225,7 +225,7 @@ export async function deleteAdminRoomType(
   );
 
   if (!response.success) {
-    throw new Error(response.errorMessage ?? "Failed to delete room type.");
+    throw new Error(response.errorMessage ?? "No se pudo eliminar el tipo de habitación.");
   }
 }
 
@@ -240,7 +240,7 @@ export async function createAdminRatePlan(
   );
 
   if (!response.success) {
-    throw new Error(response.errorMessage ?? "Failed to create rate plan.");
+    throw new Error(response.errorMessage ?? "No se pudo crear el plan de tarifas.");
   }
 
   return response.data ?? null;
@@ -257,7 +257,7 @@ export async function updateAdminRatePlan(
   );
 
   if (!response.success) {
-    throw new Error(response.errorMessage ?? "Failed to update rate plan.");
+    throw new Error(response.errorMessage ?? "No se pudo actualizar el plan de tarifas.");
   }
 }
 
@@ -270,7 +270,7 @@ export async function deleteAdminRatePlan(
   );
 
   if (!response.success) {
-    throw new Error(response.errorMessage ?? "Failed to delete rate plan.");
+    throw new Error(response.errorMessage ?? "No se pudo eliminar el plan de tarifas.");
   }
 }
 
@@ -303,7 +303,7 @@ export async function upsertAdminInventory(
   };
 
   if (!response.ok || !payload.success) {
-    throw new Error(payload.errorMessage ?? "Failed to update inventory.");
+    throw new Error(payload.errorMessage ?? "No se pudo actualizar el inventario.");
   }
 }
 
@@ -319,7 +319,7 @@ export async function bulkUpdateAdminInventory(
 
   if (!response.success) {
     throw new Error(
-      response.errorMessage ?? "Failed to bulk update inventory.",
+      response.errorMessage ?? "No se pudo actualizar el inventario en bloque.",
     );
   }
 }

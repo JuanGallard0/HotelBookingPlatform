@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ChevronDown, Tag, Trash2 } from "lucide-react";
 import type { RatePlanDetailsDto } from "@/src/lib/api/generated/api-client";
 import { handleApiError } from "@/src/lib/api/handle-error";
+import { toast } from "sonner";
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
 import {
@@ -98,6 +99,7 @@ export function AdminRatePlanEditor({
           : undefined,
         isActive: form.isActive,
       });
+      toast.success("Tarifa actualizada.");
     } catch (saveError) {
       handleApiError(saveError, "No se pudo actualizar el rate plan.");
     } finally {
@@ -110,6 +112,7 @@ export function AdminRatePlanEditor({
     setBusy("delete");
     try {
       await onDelete(ratePlan.ratePlanId ?? 0);
+      toast.success("Tarifa eliminada.");
     } catch (deleteError) {
       handleApiError(deleteError, "No se pudo eliminar el rate plan.");
     } finally {

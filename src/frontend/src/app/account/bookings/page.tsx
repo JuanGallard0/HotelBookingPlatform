@@ -16,6 +16,7 @@ import {
   type UserBookingStatus,
 } from "@/src/lib/api/bookings";
 import { handleApiError } from "@/src/lib/api/handle-error";
+import { toast } from "sonner";
 import type { UserBookingDto } from "@/src/lib/api/generated/api-client";
 import { Button } from "@/src/components/ui/button";
 import { Card, CardContent } from "@/src/components/ui/card";
@@ -212,6 +213,7 @@ function InlineBookingRowActions({
     try {
       await runWithAuth(() => confirmBooking(bookingId));
       setConfirmOpen(false);
+      toast.success("Reserva confirmada.");
       onUpdated();
     } catch (err) {
       handleApiError(err, "No se pudo confirmar la reserva en este momento.");
@@ -227,6 +229,7 @@ function InlineBookingRowActions({
         cancelBooking(bookingId, DEFAULT_CANCELLATION_REASON),
       );
       setCancelOpen(false);
+      toast.success("Reserva cancelada.");
       onUpdated();
     } catch (err) {
       handleApiError(err, "No se pudo cancelar la reserva en este momento.");
@@ -468,15 +471,7 @@ export default function AccountBookingsPage() {
         </CardContent>
       </Card>
 
-      {error && (
-        <Card>
-          <CardContent className="p-4 text-sm text-red-600">
-            {error}
-          </CardContent>
-        </Card>
-      )}
-
-      {isAuthenticated && !error && (
+      {isAuthenticated && (
         <div className="grid gap-4">
           {loading && (
             <Card>
@@ -549,7 +544,7 @@ export default function AccountBookingsPage() {
         </div>
       )}
 
-      {isAuthenticated && !loading && !error && totalPages > 1 && (
+      {isAuthenticated && !loading && totalPages > 1 && (
         <div className="flex items-center justify-center gap-3">
           <Button
             type="button"

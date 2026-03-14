@@ -23,7 +23,7 @@ async function expectSuccess<T>(response: Response): Promise<T> {
 
   if (!response.ok || !payload.success || !payload.data) {
     throw new SwaggerException(
-      payload.errorMessage ?? "Authentication request failed.",
+      payload.errorMessage ?? "Error de autenticación.",
       response.status,
       JSON.stringify(payload),
       {},
@@ -99,7 +99,7 @@ export async function getMe(): Promise<AuthenticatedUser | null> {
 
   if (!response.ok || !payload.success || !payload.data) {
     throw new SwaggerException(
-      payload.errorMessage ?? "Failed to load current user.",
+      payload.errorMessage ?? "No se pudo cargar el usuario actual.",
       response.status,
       JSON.stringify(payload),
       {},

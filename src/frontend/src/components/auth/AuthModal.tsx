@@ -18,6 +18,7 @@ import { Label } from "@/src/components/ui/label";
 import { Button } from "@/src/components/ui/button";
 import { useAuth } from "@/src/context/AuthContext";
 import { handleApiError } from "@/src/lib/api/handle-error";
+import { toast } from "sonner";
 
 function InputField({
   id,
@@ -62,6 +63,7 @@ function LoginForm({ onSuccess }: { onSuccess: () => void }) {
     setLoading(true);
     try {
       await loginUser({ email, password });
+      toast.success("¡Bienvenido!");
       onSuccess();
     } catch (err) {
       handleApiError(err, "Error al iniciar sesión");
@@ -113,6 +115,7 @@ function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
     setLoading(true);
     try {
       await registerUser({ email, firstName, lastName, password });
+      toast.success("¡Cuenta creada! Bienvenido.");
       onSuccess();
     } catch (err) {
       handleApiError(err, "Error al registrarse");

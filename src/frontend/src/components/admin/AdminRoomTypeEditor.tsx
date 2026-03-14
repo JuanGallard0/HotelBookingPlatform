@@ -7,6 +7,7 @@ import type {
   RoomTypeDetailsDto,
 } from "@/src/lib/api/generated/api-client";
 import { handleApiError } from "@/src/lib/api/handle-error";
+import { toast } from "sonner";
 import { AdminRatePlanEditor } from "@/src/components/admin/AdminRatePlanEditor";
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
@@ -136,6 +137,7 @@ export function AdminRoomTypeEditor({
         basePrice: Number(form.basePrice),
         isActive: form.isActive,
       });
+      toast.success("Tipo de habitación actualizado.");
     } catch (saveError) {
       handleApiError(saveError, "No se pudo actualizar el room type.");
     } finally {
@@ -148,6 +150,7 @@ export function AdminRoomTypeEditor({
     setBusy("delete-room-type");
     try {
       await onDelete();
+      toast.success("Tipo de habitación eliminado.");
     } catch (deleteError) {
       handleApiError(deleteError, "No se pudo eliminar el room type.");
     } finally {
@@ -170,6 +173,7 @@ export function AdminRoomTypeEditor({
           : undefined,
         isActive: newRatePlanForm.isActive,
       });
+      toast.success("Tarifa creada.");
       setNewRatePlanForm(emptyRatePlanForm(monthStart));
       setAddRatePlanOpen(false);
     } catch (createError) {

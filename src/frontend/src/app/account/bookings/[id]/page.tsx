@@ -14,6 +14,7 @@ import {
   type BookingDetails,
 } from "@/src/lib/api/bookings";
 import { handleApiError } from "@/src/lib/api/handle-error";
+import { toast } from "sonner";
 import { Button } from "@/src/components/ui/button";
 import {
   Card,
@@ -222,6 +223,7 @@ export default function BookingDetailPage() {
     try {
       await runWithAuth(() => confirmBooking(booking.bookingId));
       setConfirmOpen(false);
+      toast.success("Reserva confirmada.");
       loadBooking();
     } catch (err) {
       handleApiError(err, "No se pudo confirmar la reserva en este momento.");
@@ -239,6 +241,7 @@ export default function BookingDetailPage() {
         cancelBooking(booking.bookingId, DEFAULT_CANCELLATION_REASON),
       );
       setCancelOpen(false);
+      toast.success("Reserva cancelada.");
       loadBooking();
     } catch (err) {
       handleApiError(err, "No se pudo cancelar la reserva en este momento.");
@@ -395,20 +398,14 @@ export default function BookingDetailPage() {
                   <>
                     <Button
                       type="button"
-                      onClick={() => {
-                        setActionError(null);
-                        setConfirmOpen(true);
-                      }}
+                      onClick={() => setConfirmOpen(true)}
                     >
                       Confirmar reserva
                     </Button>
                     <Button
                       type="button"
                       variant="destructive"
-                      onClick={() => {
-                        setActionError(null);
-                        setCancelOpen(true);
-                      }}
+                      onClick={() => setCancelOpen(true)}
                     >
                       Cancelar reserva
                     </Button>
