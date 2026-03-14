@@ -2,10 +2,12 @@ using HotelBookingPlatform.Application.Common.Exceptions;
 using HotelBookingPlatform.Application.Common.Models;
 using HotelBookingPlatform.Domain.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace HotelBookingPlatform.Api.Infrastructure;
 
-public class CustomExceptionHandler : IExceptionHandler
+public class CustomExceptionHandler(ILogger<CustomExceptionHandler> logger) : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
@@ -23,6 +25,13 @@ public class CustomExceptionHandler : IExceptionHandler
         var result = MapToResult(exception);
         if (result is null) return false;
 
+        logger.LogError(
+            exception,
+            "Handled exception {ExceptionType} for {Method} {Path}",
+            exception.GetType().FullName,
+            httpContext.Request.Method,
+            httpContext.Request.Path);
+
         await result.ToHttpResult().ExecuteAsync(httpContext);
         return true;
     }
@@ -35,6 +44,7 @@ public class CustomExceptionHandler : IExceptionHandler
         BadHttpRequestException ex => Result.Failure(ex.Message),
         BookingStatusException ex => Result.Conflict(ex.Message),
         InsufficientInventoryException ex => Result.Conflict(ex.Message),
+        DbUpdateConcurrencyException => Result.Conflict("The resource was updated by another request. Refresh and try again."),
         InvalidBookingDatesException ex => Result.UnprocessableEntity(ex.Message),
         InvalidOperationException ex => Result.Failure(ex.Message),
         _ => Result.Failure("An unexpected error occurred.")

@@ -50,6 +50,7 @@ internal sealed class UnitOfWork(ApplicationDbContext context) : IUnitOfWork, IA
         {
             await _transaction.DisposeAsync();
             _transaction = null;
+            context.ChangeTracker.Clear();
         }
     }
 
@@ -60,6 +61,7 @@ internal sealed class UnitOfWork(ApplicationDbContext context) : IUnitOfWork, IA
             await _transaction.RollbackAsync();
             await _transaction.DisposeAsync();
             _transaction = null;
+            context.ChangeTracker.Clear();
         }
     }
 }

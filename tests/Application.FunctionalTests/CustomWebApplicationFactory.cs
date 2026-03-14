@@ -12,12 +12,10 @@ namespace HotelBookingPlatform.Application.FunctionalTests;
 
 public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
-    private readonly DbConnection _connection;
     private readonly string _connectionString;
 
     public CustomWebApplicationFactory(DbConnection connection, string connectionString)
     {
-        _connection = connection;
         _connectionString = connectionString;
     }
 
@@ -34,7 +32,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 .AddDbContext<ApplicationDbContext>((sp, options) =>
                 {
                     options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
-                    options.UseSqlServer(_connection);
+                    options.UseSqlServer(_connectionString);
                 });
         });
     }
