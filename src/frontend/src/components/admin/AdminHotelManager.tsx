@@ -34,6 +34,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/src/components/ui/ca
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -217,6 +218,7 @@ export function AdminHotelManager({
   const [error, setError] = useState<string | null>(null);
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [createRoomTypeOpen, setCreateRoomTypeOpen] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   const monthDays = useMemo(
     () => buildMonthDays(String(inventory.from), String(inventory.to)),
@@ -290,10 +292,7 @@ export function AdminHotelManager({
   }
 
   async function handleHotelDelete() {
-    if (!window.confirm("Esta accion eliminara el hotel. Deseas continuar?")) {
-      return;
-    }
-
+    setConfirmDeleteOpen(false);
     await runMutation("hotel-delete", async () => {
       await deleteAdminHotel(hotel.hotelId ?? 0);
       router.push("/admin/hotels");
@@ -429,7 +428,7 @@ export function AdminHotelManager({
               </div>
               <Button
                 variant="destructive"
-                onClick={handleHotelDelete}
+                onClick={() => setConfirmDeleteOpen(true)}
                 type="button"
               >
                 <Trash2 className="h-4 w-4" />
@@ -470,6 +469,36 @@ export function AdminHotelManager({
               Crear room type
             </Button>
           </div>
+
+          <Dialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
+            <DialogContent className="dark border-white/10 bg-slate-900 text-slate-100 sm:max-w-sm">
+              <DialogHeader>
+                <DialogTitle className="text-slate-100">Eliminar hotel</DialogTitle>
+                <DialogDescription className="text-slate-400">
+                  ¿Confirmas que deseas eliminar{" "}
+                  <span className="font-semibold text-slate-200">{hotel.name}</span>?
+                  Esta acción no se puede deshacer.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setConfirmDeleteOpen(false)}
+                  disabled={busyKey === "hotel-delete"}
+                  className="border-white/15 text-slate-100 hover:text-slate-100"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleHotelDelete}
+                  disabled={busyKey === "hotel-delete"}
+                >
+                  {busyKey === "hotel-delete" ? "Eliminando..." : "Eliminar"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
           <Dialog open={createRoomTypeOpen} onOpenChange={setCreateRoomTypeOpen}>
             <DialogContent className="dark border-white/10 bg-slate-900 text-slate-100 sm:max-w-lg">

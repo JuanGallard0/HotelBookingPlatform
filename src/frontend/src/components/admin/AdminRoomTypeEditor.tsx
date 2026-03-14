@@ -14,6 +14,7 @@ import { Card, CardContent } from "@/src/components/ui/card";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -113,6 +114,7 @@ export function AdminRoomTypeEditor({
 }) {
   const [open, setOpen] = useState(false);
   const [addRatePlanOpen, setAddRatePlanOpen] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [form, setForm] = useState(() => toRoomTypeFormState(roomType));
   const [newRatePlanForm, setNewRatePlanForm] = useState(() =>
     emptyRatePlanForm(monthStart),
@@ -145,10 +147,7 @@ export function AdminRoomTypeEditor({
   }
 
   async function removeRoomType() {
-    if (!window.confirm(`Eliminar ${roomType.name}?`)) {
-      return;
-    }
-
+    setConfirmDeleteOpen(false);
     setBusy("delete-room-type");
     setError(null);
 
@@ -195,7 +194,7 @@ export function AdminRoomTypeEditor({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
+        className="flex w-full items-center justify-between gap-3 px-4 py-2 text-left"
       >
         <div className="flex items-center gap-2.5 min-w-0">
           <ChevronDown
@@ -222,45 +221,51 @@ export function AdminRoomTypeEditor({
       {open && (
       <CardContent className="space-y-6 border-t border-white/10 pt-6">
         <div className="flex justify-end mb-2">
-          <Button onClick={removeRoomType} type="button" variant="destructive" size="sm">
+          <Button onClick={() => setConfirmDeleteOpen(true)} type="button" variant="destructive" size="sm">
             <Trash2 className="h-4 w-4" />
-            Eliminar room type
+            Eliminar tipo de habitacion
           </Button>
         </div>
 
         <form className="grid gap-4 md:grid-cols-2" onSubmit={saveRoomType}>
-          <Input
-            value={form.name}
-            onChange={(event) =>
-              setForm((current) => ({ ...current, name: event.target.value }))
-            }
-            placeholder="Nombre"
-          />
-          <Input
-            type="number"
-            min={1}
-            value={form.maxOccupancy}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                maxOccupancy: event.target.value,
-              }))
-            }
-            placeholder="Max ocupacion"
-          />
-          <Input
-            type="number"
-            min={0}
-            step="0.01"
-            value={form.basePrice}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                basePrice: event.target.value,
-              }))
-            }
-            placeholder="Base price"
-          />
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-slate-300">Nombre</label>
+            <Input
+              value={form.name}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, name: event.target.value }))
+              }
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-slate-300">Máx. ocupación</label>
+            <Input
+              type="number"
+              min={1}
+              value={form.maxOccupancy}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  maxOccupancy: event.target.value,
+                }))
+              }
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-slate-300">Precio base</label>
+            <Input
+              type="number"
+              min={0}
+              step="0.01"
+              value={form.basePrice}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  basePrice: event.target.value,
+                }))
+              }
+            />
+          </div>
           <label className="flex items-center gap-2 text-sm text-slate-300">
             <input
               checked={form.isActive}
@@ -274,17 +279,19 @@ export function AdminRoomTypeEditor({
             />
             Activo
           </label>
-          <textarea
-            className="min-h-24 rounded-lg border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:col-span-2"
-            value={form.description}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                description: event.target.value,
-              }))
-            }
-            placeholder="Descripcion"
-          />
+          <div className="space-y-1.5 md:col-span-2">
+            <label className="text-sm font-medium text-slate-300">Descripción</label>
+            <textarea
+              className="w-full min-h-24 rounded-lg border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+              value={form.description}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  description: event.target.value,
+                }))
+              }
+            />
+          </div>
           <div className="md:col-span-2">
             <Button disabled={busy === "save-room-type"} type="submit">
               {busy === "save-room-type" ? "Guardando..." : "Guardar tipo de habitación"}
@@ -349,6 +356,36 @@ export function AdminRoomTypeEditor({
         </div>
       </CardContent>
       )}
+
+      <Dialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
+        <DialogContent className="dark border-white/10 bg-slate-900 text-slate-100 sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-slate-100">Eliminar tipo de habitacion</DialogTitle>
+            <DialogDescription className="text-slate-400">
+              ¿Confirmas que deseas eliminar{" "}
+              <span className="font-semibold text-slate-200">{roomType.name}</span>?
+              Esta acción no se puede deshacer.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setConfirmDeleteOpen(false)}
+              disabled={busy === "delete-room-type"}
+              className="border-white/15 text-slate-100 hover:text-slate-100"
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={removeRoomType}
+              disabled={busy === "delete-room-type"}
+            >
+              {busy === "delete-room-type" ? "Eliminando..." : "Eliminar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

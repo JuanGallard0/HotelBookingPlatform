@@ -6,6 +6,14 @@ import type { RatePlanDetailsDto } from "@/src/lib/api/generated/api-client";
 import { toAdminErrorMessage } from "@/src/lib/api/admin-hotels";
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/src/components/ui/dialog";
 import { Input } from "@/src/components/ui/input";
 import { cn } from "@/src/lib/utils";
 
@@ -67,6 +75,7 @@ export function AdminRatePlanEditor({
   onDelete: (ratePlanId: number) => Promise<void>;
 }) {
   const [open, setOpen] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [form, setForm] = useState(() => toRatePlanFormState(ratePlan));
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
@@ -100,10 +109,7 @@ export function AdminRatePlanEditor({
   }
 
   async function removeRatePlan() {
-    if (!window.confirm(`Eliminar ${ratePlan.name}?`)) {
-      return;
-    }
-
+    setConfirmDeleteOpen(false);
     setBusy("delete");
     setError(null);
 
@@ -150,45 +156,57 @@ export function AdminRatePlanEditor({
           className="grid gap-3 border-t border-white/10 p-4 md:grid-cols-2"
           onSubmit={saveRatePlan}
         >
-          <Input
-            value={form.name}
-            onChange={(event) =>
-              setForm((current) => ({ ...current, name: event.target.value }))
-            }
-            placeholder="Nombre"
-          />
-          <Input
-            type="number"
-            min={0}
-            step="0.01"
-            value={form.pricePerNight}
-            onChange={(event) =>
-              setForm((current) => ({ ...current, pricePerNight: event.target.value }))
-            }
-            placeholder="Precio"
-          />
-          <Input
-            type="date"
-            value={form.validFrom}
-            onChange={(event) =>
-              setForm((current) => ({ ...current, validFrom: event.target.value }))
-            }
-          />
-          <Input
-            type="date"
-            value={form.validTo}
-            onChange={(event) =>
-              setForm((current) => ({ ...current, validTo: event.target.value }))
-            }
-          />
-          <Input
-            value={form.discountPercentage}
-            onChange={(event) =>
-              setForm((current) => ({ ...current, discountPercentage: event.target.value }))
-            }
-            placeholder="Descuento %"
-          />
-          <label className="flex items-center gap-2 text-sm text-slate-300">
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-slate-300">Nombre</label>
+            <Input
+              value={form.name}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, name: event.target.value }))
+              }
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-slate-300">Precio por noche</label>
+            <Input
+              type="number"
+              min={0}
+              step="0.01"
+              value={form.pricePerNight}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, pricePerNight: event.target.value }))
+              }
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-slate-300">Válido desde</label>
+            <Input
+              type="date"
+              value={form.validFrom}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, validFrom: event.target.value }))
+              }
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-slate-300">Válido hasta</label>
+            <Input
+              type="date"
+              value={form.validTo}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, validTo: event.target.value }))
+              }
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-slate-300">Descuento %</label>
+            <Input
+              value={form.discountPercentage}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, discountPercentage: event.target.value }))
+              }
+            />
+          </div>
+          <label className="flex items-center gap-2 text-sm text-slate-300 self-end pb-1">
             <input
               checked={form.isActive}
               onChange={(event) =>
@@ -198,14 +216,16 @@ export function AdminRatePlanEditor({
             />
             Activo
           </label>
-          <textarea
-            className="min-h-20 rounded-lg border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:col-span-2"
-            value={form.description}
-            onChange={(event) =>
-              setForm((current) => ({ ...current, description: event.target.value }))
-            }
-            placeholder="Descripcion"
-          />
+          <div className="space-y-1.5 md:col-span-2">
+            <label className="text-sm font-medium text-slate-300">Descripción</label>
+            <textarea
+              className="w-full min-h-20 rounded-lg border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+              value={form.description}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, description: event.target.value }))
+              }
+            />
+          </div>
           {error ? <p className="text-sm text-red-400 md:col-span-2">{error}</p> : null}
           <div className="flex gap-3 md:col-span-2">
             <Button disabled={busy === "save"} type="submit" size="sm">
@@ -213,7 +233,7 @@ export function AdminRatePlanEditor({
             </Button>
             <Button
               disabled={busy === "delete"}
-              onClick={removeRatePlan}
+              onClick={() => setConfirmDeleteOpen(true)}
               type="button"
               variant="destructive"
               size="sm"
@@ -224,6 +244,36 @@ export function AdminRatePlanEditor({
           </div>
         </form>
       )}
+
+      <Dialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
+        <DialogContent className="dark border-white/10 bg-slate-900 text-slate-100 sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-slate-100">Eliminar tarifa</DialogTitle>
+            <DialogDescription className="text-slate-400">
+              ¿Confirmas que deseas eliminar{" "}
+              <span className="font-semibold text-slate-200">{ratePlan.name}</span>?
+              Esta acción no se puede deshacer.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setConfirmDeleteOpen(false)}
+              disabled={busy === "delete"}
+              className="border-white/15 text-slate-100 hover:text-slate-100"
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={removeRatePlan}
+              disabled={busy === "delete"}
+            >
+              {busy === "delete" ? "Eliminando..." : "Eliminar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
