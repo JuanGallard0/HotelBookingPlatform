@@ -1,0 +1,59 @@
+using Hangfire;
+using Hangfire.SqlServer;
+using HotelBookingPlatform.Application.Bookings.Jobs;
+using HotelBookingPlatform.Infrastructure.Bookings;
+using HotelBookingPlatform.Infrastructure.Data;
+using HotelBookingPlatform.Hangfire;
+using Serilog;
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((ctx, config) =>
+    config.ReadFrom.Configuration(ctx.Configuration));
+
+builder.AddApplicationServices();
+builder.AddInfrastructureServices();
+
+var connectionString = builder.Configuration.GetConnectionString("HotelBookingPlatformDb")
+    ?? throw new InvalidOperationException("Connection string 'HotelBookingPlatformDb' not found.");
+
+builder.Services.AddHangfire(configuration => configuration
+    .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+    .UseSimpleAssemblyNameTypeSerializer()
+    .UseRecommendedSerializerSettings()
+    .UseSqlServerStorage(connectionString, new SqlServerStorageOptions
+    {
+        PrepareSchemaIfNecessary = true,
+        QueuePollInterval = TimeSpan.FromSeconds(15),
+        SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+        UseRecommendedIsolationLevel = true,
+        DisableGlobalLocks = true
+    }));
+
+builder.Services.AddHangfireServer(options =>
+{
+    options.ServerName = $"{Environment.MachineName}:booking-expiration";
+    options.Queues = ["default"];
+});
+
+builder.Services.AddHostedService<BookingExpirationRecurringJobSetupService>();
+
+var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var initialiser = scope.ServiceProvider.GetRequiredService<ApplicationDbContextInitialiser>();
+    await initialiser.InitialiseAsync();
+    await initialiser.SeedAsync();
+}
+
+app.UseSerilogRequestLogging();
+app.UseHangfireDashboard("/hangfire");
+
+app.MapGet("/", () => Results.Redirect("/hangfire"));
+app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
+
+app.Run();
+
+public partial class Program;

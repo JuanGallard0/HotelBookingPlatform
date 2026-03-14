@@ -91,6 +91,18 @@ public partial class Testing
         });
     }
 
+    public static async Task<TResult> ExecuteScopeAsync<TResult>(Func<IServiceProvider, Task<TResult>> action)
+    {
+        await using var scope = _scopeFactory.CreateAsyncScope();
+        return await action(scope.ServiceProvider);
+    }
+
+    public static async Task ExecuteScopeAsync(Func<IServiceProvider, Task> action)
+    {
+        await using var scope = _scopeFactory.CreateAsyncScope();
+        await action(scope.ServiceProvider);
+    }
+
     public static async Task ExecuteDbContextAsync(Func<ApplicationDbContext, Task> action)
     {
         using var scope = _scopeFactory.CreateScope();

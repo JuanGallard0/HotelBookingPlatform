@@ -6,4 +6,6 @@ public sealed record AuditLogEntry(
     string Action,
     string? OldValues = null,
     string? NewValues = null,
-    string? AdditionalInfo = null);
+    string? AdditionalInfo = null,
+    string? ActorUserId = null,
+    string? ActorUserName = null);

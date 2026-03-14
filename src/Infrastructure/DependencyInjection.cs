@@ -1,4 +1,5 @@
 using System.Text;
+using HotelBookingPlatform.Application.Bookings.Jobs;
 using HotelBookingPlatform.Application.Common.Interfaces;
 using HotelBookingPlatform.Application.Bookings.Queries;
 using HotelBookingPlatform.Application.Hotels.Queries;
@@ -27,6 +28,7 @@ public static class DependencyInjection
         var connectionString = builder.Configuration.GetConnectionString("HotelBookingPlatformDb");
         Guard.Against.Null(connectionString, message: "Connection string 'HotelBookingPlatformDb' not found.");
 
+        builder.Services.AddHttpContextAccessor();
         builder.Services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         builder.Services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
 
@@ -43,8 +45,11 @@ public static class DependencyInjection
         builder.Services.AddScoped<ApplicationDbContextInitialiser>();
 
         builder.Services.AddSingleton<IDbConnectionFactory>(_ => new SqlConnectionFactory(connectionString));
+        builder.Services.Configure<BookingExpirationOptions>(
+            builder.Configuration.GetSection(BookingExpirationOptions.SectionName));
         builder.Services.AddScoped<IHotelQueryService, HotelQueryService>();
         builder.Services.AddScoped<IBookingQueryService, BookingQueryService>();
+        builder.Services.AddScoped<IBookingExpirationService, BookingExpirationService>();
         builder.Services.AddScoped<IIdempotencyService, IdempotencyService>();
         builder.Services.AddScoped<IPasswordHasher, AspNetPasswordHasher>();
         builder.Services.AddScoped<ITokenService, JwtTokenService>();

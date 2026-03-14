@@ -14,8 +14,8 @@ internal sealed class AuditLogService(
             entry.EntityName,
             entry.EntityId,
             entry.Action,
-            currentUser.UserId?.ToString(),
-            currentUser.Email,
+            entry.ActorUserId ?? currentUser.UserId?.ToString(),
+            entry.ActorUserName ?? currentUser.Email,
             entry.OldValues,
             entry.NewValues,
             entry.AdditionalInfo));

@@ -10,6 +10,7 @@
   <Folder Name="/src/">
     <Project Path="src/Application/Application.csproj" />
     <Project Path="src/Domain/Domain.csproj" />
+    <Project Path="src/Hangfire/Hangfire.csproj" />
     <Project Path="src/Infrastructure/Infrastructure.csproj" />
     <Project Path="src/Api/Api.csproj" DefaultStartup="true" />
   </Folder>
