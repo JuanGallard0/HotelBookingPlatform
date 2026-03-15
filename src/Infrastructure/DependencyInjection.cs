@@ -69,6 +69,8 @@ public static class DependencyInjection
 
         var jwtOptions = jwtSection.Get<JwtOptions>() ?? new JwtOptions();
         Guard.Against.NullOrWhiteSpace(jwtOptions.SigningKey, message: "JWT signing key is not configured.");
+        if (jwtOptions.SigningKey.Length < 32)
+            throw new InvalidOperationException("JWT signing key must be at least 32 characters (256 bits) for HMAC-SHA256.");
 
         var key = Encoding.UTF8.GetBytes(jwtOptions.SigningKey);
 

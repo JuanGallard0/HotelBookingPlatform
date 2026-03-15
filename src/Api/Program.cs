@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Security.Claims;
 using HotelBookingPlatform.Infrastructure.Data;
+using Microsoft.AspNetCore.HttpOverrides;
 using Scalar.AspNetCore;
 using Serilog;
 
@@ -26,6 +27,10 @@ else
     app.UseHttpsRedirection();
 }
 
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
 app.UseMiddleware<RequestCorrelationMiddleware>();
 app.UseMiddleware<RequestMetricsMiddleware>();
 app.UseSerilogRequestLogging(options =>
@@ -52,10 +57,12 @@ app.UseAuthentication();
 app.UseRateLimiter();
 app.UseAuthorization();
 
-app.MapOpenApi();
-app.MapScalarApiReference();
-
-app.Map("/", () => Results.Redirect("/scalar"));
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+    app.MapScalarApiReference();
+    app.Map("/", () => Results.Redirect("/scalar"));
+}
 
 app.MapEndpoints();
 

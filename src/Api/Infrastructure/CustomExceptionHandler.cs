@@ -27,6 +27,20 @@ public class CustomExceptionHandler(ILogger<CustomExceptionHandler> logger) : IE
             return true;
         }
 
+        if (exception is BadHttpRequestException badHttpEx)
+        {
+            logger.LogWarning(
+                exception,
+                "Bad HTTP request for {Method} {Path}",
+                httpContext.Request.Method,
+                httpContext.Request.Path);
+
+            await TypedResults.BadRequest(
+                ApiResponse<object?>.Fail(badHttpEx.Message, "BAD_REQUEST"))
+                .ExecuteAsync(httpContext);
+            return true;
+        }
+
         var result = MapToResult(exception);
         if (result is null) return false;
 
@@ -46,12 +60,10 @@ public class CustomExceptionHandler(ILogger<CustomExceptionHandler> logger) : IE
         NotFoundException ex => Result.NotFound(ex.Message),
         UnauthorizedAccessException => Result.Unauthorized(),
         ForbiddenAccessException => Result.Forbidden(),
-        BadHttpRequestException ex => Result.Failure(ex.Message),
         BookingStatusException ex => Result.Conflict(ex.Message),
         InsufficientInventoryException ex => Result.Conflict(ex.Message),
         DbUpdateConcurrencyException => Result.Conflict("The resource was updated by another request. Refresh and try again."),
         InvalidBookingDatesException ex => Result.UnprocessableEntity(ex.Message),
-        InvalidOperationException ex => Result.Failure(ex.Message),
-        _ => Result.Failure("An unexpected error occurred.")
+        _ => null
     };
 }

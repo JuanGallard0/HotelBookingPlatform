@@ -17,6 +17,13 @@ public class LoggingBehaviour<TRequest> : IRequestPreProcessor<TRequest>
     {
         var requestName = typeof(TRequest).Name;
 
+        // Auth commands may contain credentials — log name only, never the body.
+        if (typeof(TRequest).Namespace?.Contains(".Auth.", StringComparison.Ordinal) == true)
+        {
+            _logger.LogInformation("HotelBookingPlatform Request: {Name} [redacted]", requestName);
+            return Task.CompletedTask;
+        }
+
         _logger.LogInformation("HotelBookingPlatform Request: {Name} {@Request}", requestName, request);
 
         return Task.CompletedTask;

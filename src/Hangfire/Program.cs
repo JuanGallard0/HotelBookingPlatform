@@ -1,4 +1,5 @@
 using Hangfire;
+using Hangfire.Dashboard;
 using Hangfire.SqlServer;
 using HotelBookingPlatform.Hangfire;
 using HotelBookingPlatform.Infrastructure.Data;
@@ -47,7 +48,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseSerilogRequestLogging();
-app.UseHangfireDashboard("/hangfire");
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = [new LocalOnlyDashboardFilter()]
+});
 
 app.MapGet("/", () => Results.Redirect("/hangfire"));
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
@@ -55,3 +59,16 @@ app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 app.Run();
 
 public partial class Program;
+
+// Only allow requests from localhost to access the Hangfire dashboard.
+sealed class LocalOnlyDashboardFilter : IDashboardAuthorizationFilter
+{
+    public bool Authorize(DashboardContext context)
+    {
+        var httpContext = context.GetHttpContext();
+        var remote = httpContext.Connection.RemoteIpAddress;
+        return remote is not null && (
+            System.Net.IPAddress.IsLoopback(remote) ||
+            remote.Equals(httpContext.Connection.LocalIpAddress));
+    }
+}
