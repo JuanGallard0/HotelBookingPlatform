@@ -1,3 +1,4 @@
+using HotelBookingPlatform.Application.Common.Extensions;
 using HotelBookingPlatform.Application.Common.Interfaces;
 using HotelBookingPlatform.Application.Common.Models;
 using HotelBookingPlatform.Domain.Entities;
@@ -103,6 +104,7 @@ public class CreateBookingCommandHandler(
                 request.NumberOfGuests,
                 request.NumberOfRooms,
                 totalAmount,
+                timeProvider.GetElSalvadorDate(),
                 request.SpecialRequests);
 
             context.Bookings.Add(booking);

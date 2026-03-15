@@ -1,3 +1,4 @@
+using HotelBookingPlatform.Application.Common.Extensions;
 using HotelBookingPlatform.Domain.Entities;
 
 namespace HotelBookingPlatform.Application.Bookings.Commands.CreateBooking;
@@ -10,7 +11,7 @@ public class CreateBookingCommandValidator : AbstractValidator<CreateBookingComm
             .GreaterThan(0).WithMessage("El id del tipo de habitación debe ser mayor que 0.");
 
         RuleFor(x => x.CheckIn)
-            .GreaterThanOrEqualTo(_ => DateOnly.FromDateTime(timeProvider.GetUtcNow().Date))
+            .GreaterThanOrEqualTo(_ => timeProvider.GetElSalvadorDate())
             .WithMessage("La fecha de entrada no puede ser en el pasado.");
 
         RuleFor(x => x.CheckOut)

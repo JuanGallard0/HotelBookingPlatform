@@ -5,10 +5,7 @@ namespace HotelBookingPlatform.Application.Hotels.Queries.GetHotels;
 
 public record GetHotelsQuery : PagedSortedRequest, IRequest<Result<PagedResponse<HotelDto>>>
 {
-    public string? Name { get; init; }
-    public string? City { get; init; }
-    public string? Country { get; init; }
-    public int? StarRating { get; init; }
+    public string? Search { get; init; }
     public bool? IsActive { get; init; }
 
     public static readonly IReadOnlySet<string> AllowedSortColumns =

@@ -669,6 +669,7 @@ public class ApplicationDbContextInitialiser
             numberOfGuests,
             numberOfRooms,
             totalAmount,
+            DateOnly.MinValue,
             specialRequests);
     }
 

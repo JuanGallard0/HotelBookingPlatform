@@ -27,7 +27,7 @@ public class Booking : BaseAuditableEntity
 
     public int NumberOfNights => CheckOutDate.DayNumber - CheckInDate.DayNumber;
 
-    public void ValidateBookingDates()
+    public void ValidateBookingDates(DateOnly today)
     {
         if (CheckOutDate <= CheckInDate)
         {
@@ -39,7 +39,7 @@ public class Booking : BaseAuditableEntity
             throw new InvalidBookingDatesException($"La duración máxima de la reserva es de {MaximumNightsAllowed} noches.");
         }
 
-        if (CheckInDate < DateOnly.FromDateTime(DateTime.UtcNow))
+        if (CheckInDate < today)
         {
             throw new InvalidBookingDatesException("La fecha de entrada no puede ser en el pasado.");
         }
@@ -87,6 +87,7 @@ public class Booking : BaseAuditableEntity
         int numberOfGuests,
         int numberOfRooms,
         decimal totalAmount,
+        DateOnly today,
         string? specialRequests = null)
     {
         var booking = new Booking
@@ -104,7 +105,7 @@ public class Booking : BaseAuditableEntity
             SpecialRequests = specialRequests
         };
 
-        booking.ValidateBookingDates();
+        booking.ValidateBookingDates(today);
         booking.AddDomainEvent(new BookingCreatedEvent(booking));
 
         return booking;

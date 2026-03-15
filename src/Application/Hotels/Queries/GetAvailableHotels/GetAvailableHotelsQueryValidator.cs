@@ -1,3 +1,4 @@
+using HotelBookingPlatform.Application.Common.Extensions;
 using HotelBookingPlatform.Application.Common.Validation;
 
 namespace HotelBookingPlatform.Application.Hotels.Queries.GetAvailableHotels;
@@ -39,7 +40,7 @@ public class GetAvailableHotelsQueryValidator : PagedSortedRequestValidator<GetA
                 .WithMessage("La fecha de entrada debe ser anterior a la fecha de salida.");
 
             RuleFor(x => x.CheckIn!.Value)
-                .GreaterThanOrEqualTo(_ => DateOnly.FromDateTime(timeProvider.GetUtcNow().Date))
+                .GreaterThanOrEqualTo(_ => timeProvider.GetElSalvadorDate())
                 .WithMessage("La fecha de entrada no puede ser en el pasado.");
         });
     }

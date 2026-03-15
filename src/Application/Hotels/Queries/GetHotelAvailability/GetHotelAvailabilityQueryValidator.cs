@@ -1,3 +1,5 @@
+using HotelBookingPlatform.Application.Common.Extensions;
+
 namespace HotelBookingPlatform.Application.Hotels.Queries.GetHotelAvailability;
 
 public class GetHotelAvailabilityQueryValidator : AbstractValidator<GetHotelAvailabilityQuery>
@@ -7,7 +9,7 @@ public class GetHotelAvailabilityQueryValidator : AbstractValidator<GetHotelAvai
         RuleFor(x => x.CheckIn)
             .NotEqual(default(DateOnly))
             .WithMessage("La fecha de entrada es obligatoria.")
-            .GreaterThanOrEqualTo(_ => DateOnly.FromDateTime(timeProvider.GetUtcNow().Date))
+            .GreaterThanOrEqualTo(_ => timeProvider.GetElSalvadorDate())
             .WithMessage("La fecha de entrada no puede ser en el pasado.")
             .LessThan(x => x.CheckOut)
             .WithMessage("La fecha de entrada debe ser anterior a la fecha de salida.");

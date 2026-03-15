@@ -360,17 +360,10 @@ public sealed class HotelQueryService(IDbConnectionFactory connectionFactory) : 
 
     private static void ApplyGetHotelsFilters(SqlBuilder builder, GetHotelsQuery query)
     {
-        if (!string.IsNullOrWhiteSpace(query.Name))
-            builder.Where("h.Name LIKE @Name", new { Name = $"%{query.Name}%" });
-
-        if (!string.IsNullOrWhiteSpace(query.City))
-            builder.Where("h.City = @City", new { query.City });
-
-        if (!string.IsNullOrWhiteSpace(query.Country))
-            builder.Where("h.Country = @Country", new { query.Country });
-
-        if (query.StarRating.HasValue)
-            builder.Where("h.StarRating = @StarRating", new { query.StarRating });
+        if (!string.IsNullOrWhiteSpace(query.Search))
+            builder.Where(
+                "(h.Name LIKE @Search OR h.City LIKE @Search OR h.Country LIKE @Search)",
+                new { Search = $"%{query.Search}%" });
 
         if (query.IsActive.HasValue)
             builder.Where("h.IsActive = @IsActive", new { query.IsActive });
