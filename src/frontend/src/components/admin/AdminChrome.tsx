@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   Building2,
   ChevronRight,
+  FileTerminal,
   Globe,
   Hotel,
   LayoutDashboard,
@@ -36,6 +37,11 @@ const adminLinks: NavLink[] = [
     href: "/admin/hotels",
     label: "Hoteles",
     icon: Hotel,
+  },
+  {
+    href: "/admin/logs",
+    label: "Logs",
+    icon: FileTerminal,
   },
   {
     href: "/",
@@ -106,6 +112,13 @@ export function AdminChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logoutUser, isAuthenticated, openModal } = useAuth();
+  const isLogsPage = pathname.startsWith("/admin/logs");
+  const pageEyebrow = isLogsPage
+    ? "Security dashboard"
+    : "Operations dashboard";
+  const pageTitle = isLogsPage
+    ? "Logs de auditoria"
+    : "Administracion de hoteles";
 
   async function handleLogout() {
     await logoutUser();
@@ -170,7 +183,10 @@ export function AdminChrome({ children }: { children: ReactNode }) {
                   )}
 
                   <nav className="grid gap-3" aria-label="Admin drawer">
-                    <AdminNavLinks pathname={pathname} />
+                    <AdminNavLinks
+                      pathname={pathname}
+                      onNavigate={() => undefined}
+                    />
                   </nav>
 
                   {isAuthenticated && (
@@ -248,11 +264,11 @@ export function AdminChrome({ children }: { children: ReactNode }) {
           <div className="flex items-center justify-between gap-3 border-b border-white/10 px-6 py-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">
-                Operations dashboard
+                {pageEyebrow}
               </p>
               <h1 className="mt-1 inline-flex items-center gap-2 text-lg font-semibold text-slate-100">
                 <LayoutDashboard className="h-5 w-5 text-amber-300" />
-                Administracion de hoteles
+                {pageTitle}
               </h1>
             </div>
             <Badge className="rounded-full border border-emerald-400/25 bg-emerald-400/10 text-emerald-200 hover:bg-emerald-400/10">
@@ -276,6 +292,9 @@ export function AdminChrome({ children }: { children: ReactNode }) {
           <div className="flex items-center gap-4 text-slate-500">
             <Link href="/admin/hotels" className="hover:text-slate-300 transition-colors">
               Hoteles
+            </Link>
+            <Link href="/admin/logs" className="hover:text-slate-300 transition-colors">
+              Logs
             </Link>
             <Link href="/" className="hover:text-slate-300 transition-colors">
               Volver al portal
