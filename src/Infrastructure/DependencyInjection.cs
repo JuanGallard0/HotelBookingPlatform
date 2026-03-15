@@ -8,6 +8,7 @@ using HotelBookingPlatform.Domain.Enums;
 using HotelBookingPlatform.Infrastructure.Auditing;
 using HotelBookingPlatform.Infrastructure.Authentication;
 using HotelBookingPlatform.Infrastructure.Bookings;
+using HotelBookingPlatform.Infrastructure.Caching;
 using HotelBookingPlatform.Infrastructure.Data;
 using HotelBookingPlatform.Infrastructure.Data.Interceptors;
 using HotelBookingPlatform.Infrastructure.Hotels;
@@ -30,6 +31,7 @@ public static class DependencyInjection
         Guard.Against.Null(connectionString, message: "Connection string 'HotelBookingPlatformDb' not found.");
 
         builder.Services.AddHttpContextAccessor();
+        builder.Services.AddMemoryCache();
         builder.Services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         builder.Services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
 
@@ -43,6 +45,9 @@ public static class DependencyInjection
         builder.Services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
         builder.Services.AddScoped<IAuditLogService, AuditLogService>();
+        builder.Services.Configure<AvailabilityCacheOptions>(
+            builder.Configuration.GetSection(AvailabilityCacheOptions.SectionName));
+        builder.Services.AddSingleton<IAvailabilityCache, AvailabilityCache>();
         builder.Services.AddScoped<ApplicationDbContextInitialiser>();
 
         builder.Services.AddSingleton<IDbConnectionFactory>(_ => new SqlConnectionFactory(connectionString));

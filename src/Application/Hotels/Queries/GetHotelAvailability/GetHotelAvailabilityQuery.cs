@@ -14,7 +14,8 @@ public record GetHotelAvailabilityQuery : IRequest<Result<HotelAvailabilityDto>>
 
 public class GetHotelAvailabilityQueryHandler(
     IApplicationDbContext context,
-    IHotelQueryService hotelQueryService)
+    IHotelQueryService hotelQueryService,
+    IAvailabilityCache availabilityCache)
     : IRequestHandler<GetHotelAvailabilityQuery, Result<HotelAvailabilityDto>>
 {
     public async Task<Result<HotelAvailabilityDto>> Handle(
@@ -31,7 +32,14 @@ public class GetHotelAvailabilityQueryHandler(
         var checkOut = request.CheckOut;
         var nights = checkOut.DayNumber - checkIn.DayNumber;
 
-        var roomTypes = await hotelQueryService.GetHotelAvailabilityAsync(request, cancellationToken);
+        var cacheKey =
+            $"hotel-availability:{request.HotelId}:{request.CheckIn:O}:{request.CheckOut:O}:" +
+            $"{request.NumberOfGuests?.ToString() ?? "-"}:{request.NumberOfRooms?.ToString() ?? "-"}";
+
+        var roomTypes = await availabilityCache.GetOrCreateAsync(
+            cacheKey,
+            ct => hotelQueryService.GetHotelAvailabilityAsync(request, ct),
+            cancellationToken);
 
         var response = new HotelAvailabilityDto
         {

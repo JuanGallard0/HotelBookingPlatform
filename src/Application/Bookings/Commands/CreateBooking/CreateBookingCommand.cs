@@ -21,6 +21,7 @@ public record CreateBookingCommand : IRequest<Result<BookingDto>>
 public class CreateBookingCommandHandler(
     IApplicationDbContext context,
     IUnitOfWork unitOfWork,
+    IAvailabilityCache availabilityCache,
     IAuditLogService auditLogService,
     ICurrentUserService currentUser,
     TimeProvider timeProvider)
@@ -134,6 +135,7 @@ public class CreateBookingCommandHandler(
                 })));
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
+            availabilityCache.InvalidateAll();
 
             var dto = MapToDto(booking, roomType.Name);
             return Result<BookingDto>.Success(dto);

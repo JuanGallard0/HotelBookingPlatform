@@ -12,6 +12,7 @@ namespace HotelBookingPlatform.Infrastructure.Bookings;
 internal sealed class BookingExpirationService(
     IApplicationDbContext context,
     IUnitOfWork unitOfWork,
+    IAvailabilityCache availabilityCache,
     IAuditLogService auditLogService,
     IOptions<BookingExpirationOptions> options,
     ILogger<BookingExpirationService> logger) : IBookingExpirationService
@@ -82,8 +83,8 @@ internal sealed class BookingExpirationService(
                     ActorUserName: "hangfire"));
             }
 
-            await unitOfWork.SaveChangesAsync(cancellationToken);
             await unitOfWork.CommitAsync(cancellationToken);
+            availabilityCache.InvalidateAll();
 
             logger.LogInformation(
                 "Expired {ExpiredCount} pending bookings with a check-in date before {TodayUtcDate}.",

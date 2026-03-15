@@ -12,6 +12,7 @@ public record CancelBookingCommand(int BookingId, string Reason) : IRequest<Resu
 public class CancelBookingCommandHandler(
     IApplicationDbContext context,
     IUnitOfWork unitOfWork,
+    IAvailabilityCache availabilityCache,
     IAuditLogService auditLogService,
     ICurrentUserService currentUser)
     : IRequestHandler<CancelBookingCommand, Result>
@@ -73,6 +74,7 @@ public class CancelBookingCommandHandler(
             })));
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
+        availabilityCache.InvalidateAll();
 
         return Result.Success();
     }

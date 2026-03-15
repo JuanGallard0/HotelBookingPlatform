@@ -1,3 +1,4 @@
+using HotelBookingPlatform.Application.Common.Interfaces;
 using HotelBookingPlatform.Application.Common.Models;
 
 namespace HotelBookingPlatform.Application.Hotels.Queries.GetAvailableHotels;
@@ -19,14 +20,27 @@ public record GetAvailableHotelsQuery : PagedSortedRequest, IRequest<Result<Page
         };
 }
 
-public class GetAvailableHotelsQueryHandler(IHotelQueryService hotelQueryService)
+public class GetAvailableHotelsQueryHandler(
+    IHotelQueryService hotelQueryService,
+    IAvailabilityCache availabilityCache)
     : IRequestHandler<GetAvailableHotelsQuery, Result<PagedResponse<AvailableHotelDto>>>
 {
     public async Task<Result<PagedResponse<AvailableHotelDto>>> Handle(
         GetAvailableHotelsQuery request,
         CancellationToken cancellationToken)
     {
-        var (hotels, totalCount) = await hotelQueryService.GetAvailableHotelsAsync(request, cancellationToken);
+        var cacheKey =
+            $"available-hotels:{request.Search?.Trim().ToLowerInvariant() ?? "-"}:" +
+            $"{request.StarRating?.ToString() ?? "-"}:" +
+            $"{request.CheckIn?.ToString("O") ?? "-"}:{request.CheckOut?.ToString("O") ?? "-"}:" +
+            $"{request.NumberOfGuests?.ToString() ?? "-"}:{request.NumberOfRooms?.ToString() ?? "-"}:" +
+            $"{request.ResolvedPageNumber}:{request.ResolvedPageSize}:" +
+            $"{request.SortBy?.Trim().ToLowerInvariant() ?? "-"}:{request.ResolvedSortDirection.ToLowerInvariant()}";
+
+        var (hotels, totalCount) = await availabilityCache.GetOrCreateAsync(
+            cacheKey,
+            ct => hotelQueryService.GetAvailableHotelsAsync(request, ct),
+            cancellationToken);
 
         var response = new PagedResponse<AvailableHotelDto>(
             hotels,
