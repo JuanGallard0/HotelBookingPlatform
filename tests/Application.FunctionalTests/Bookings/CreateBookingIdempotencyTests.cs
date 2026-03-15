@@ -37,6 +37,7 @@ public class CreateBookingIdempotencyTests : BaseTestFixture
         second.Headers.Location.ShouldNotBeNull();
         second.Headers.Location.ShouldBe(first.Headers.Location);
         (await CountAsync<Booking>()).ShouldBe(1);
+        (await CountAsync<Guest>()).ShouldBe(1);
     }
 
     [Test]
@@ -59,6 +60,7 @@ public class CreateBookingIdempotencyTests : BaseTestFixture
         secondPayload.ShouldNotBeNull();
         secondPayload.ErrorCode.ShouldBe("IDEMPOTENCY_KEY_REUSE");
         (await CountAsync<Booking>()).ShouldBe(1);
+        (await CountAsync<Guest>()).ShouldBe(1);
     }
 
     private static async Task<HttpResponseMessage> SendCreateBookingAsync(

@@ -217,9 +217,6 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Email")
-                        .IsUnique();
-
                     b.ToTable("Guests");
                 });
 

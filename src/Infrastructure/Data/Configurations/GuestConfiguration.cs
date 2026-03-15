@@ -36,8 +36,5 @@ public class GuestConfiguration : IEntityTypeConfiguration<Guest>
             .HasMaxLength(100);
 
         builder.Ignore(g => g.FullName);
-
-        builder.HasIndex(g => g.Email)
-            .IsUnique();
     }
 }

@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HotelBookingPlatform.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260313173316_InitialSetup")]
+    [Migration("20260315185733_InitialSetup")]
     partial class InitialSetup
     {
         /// <inheritdoc />
@@ -219,9 +219,6 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
                         .HasColumnType("nvarchar(20)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Email")
-                        .IsUnique();
 
                     b.ToTable("Guests");
                 });

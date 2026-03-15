@@ -17,16 +17,16 @@ public class RatePlanTests
         bool isActive = true,
         DateOnly? validFrom = null,
         DateOnly? validTo = null) => new()
-    {
-        RoomTypeId = 1,
-        Name = "Standard Rate",
-        Description = "Test",
-        ValidFrom = validFrom ?? Jan1,
-        ValidTo = validTo ?? Jan31,
-        PricePerNight = pricePerNight,
-        DiscountPercentage = discountPercentage,
-        IsActive = isActive
-    };
+        {
+            RoomTypeId = 1,
+            Name = "Standard Rate",
+            Description = "Test",
+            ValidFrom = validFrom ?? Jan1,
+            ValidTo = validTo ?? Jan31,
+            PricePerNight = pricePerNight,
+            DiscountPercentage = discountPercentage,
+            IsActive = isActive
+        };
 
     // --- IsValidForDate ---
 

@@ -1,9 +1,8 @@
+using System.Globalization;
+using System.Threading.RateLimiting;
 using Azure.Identity;
 using HotelBookingPlatform.Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.RateLimiting;
-using System.Globalization;
-using System.Threading.RateLimiting;
 
 namespace Microsoft.Extensions.DependencyInjection;
 

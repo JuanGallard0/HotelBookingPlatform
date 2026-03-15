@@ -56,6 +56,7 @@ public class CreateBookingConcurrencyTests : BaseTestFixture
                 statusCodes.Zip(responseBodies, (status, body) => $"{(int)status} {status}: {body}")));
 
         (await CountAsync<Booking>()).ShouldBe(1);
+        (await CountAsync<Guest>()).ShouldBe(1);
 
         var inventorySnapshot = new List<InventorySnapshot>();
 

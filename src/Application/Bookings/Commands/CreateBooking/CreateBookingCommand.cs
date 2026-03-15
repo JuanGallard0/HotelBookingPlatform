@@ -80,17 +80,9 @@ public class CreateBookingCommandHandler(
 
         try
         {
-            var guest = await context.Guests
-                .FirstOrDefaultAsync(
-                    g => g.Email == request.Guest.Email.ToLower().Trim(),
-                    cancellationToken);
-
-            if (guest is null)
-            {
-                guest = CreateGuest(request.Guest);
-                context.Guests.Add(guest);
-                await unitOfWork.SaveChangesAsync(cancellationToken);
-            }
+            var guest = CreateGuest(request.Guest);
+            context.Guests.Add(guest);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
 
             foreach (var inventory in inventories)
                 inventory.ReserveRooms(request.NumberOfRooms);
