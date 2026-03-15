@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, ArrowRight, ArrowUpDown, Ban, CheckCircle } from "lucide-react";
 
@@ -307,7 +307,7 @@ function InlineBookingRowActions({
   );
 }
 
-export default function AccountBookingsPage() {
+function AccountBookingsPageContent() {
   const { authReady, isAuthenticated, runWithAuth, user } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -319,11 +319,12 @@ export default function AccountBookingsPage() {
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
   const [refreshNonce, setRefreshNonce] = useState(0);
 
-  const status =
-    searchParams.get("status") === "all"
+  const statusParam = searchParams.get("status");
+  const status: "all" | UserBookingStatus =
+    statusParam === "all"
       ? "all"
-      : isUserBookingStatus(searchParams.get("status"))
-        ? searchParams.get("status")
+      : isUserBookingStatus(statusParam)
+        ? statusParam
         : "all";
 
   const sortParam = searchParams.get("sort") ?? "CreatedAt:desc";
@@ -576,5 +577,23 @@ export default function AccountBookingsPage() {
         </div>
       )}
     </main>
+  );
+}
+
+export default function AccountBookingsPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-10 sm:px-6 lg:px-8">
+          <Card>
+            <CardContent className="p-4 text-sm text-muted-foreground">
+              Cargando reservas...
+            </CardContent>
+          </Card>
+        </main>
+      }
+    >
+      <AccountBookingsPageContent />
+    </Suspense>
   );
 }

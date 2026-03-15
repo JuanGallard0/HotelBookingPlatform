@@ -526,7 +526,10 @@ export function AdminHotelManager({
                 roomType={roomType}
                 onCreateRatePlan={async (payload) => {
                   const { createAdminRatePlan } = await import("@/src/lib/api/admin-hotels");
-                  await createAdminRatePlan(roomType.roomTypeId ?? 0, payload);
+                  await createAdminRatePlan(roomType.roomTypeId ?? 0, {
+                    ...payload,
+                    discountPercentage: payload.discountPercentage,
+                  });
                   await refreshHotelDetails();
                 }}
                 onDelete={async () => {
@@ -545,7 +548,10 @@ export function AdminHotelManager({
                 }}
                 onUpdateRatePlan={async (ratePlanId, payload) => {
                   const { updateAdminRatePlan } = await import("@/src/lib/api/admin-hotels");
-                  await updateAdminRatePlan(ratePlanId, payload);
+                  await updateAdminRatePlan(ratePlanId, {
+                    ...payload,
+                    discountPercentage: payload.discountPercentage,
+                  });
                   await refreshHotelDetails();
                 }}
               />

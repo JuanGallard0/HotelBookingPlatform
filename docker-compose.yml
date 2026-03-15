@@ -1,0 +1,90 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: hotelbooking-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q \"SELECT 1\" || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 20s
+
+  api:
+    build:
+      context: .
+      dockerfile: src/Api/Dockerfile
+    container_name: hotelbooking-api
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__HotelBookingPlatformDb: Server=sqlserver,1433;Database=HotelBookingPlatformDb;User Id=sa;Password=${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd};TrustServerCertificate=True;MultipleActiveResultSets=true
+      Jwt__Issuer: HotelBookingPlatform.Api
+      Jwt__Audience: HotelBookingPlatform.Frontend
+      Jwt__SigningKey: ${JWT_SIGNING_KEY:-super-secret-development-key-change-this-in-production-12345}
+    ports:
+      - "5000:8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  hangfire:
+    build:
+      context: .
+      dockerfile: src/Hangfire/Dockerfile
+    container_name: hotelbooking-hangfire
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__HotelBookingPlatformDb: Server=sqlserver,1433;Database=HotelBookingPlatformDb;User Id=sa;Password=${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd};TrustServerCertificate=True;MultipleActiveResultSets=true
+      Jwt__Issuer: HotelBookingPlatform.Api
+      Jwt__Audience: HotelBookingPlatform.Frontend
+      Jwt__SigningKey: ${JWT_SIGNING_KEY:-super-secret-development-key-change-this-in-production-12345}
+    ports:
+      - "5002:8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: src/frontend/Dockerfile
+    container_name: hotelbooking-frontend
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      API_URL: http://api:8080
+      NEXT_PUBLIC_API_URL: http://localhost:5000
+    ports:
+      - "3000:3000"
+
+volumes:
+  sqlserver-data:

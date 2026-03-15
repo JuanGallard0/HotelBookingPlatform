@@ -13,6 +13,11 @@ type RefreshPayload = {
   accessTokenExpiresAt?: string;
 };
 
+type ApiResponse<T> = {
+  success: boolean;
+  data?: T;
+};
+
 function upsertCookieHeader(
   cookieHeader: string,
   name: string,

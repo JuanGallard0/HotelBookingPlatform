@@ -10,9 +10,15 @@ import { API_BASE_URL } from "@/src/lib/constants";
 
 const baseFetch: typeof fetch = (input, init) => globalThis.fetch(input, init);
 
+function getBaseUrl() {
+  return typeof window === "undefined" ? API_BASE_URL : "";
+}
+
 function makeClient(accessToken?: string) {
+  const baseUrl = getBaseUrl();
+
   if (!accessToken) {
-    return new HotelsClient(API_BASE_URL, { fetch: baseFetch });
+    return new HotelsClient(baseUrl, { fetch: baseFetch });
   }
 
   const authenticatedFetch: typeof fetch = (input, init) => {
@@ -21,7 +27,7 @@ function makeClient(accessToken?: string) {
     return globalThis.fetch(input, { ...init, headers });
   };
 
-  return new HotelsClient(API_BASE_URL, { fetch: authenticatedFetch });
+  return new HotelsClient(baseUrl, { fetch: authenticatedFetch });
 }
 
 function getApiErrorMessage(error: unknown, fallback: string) {
@@ -65,8 +71,7 @@ export async function getHotelAvailability(
     return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
   }
 
-  // On the server use the absolute backend URL; on the client use the Next.js proxy.
-  const base = typeof window === "undefined" ? API_BASE_URL : "";
+  const base = getBaseUrl();
   let url = `${base}/api/v1/hotels/${hotelId}/availability?`;
   if (checkIn) url += `checkIn=${toDateOnly(checkIn)}&`;
   if (checkOut) url += `checkOut=${toDateOnly(checkOut)}&`;
@@ -75,7 +80,7 @@ export async function getHotelAvailability(
   url = url.replace(/[?&]$/, "");
 
   const headers: Record<string, string> = { Accept: "application/json" };
-  if (accessToken) headers["Authorization"] = `Bearer ${accessToken}`;
+  if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
 
   const res = await fetch(url, { headers });
   const json = await res.json();
@@ -89,8 +94,6 @@ export async function getHotelAvailability(
 
 export async function listHotels(accessToken?: string) {
   const response = await makeClient(accessToken).getAvailableHotels(
-    undefined,
-    undefined,
     undefined,
     undefined,
     undefined,

@@ -17,6 +17,21 @@ dotnet watch run
 
 Navigate to https://localhost:5001. The application will automatically reload if you change any of the source files.
 
+## Docker Compose
+
+The repository now includes a local Docker Compose setup for the full stack:
+
+1. Copy [docker-compose.env.example](C:\Users\HP\OneDrive\Documents\JG\HotelBookingPlatform\docker-compose.env.example) to `.env`.
+2. Run `docker compose up --build`.
+3. Open:
+   `http://localhost:3000` for the Next.js frontend,
+   `http://localhost:5000/scalar` for the API,
+   `http://localhost:5002/hangfire` for the Hangfire dashboard.
+
+Notes:
+- The compose stack uses SQL Server, not LocalDB.
+- The API and Hangfire services run with `ASPNETCORE_ENVIRONMENT=Development` so database initialization still works in containers.
+
 ## Code Styles & Formatting
 
 The template includes [EditorConfig](https://editorconfig.org/) support to help maintain consistent coding styles for multiple developers working on the same project across various editors and IDEs. The **.editorconfig** file defines the coding styles applicable to this solution.

@@ -213,6 +213,11 @@ export default function BookingDetailPage() {
 
   async function handleConfirm() {
     if (!booking) return;
+    if (booking.bookingId == null) {
+      handleApiError(new Error("La reserva no tiene un identificador valido."));
+      return;
+    }
+    const resolvedBookingId = booking.bookingId;
 
     if (!canConfirm) {
       handleApiError(new Error("Ingresa el correo de tu cuenta para confirmar la reserva."));
@@ -221,7 +226,7 @@ export default function BookingDetailPage() {
 
     setIsSubmitting("confirm");
     try {
-      await runWithAuth(() => confirmBooking(booking.bookingId));
+      await runWithAuth(() => confirmBooking(resolvedBookingId));
       setConfirmOpen(false);
       toast.success("Reserva confirmada.");
       loadBooking();
@@ -234,11 +239,16 @@ export default function BookingDetailPage() {
 
   async function handleCancel() {
     if (!booking) return;
+    if (booking.bookingId == null) {
+      handleApiError(new Error("La reserva no tiene un identificador valido."));
+      return;
+    }
+    const resolvedBookingId = booking.bookingId;
 
     setIsSubmitting("cancel");
     try {
       await runWithAuth(() =>
-        cancelBooking(booking.bookingId, DEFAULT_CANCELLATION_REASON),
+        cancelBooking(resolvedBookingId, DEFAULT_CANCELLATION_REASON),
       );
       setCancelOpen(false);
       toast.success("Reserva cancelada.");
@@ -356,9 +366,18 @@ export default function BookingDetailPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              <DetailRow label="Nombre" value={booking.guestFullName} />
-              <DetailRow label="Correo" value={booking.guestEmail} />
-              <DetailRow label="Telefono" value={booking.guestPhoneNumber} />
+              <DetailRow
+                label="Nombre"
+                value={booking.guestFullName || "No registrado"}
+              />
+              <DetailRow
+                label="Correo"
+                value={booking.guestEmail || "No registrado"}
+              />
+              <DetailRow
+                label="Telefono"
+                value={booking.guestPhoneNumber || "No registrado"}
+              />
               <DetailRow
                 label="Documento"
                 value={

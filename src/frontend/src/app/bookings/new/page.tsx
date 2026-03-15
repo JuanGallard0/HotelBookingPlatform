@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { format, parse, isValid } from "date-fns";
@@ -105,7 +105,7 @@ function BookingConfirmation({ booking }: { booking: BookingDto }) {
 
 // -- Main Page ----------------------------------------------------------------
 
-export default function NewBookingPage() {
+function NewBookingPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { authReady, isAuthenticated, runWithAuth, user } = useAuth();
@@ -218,7 +218,7 @@ export default function NewBookingPage() {
             nationality: nationality || undefined,
           },
           specialRequests: specialRequests || undefined,
-          idempotencyKey: idempotencyKeyRef.current,
+          idempotencyKey: idempotencyKeyRef.current ?? undefined,
         }),
       );
       setBooking(result);
@@ -454,5 +454,21 @@ export default function NewBookingPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function NewBookingPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="flex-1 flex items-center justify-center py-20 px-4">
+          <div className="text-center text-slate-500">
+            Cargando reserva...
+          </div>
+        </main>
+      }
+    >
+      <NewBookingPageContent />
+    </Suspense>
   );
 }
