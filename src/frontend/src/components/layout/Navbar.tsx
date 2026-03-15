@@ -48,6 +48,22 @@ export function Navbar() {
           aria-label="Navegacion principal"
           className="flex items-center gap-3"
         >
+            {mounted && isAuthenticated && user?.role === "Admin" && (
+            <Link
+              href="/admin/hotels"
+              className="hidden sm:inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Portal admin
+            </Link>
+          )}
+          {mounted && isAuthenticated && (
+            <Link
+              href="/account/bookings"
+              className="hidden sm:inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Mis reservas
+            </Link>
+          )}
           {mounted && isAuthenticated && user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
