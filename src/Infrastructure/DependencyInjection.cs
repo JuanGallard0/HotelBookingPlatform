@@ -1,6 +1,7 @@
 using System.Text;
 using HotelBookingPlatform.Application.Bookings.Jobs;
 using HotelBookingPlatform.Application.Common.Interfaces;
+using HotelBookingPlatform.Application.AuditLogs.Queries;
 using HotelBookingPlatform.Application.Bookings.Queries;
 using HotelBookingPlatform.Application.Hotels.Queries;
 using HotelBookingPlatform.Domain.Enums;
@@ -47,6 +48,7 @@ public static class DependencyInjection
         builder.Services.AddSingleton<IDbConnectionFactory>(_ => new SqlConnectionFactory(connectionString));
         builder.Services.Configure<BookingExpirationOptions>(
             builder.Configuration.GetSection(BookingExpirationOptions.SectionName));
+        builder.Services.AddScoped<IAuditLogQueryService, AuditLogQueryService>();
         builder.Services.AddScoped<IHotelQueryService, HotelQueryService>();
         builder.Services.AddScoped<IBookingQueryService, BookingQueryService>();
         builder.Services.AddScoped<IBookingExpirationService, BookingExpirationService>();
