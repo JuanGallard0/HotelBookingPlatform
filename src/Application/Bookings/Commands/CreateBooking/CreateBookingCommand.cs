@@ -133,6 +133,8 @@ public class CreateBookingCommandHandler(
                     currentUser.Email
                 })));
 
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+
             var dto = MapToDto(booking, roomType.Name);
             return Result<BookingDto>.Success(dto);
         }

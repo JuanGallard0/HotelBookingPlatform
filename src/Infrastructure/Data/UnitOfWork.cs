@@ -27,7 +27,6 @@ internal sealed class UnitOfWork(ApplicationDbContext context) : IUnitOfWork, IA
 
         try
         {
-            await context.SaveChangesAsync(cancellationToken);
             await _transaction.CommitAsync(cancellationToken);
         }
         finally
