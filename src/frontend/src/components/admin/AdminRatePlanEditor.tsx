@@ -7,6 +7,7 @@ import { handleApiError } from "@/src/lib/api/handle-error";
 import { toast } from "sonner";
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
+import { AdminDateField } from "@/src/components/admin/AdminDateField";
 import {
   Dialog,
   DialogContent,
@@ -32,6 +33,23 @@ function formatDateOnly(date: Date) {
   return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(date.getUTCDate()).padStart(2, "0")}`;
 }
 
+function toDate(value?: Date | string | null) {
+  if (!value) return null;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function toDateInputValue(value?: Date | string | null) {
+  const date = toDate(value);
+  return date ? formatDateOnly(date) : "";
+}
+
+function formatMonthYear(value?: Date | string | null) {
+  const date = toDate(value);
+  if (!date) return "";
+  return `${String(date.getUTCMonth() + 1).padStart(2, "0")}/${date.getUTCFullYear()}`;
+}
+
 function parseDateOnly(value: string) {
   return new Date(`${value}T00:00:00.000Z`);
 }
@@ -40,15 +58,12 @@ function toRatePlanFormState(ratePlan: RatePlanDetailsDto): RatePlanFormState {
   return {
     name: ratePlan.name ?? "",
     description: ratePlan.description ?? "",
-    validFrom: ratePlan.validFrom
-      ? formatDateOnly(parseDateOnly(String(ratePlan.validFrom)))
-      : "",
-    validTo: ratePlan.validTo
-      ? formatDateOnly(parseDateOnly(String(ratePlan.validTo)))
-      : "",
+    validFrom: toDateInputValue(ratePlan.validFrom),
+    validTo: toDateInputValue(ratePlan.validTo),
     pricePerNight: String(ratePlan.pricePerNight ?? 0),
     discountPercentage:
-      ratePlan.discountPercentage === undefined || ratePlan.discountPercentage === null
+      ratePlan.discountPercentage === undefined ||
+      ratePlan.discountPercentage === null
         ? ""
         : String(ratePlan.discountPercentage),
     isActive: Boolean(ratePlan.isActive),
@@ -101,7 +116,7 @@ export function AdminRatePlanEditor({
       });
       toast.success("Tarifa actualizada.");
     } catch (saveError) {
-      handleApiError(saveError, "No se pudo actualizar el rate plan.");
+      handleApiError(saveError, "No se pudo actualizar el plan tarifario.");
     } finally {
       setBusy(null);
     }
@@ -114,7 +129,7 @@ export function AdminRatePlanEditor({
       await onDelete(ratePlan.ratePlanId ?? 0);
       toast.success("Tarifa eliminada.");
     } catch (deleteError) {
-      handleApiError(deleteError, "No se pudo eliminar el rate plan.");
+      handleApiError(deleteError, "No se pudo eliminar el plan tarifario.");
     } finally {
       setBusy(null);
     }
@@ -122,13 +137,12 @@ export function AdminRatePlanEditor({
 
   return (
     <div className="rounded-xl border border-white/8 border-l-2 border-l-emerald-500/40 bg-emerald-500/5">
-      {/* Clickable header row */}
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => setOpen((current) => !current)}
         className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left"
       >
-        <div className="flex items-center gap-2 min-w-0">
+        <div className="flex min-w-0 items-center gap-2">
           <ChevronDown
             className={cn(
               "h-3 w-3 shrink-0 text-slate-400 transition-transform",
@@ -137,16 +151,33 @@ export function AdminRatePlanEditor({
           />
           <Tag className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
           <div className="min-w-0">
-            <p className="text-sm font-medium text-slate-100 truncate">{ratePlan.name}</p>
+            <p className="truncate text-sm font-medium text-slate-100">
+              {ratePlan.name}
+            </p>
             <p className="text-xs text-slate-400">
               ${ratePlan.pricePerNight}/noche
-              {ratePlan.discountPercentage ? ` · ${ratePlan.discountPercentage}% dto.` : ""}
+              {ratePlan.discountPercentage
+                ? ` · ${ratePlan.discountPercentage}% dto.`
+                : ""}
+              {ratePlan.validFrom && ratePlan.validTo
+                ? ` · ${formatMonthYear(ratePlan.validFrom)} – ${formatMonthYear(ratePlan.validTo)}`
+                : ""}
             </p>
           </div>
         </div>
-        <Badge variant={ratePlan.isActive ? "secondary" : "outline"} className="text-xs shrink-0">
-          {ratePlan.isActive ? "Activo" : "Inactivo"}
-        </Badge>
+        <div className="flex shrink-0 items-center gap-2">
+          {ratePlan.discountPercentage ? (
+            <span className="rounded bg-emerald-500/15 px-1.5 py-0.5 text-xs text-emerald-400">
+              -{ratePlan.discountPercentage}%
+            </span>
+          ) : null}
+          <Badge
+            variant={ratePlan.isActive ? "secondary" : "outline"}
+            className="text-xs"
+          >
+            {ratePlan.isActive ? "Activo" : "Inactivo"}
+          </Badge>
+        </div>
       </button>
 
       {open && (
@@ -164,69 +195,88 @@ export function AdminRatePlanEditor({
             />
           </div>
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-slate-300">Precio por noche</label>
+            <label className="text-sm font-medium text-slate-300">
+              Precio por noche
+            </label>
             <Input
               type="number"
               min={0}
               step="0.01"
               value={form.pricePerNight}
               onChange={(event) =>
-                setForm((current) => ({ ...current, pricePerNight: event.target.value }))
+                setForm((current) => ({
+                  ...current,
+                  pricePerNight: event.target.value,
+                }))
               }
             />
           </div>
+          <AdminDateField
+            label="Valido desde"
+            value={form.validFrom}
+            onChange={(value) =>
+              setForm((current) => ({ ...current, validFrom: value }))
+            }
+          />
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-slate-300">Válido desde</label>
-            <Input
-              type="date"
-              value={form.validFrom}
-              onChange={(event) =>
-                setForm((current) => ({ ...current, validFrom: event.target.value }))
-              }
-            />
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-slate-300">Válido hasta</label>
-            <Input
-              type="date"
+            <AdminDateField
+              label="Valido hasta"
               value={form.validTo}
-              onChange={(event) =>
-                setForm((current) => ({ ...current, validTo: event.target.value }))
+              onChange={(value) =>
+                setForm((current) => ({ ...current, validTo: value }))
               }
             />
+            {form.validFrom && form.validTo && form.validFrom > form.validTo && (
+              <p className="text-xs text-red-400">
+                La fecha de fin debe ser posterior al inicio
+              </p>
+            )}
           </div>
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-slate-300">Descuento %</label>
+            <label className="text-sm font-medium text-slate-300">
+              Descuento %
+            </label>
             <Input
               value={form.discountPercentage}
               onChange={(event) =>
-                setForm((current) => ({ ...current, discountPercentage: event.target.value }))
+                setForm((current) => ({
+                  ...current,
+                  discountPercentage: event.target.value,
+                }))
               }
             />
           </div>
-          <label className="flex items-center gap-2 text-sm text-slate-300 self-end pb-1">
+          <label className="self-end pb-1 text-sm text-slate-300 flex items-center gap-2">
             <input
               checked={form.isActive}
               onChange={(event) =>
-                setForm((current) => ({ ...current, isActive: event.target.checked }))
+                setForm((current) => ({
+                  ...current,
+                  isActive: event.target.checked,
+                }))
               }
               type="checkbox"
             />
             Activo
           </label>
           <div className="space-y-1.5 md:col-span-2">
-            <label className="text-sm font-medium text-slate-300">Descripción</label>
+            <label className="text-sm font-medium text-slate-300">
+              Descripcion
+            </label>
             <textarea
-              className="w-full min-h-20 rounded-lg border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+              className="min-h-20 w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
               value={form.description}
               onChange={(event) =>
-                setForm((current) => ({ ...current, description: event.target.value }))
+                setForm((current) => ({
+                  ...current,
+                  description: event.target.value,
+                }))
               }
             />
           </div>
           <div className="flex gap-3 md:col-span-2">
             <Button disabled={busy === "save"} type="submit" size="sm">
-              {busy === "save" ? "Guardando..." : "Guardar"}
+              {busy === "save" ? "Guardando..." : "Guardar cambios"}
             </Button>
             <Button
               disabled={busy === "delete"}
@@ -247,9 +297,9 @@ export function AdminRatePlanEditor({
           <DialogHeader>
             <DialogTitle className="text-slate-100">Eliminar tarifa</DialogTitle>
             <DialogDescription className="text-slate-400">
-              ¿Confirmas que deseas eliminar{" "}
-              <span className="font-semibold text-slate-200">{ratePlan.name}</span>?
-              Esta acción no se puede deshacer.
+              Confirmas que deseas eliminar{" "}
+              <span className="font-semibold text-slate-200">{ratePlan.name}</span>
+              ? Esta accion no se puede deshacer.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

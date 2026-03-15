@@ -6,9 +6,10 @@ import {
   CalendarDays,
   ChevronLeft,
   ChevronRight,
-  Hotel as HotelIcon,
   Layers3,
   Plus,
+  RefreshCw,
+  Star,
   Trash2,
 } from "lucide-react";
 import type {
@@ -28,10 +29,18 @@ import {
 } from "@/src/lib/api/admin-hotels";
 import { handleApiError } from "@/src/lib/api/handle-error";
 import { toast } from "sonner";
+import { AdminDateField } from "@/src/components/admin/AdminDateField";
 import { AdminRoomTypeEditor } from "@/src/components/admin/AdminRoomTypeEditor";
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/src/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/src/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -128,7 +137,6 @@ function buildMonthDays(from: string, to: string) {
   ) {
     dates.push(formatDateOnly(current));
   }
-
   return dates;
 }
 
@@ -156,87 +164,60 @@ function emptyRoomTypeForm(): RoomTypeFormState {
   };
 }
 
-function defaultSingleDayInventoryForm(
-  hotel: HotelDetailsDto,
-  inventory: HotelInventoryDto,
-): SingleDayInventoryFormState {
-  const firstRoomType = hotel.roomTypes?.[0];
-  const firstDate = inventory.from
-    ? formatDateOnly(parseDateOnly(String(inventory.from)))
-    : formatDateOnly(new Date());
-
-  return {
-    roomTypeId: String(firstRoomType?.roomTypeId ?? ""),
-    date: firstDate,
-    totalRooms: "0",
-    availableRooms: "0",
-    rowVersion: "",
-  };
-}
-
-function defaultBulkInventoryForm(
-  hotel: HotelDetailsDto,
-  inventory: HotelInventoryDto,
-): BulkInventoryFormState {
-  const firstRoomType = hotel.roomTypes?.[0];
-  const from = inventory.from
-    ? formatDateOnly(parseDateOnly(String(inventory.from)))
-    : formatDateOnly(new Date());
-  const to = inventory.to
-    ? formatDateOnly(parseDateOnly(String(inventory.to)))
-    : from;
-
-  return {
-    roomTypeId: String(firstRoomType?.roomTypeId ?? ""),
-    from,
-    to,
-    totalRooms: "0",
-    availableRooms: "0",
-  };
+function currentMonthStart() {
+  const now = new Date();
+  return formatDateOnly(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)));
 }
 
 export function AdminHotelManager({
   initialHotel,
-  initialInventory,
 }: {
   initialHotel: HotelDetailsDto;
-  initialInventory: HotelInventoryDto;
 }) {
   const router = useRouter();
   const [hotel, setHotel] = useState(initialHotel);
-  const [inventory, setInventory] = useState(initialInventory);
+  const [inventory, setInventory] = useState<HotelInventoryDto | null>(null);
+  const [inventoryLoading, setInventoryLoading] = useState(false);
+  const [inventoryError, setInventoryError] = useState(false);
+  const [currentMonth, setCurrentMonth] = useState(currentMonthStart);
   const [hotelForm, setHotelForm] = useState(() => toHotelFormState(initialHotel));
-  const [newRoomTypeForm, setNewRoomTypeForm] = useState<RoomTypeFormState>(
-    emptyRoomTypeForm(),
-  );
-  const [singleDayForm, setSingleDayForm] = useState(() =>
-    defaultSingleDayInventoryForm(initialHotel, initialInventory),
-  );
-  const [bulkForm, setBulkForm] = useState(() =>
-    defaultBulkInventoryForm(initialHotel, initialInventory),
-  );
+  const [newRoomTypeForm, setNewRoomTypeForm] = useState<RoomTypeFormState>(emptyRoomTypeForm());
+  const [singleDayForm, setSingleDayForm] = useState<SingleDayInventoryFormState>({
+    roomTypeId: String(initialHotel.roomTypes?.[0]?.roomTypeId ?? ""),
+    date: currentMonthStart(),
+    totalRooms: "0",
+    availableRooms: "0",
+    rowVersion: "",
+  });
+  const [bulkForm, setBulkForm] = useState<BulkInventoryFormState>({
+    roomTypeId: String(initialHotel.roomTypes?.[0]?.roomTypeId ?? ""),
+    from: currentMonthStart(),
+    to: currentMonthStart(),
+    totalRooms: "0",
+    availableRooms: "0",
+  });
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [createRoomTypeOpen, setCreateRoomTypeOpen] = useState(false);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   const monthDays = useMemo(
-    () => buildMonthDays(String(inventory.from), String(inventory.to)),
-    [inventory.from, inventory.to],
+    () => inventory
+      ? buildMonthDays(String(inventory.from), String(inventory.to))
+      : [],
+    [inventory],
   );
 
   const inventoryIndex = useMemo(() => {
     const next = new Map<number, Map<string, InventoryDayDto>>();
-
-    for (const roomType of inventory.roomTypes ?? []) {
+    for (const roomType of inventory?.roomTypes ?? []) {
       const daysMap = new Map<string, InventoryDayDto>();
       for (const day of roomType.days ?? []) {
         daysMap.set(formatDateOnly(parseDateOnly(String(day.date))), day);
       }
       next.set(roomType.roomTypeId ?? 0, daysMap);
     }
-
     return next;
-  }, [inventory.roomTypes]);
+  }, [inventory]);
 
   useEffect(() => {
     setHotelForm(toHotelFormState(hotel));
@@ -254,9 +235,28 @@ export function AdminHotelManager({
       firstDayOfMonth(monthFrom),
       lastDayOfMonth(monthFrom),
     );
-
     setInventory(nextInventory);
+    setCurrentMonth(monthFrom);
     return nextInventory;
+  }
+
+  async function loadInventory() {
+    setInventoryLoading(true);
+    setInventoryError(false);
+    try {
+      await refreshInventoryForMonth(currentMonth);
+    } catch (err) {
+      setInventoryError(true);
+      handleApiError(err, "No se pudo cargar el inventario.");
+    } finally {
+      setInventoryLoading(false);
+    }
+  }
+
+  function handleTabChange(tab: string) {
+    if (tab === "inventory" && inventory === null && !inventoryLoading) {
+      void loadInventory();
+    }
   }
 
   async function runMutation(
@@ -277,7 +277,6 @@ export function AdminHotelManager({
 
   async function handleHotelSave(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
     await runMutation("hotel-save", async () => {
       await updateAdminHotel(hotel.hotelId ?? 0, {
         ...hotelForm,
@@ -298,7 +297,6 @@ export function AdminHotelManager({
 
   async function handleCreateRoomType(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
     await runMutation("room-type-create", async () => {
       await createAdminRoomType(hotel.hotelId ?? 0, {
         ...newRoomTypeForm,
@@ -313,7 +311,6 @@ export function AdminHotelManager({
 
   async function handleSelectInventoryDay(roomTypeId: number, date: string) {
     const day = inventoryIndex.get(roomTypeId)?.get(date);
-
     setSingleDayForm({
       roomTypeId: String(roomTypeId),
       date,
@@ -323,11 +320,8 @@ export function AdminHotelManager({
     });
   }
 
-  async function handleSingleDayInventorySubmit(
-    event: React.FormEvent<HTMLFormElement>,
-  ) {
+  async function handleSingleDayInventorySubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
     await runMutation("inventory-day", async () => {
       await upsertAdminInventory(
         Number(singleDayForm.roomTypeId),
@@ -342,11 +336,8 @@ export function AdminHotelManager({
     }, "Inventario diario actualizado.");
   }
 
-  async function handleBulkInventorySubmit(
-    event: React.FormEvent<HTMLFormElement>,
-  ) {
+  async function handleBulkInventorySubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
     await runMutation("inventory-bulk", async () => {
       await bulkUpdateAdminInventory(Number(bulkForm.roomTypeId), {
         from: parseDateOnly(bulkForm.from),
@@ -359,37 +350,34 @@ export function AdminHotelManager({
   }
 
   async function handleShiftMonth(offset: number) {
-    const nextMonth = shiftMonth(firstDayOfMonth(String(inventory.from)), offset);
-
-    await runMutation("inventory-month", async () => {
-      await refreshInventoryForMonth(formatDateOnly(nextMonth));
-    }, "Calendario actualizado.");
+    const nextMonth = formatDateOnly(shiftMonth(firstDayOfMonth(currentMonth), offset));
+    setInventoryLoading(true);
+    try {
+      await refreshInventoryForMonth(nextMonth);
+    } catch (shiftError) {
+      handleApiError(shiftError, "No se pudo cambiar el mes.");
+    } finally {
+      setInventoryLoading(false);
+    }
   }
 
   return (
     <div className="space-y-6">
-      <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-amber-200">
-              <HotelIcon className="h-3.5 w-3.5" />
-              Hotel Manager
-            </div>
-            <h1 className="mt-3 text-3xl font-semibold text-slate-100">
-              {hotel.name}
-            </h1>
-            <p className="mt-2 max-w-3xl text-sm text-slate-400">
-              Gestiona la configuracion general, room types, rate plans e inventario
-              desde un solo modulo.
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold text-slate-100">{hotel.name}</h1>
+          {(hotel.city || hotel.country) && (
+            <p className="mt-1 text-sm text-slate-400">
+              {[hotel.city, hotel.country].filter(Boolean).join(", ")}
             </p>
-          </div>
-          <Badge variant={hotel.isActive ? "secondary" : "outline"}>
-            {hotel.isActive ? "Activo" : "Inactivo"}
-          </Badge>
+          )}
         </div>
+        <Badge variant={hotel.isActive ? "secondary" : "outline"}>
+          {hotel.isActive ? "Activo" : "Inactivo"}
+        </Badge>
       </div>
 
-      <Tabs defaultValue="configuration" className="gap-5">
+      <Tabs defaultValue="configuration" onValueChange={handleTabChange} className="gap-5">
         <TabsList variant="line" className="rounded-none bg-transparent p-0">
           <TabsTrigger value="configuration" className="px-3">
             <Layers3 className="h-4 w-4" />
@@ -409,6 +397,14 @@ export function AdminHotelManager({
                 <p className="text-sm text-slate-400">
                   Actualiza la informacion base del hotel.
                 </p>
+                <span className="mt-2 flex gap-0.5">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`h-4 w-4 ${i < Number(hotelForm.starRating) ? "fill-amber-400 text-amber-400" : "fill-transparent text-slate-600"}`}
+                    />
+                  ))}
+                </span>
               </div>
               <Button
                 variant="destructive"
@@ -440,17 +436,17 @@ export function AdminHotelManager({
                   Hotel activo
                 </label>
                 <Button disabled={busyKey === "hotel-save"} type="submit">
-                  {busyKey === "hotel-save" ? "Guardando..." : "Guardar hotel"}
+                  {busyKey === "hotel-save" ? "Guardando..." : "Guardar cambios"}
                 </Button>
               </form>
             </CardContent>
           </Card>
 
           <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold text-slate-300">Room types</p>
+            <p className="text-sm font-semibold text-slate-300">Tipos de habitación</p>
             <Button size="sm" onClick={() => setCreateRoomTypeOpen(true)}>
               <Plus className="h-4 w-4" />
-              Crear room type
+              Crear tipo de habitacion
             </Button>
           </div>
 
@@ -487,24 +483,36 @@ export function AdminHotelManager({
           <Dialog open={createRoomTypeOpen} onOpenChange={setCreateRoomTypeOpen}>
             <DialogContent className="dark border-white/10 bg-slate-900 text-slate-100 sm:max-w-lg">
               <DialogHeader>
-                <DialogTitle className="text-slate-100">Crear room type</DialogTitle>
+                <DialogTitle className="text-slate-100">Crear tipo de habitacion</DialogTitle>
               </DialogHeader>
               <form id="create-room-type-form" className="grid gap-3 sm:grid-cols-2" onSubmit={handleCreateRoomType}>
-                <Input placeholder="Nombre" value={newRoomTypeForm.name} onChange={(e) => setNewRoomTypeForm((c) => ({ ...c, name: e.target.value }))} />
-                <Input placeholder="Max ocupacion" type="number" min={1} value={newRoomTypeForm.maxOccupancy} onChange={(e) => setNewRoomTypeForm((c) => ({ ...c, maxOccupancy: e.target.value }))} />
-                <Input placeholder="Precio base" type="number" min={0} step="0.01" value={newRoomTypeForm.basePrice} onChange={(e) => setNewRoomTypeForm((c) => ({ ...c, basePrice: e.target.value }))} />
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-slate-300">Nombre</label>
+                  <Input placeholder="Nombre" value={newRoomTypeForm.name} onChange={(e) => setNewRoomTypeForm((c) => ({ ...c, name: e.target.value }))} />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-slate-300">Maxima ocupacion</label>
+                  <Input placeholder="Max ocupacion" type="number" min={1} value={newRoomTypeForm.maxOccupancy} onChange={(e) => setNewRoomTypeForm((c) => ({ ...c, maxOccupancy: e.target.value }))} />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-slate-300">Precio base</label>
+                  <Input placeholder="Precio base" type="number" min={0} step="0.01" value={newRoomTypeForm.basePrice} onChange={(e) => setNewRoomTypeForm((c) => ({ ...c, basePrice: e.target.value }))} />
+                </div>
                 <label className="flex items-center gap-2 text-sm text-slate-300">
                   <input checked={newRoomTypeForm.isActive} onChange={(e) => setNewRoomTypeForm((c) => ({ ...c, isActive: e.target.checked }))} type="checkbox" />
                   Activo
                 </label>
-                <textarea className="min-h-20 rounded-lg border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 sm:col-span-2" placeholder="Descripcion" value={newRoomTypeForm.description} onChange={(e) => setNewRoomTypeForm((c) => ({ ...c, description: e.target.value }))} />
+                <div className="space-y-1.5 sm:col-span-2">
+                  <label className="text-sm font-medium text-slate-300">Descripcion</label>
+                  <textarea className="min-h-20 rounded-lg border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 sm:col-span-2" placeholder="Descripcion" value={newRoomTypeForm.description} onChange={(e) => setNewRoomTypeForm((c) => ({ ...c, description: e.target.value }))} />
+                </div>
               </form>
               <DialogFooter>
                 <Button variant="outline" type="button" onClick={() => setCreateRoomTypeOpen(false)}>
                   Cancelar
                 </Button>
                 <Button form="create-room-type-form" type="submit" disabled={busyKey === "room-type-create"}>
-                  {busyKey === "room-type-create" ? "Creando..." : "Crear room type"}
+                  {busyKey === "room-type-create" ? "Creando..." : "Crear tipo de habitacion"}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -514,7 +522,7 @@ export function AdminHotelManager({
             {(hotel.roomTypes ?? []).map((roomType) => (
               <AdminRoomTypeEditor
                 key={roomType.roomTypeId}
-                monthStart={String(inventory.from)}
+                monthStart={currentMonth}
                 roomType={roomType}
                 onCreateRatePlan={async (payload) => {
                   const { createAdminRatePlan } = await import("@/src/lib/api/admin-hotels");
@@ -546,121 +554,242 @@ export function AdminHotelManager({
         </TabsContent>
 
         <TabsContent value="inventory" className="space-y-6">
-          <Card className="border-white/10 bg-white/5 text-slate-100">
-            <CardHeader className="flex flex-row items-center justify-between gap-4">
-              <div>
-                <CardTitle>Calendario mensual</CardTitle>
-                <p className="text-sm text-slate-400">
-                  Haz clic en una celda para precargar la edicion diaria.
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="icon-sm" onClick={() => void handleShiftMonth(-1)} type="button">
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <div className="min-w-44 text-center text-sm font-medium capitalize text-slate-200">
-                  {toMonthLabel(String(inventory.from))}
+          {/* Loading state */}
+          {inventoryLoading && !inventory && (
+            <div className="animate-pulse space-y-4">
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="h-5 w-40 rounded bg-white/10" />
+                  <div className="flex gap-2">
+                    <div className="h-8 w-8 rounded bg-white/10" />
+                    <div className="h-8 w-44 rounded bg-white/10" />
+                    <div className="h-8 w-8 rounded bg-white/10" />
+                  </div>
                 </div>
-                <Button variant="outline" size="icon-sm" onClick={() => void handleShiftMonth(1)} type="button">
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Room type</TableHead>
-                    {monthDays.map((date) => (
-                      <TableHead key={date} className="text-center">{date.slice(-2)}</TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {(hotel.roomTypes ?? []).map((roomType) => (
-                    <TableRow key={roomType.roomTypeId}>
-                      <TableCell className="font-medium">{roomType.name}</TableCell>
-                      {monthDays.map((date) => {
-                        const day = inventoryIndex.get(roomType.roomTypeId ?? 0)?.get(date);
-                        return (
-                          <TableCell key={`${roomType.roomTypeId}-${date}`} className="p-1">
-                            <button className="w-full rounded-lg border border-white/10 px-2 py-2 text-center text-xs transition hover:border-white/20 hover:bg-white/5" onClick={() => void handleSelectInventoryDay(roomType.roomTypeId ?? 0, date)} type="button">
-                              <div className="font-semibold text-slate-100">
-                                {day ? `${day.availableRooms}/${day.totalRooms}` : "--"}
-                              </div>
-                              <div className="text-[11px] text-slate-400">
-                                {day ? `${day.reservedRooms} res.` : "sin dato"}
-                              </div>
-                            </button>
-                          </TableCell>
-                        );
-                      })}
-                    </TableRow>
+                <div className="space-y-2">
+                  {[0, 1, 2].map((i) => (
+                    <div key={i} className="h-10 rounded-lg bg-white/8" />
                   ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+                </div>
+              </div>
+            </div>
+          )}
 
-          <div className="grid gap-6 xl:grid-cols-2">
-            <Card className="border-white/10 bg-white/5 text-slate-100">
-              <CardHeader>
-                <CardTitle>Edicion diaria</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <form className="space-y-4" onSubmit={handleSingleDayInventorySubmit}>
-                  <select className="h-10 w-full rounded-lg border border-input bg-transparent px-3 text-sm text-slate-100 outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50" value={singleDayForm.roomTypeId} onChange={(event) => setSingleDayForm((current) => ({ ...current, roomTypeId: event.target.value }))}>
-                    {(hotel.roomTypes ?? []).map((roomType) => (
-                      <option key={roomType.roomTypeId} value={roomType.roomTypeId ?? 0}>
-                        {roomType.name}
-                      </option>
-                    ))}
-                  </select>
-                  <Input type="date" value={singleDayForm.date} onChange={(event) => setSingleDayForm((current) => ({ ...current, date: event.target.value }))} />
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <Input type="number" min={0} value={singleDayForm.totalRooms} onChange={(event) => setSingleDayForm((current) => ({ ...current, totalRooms: event.target.value }))} placeholder="Total rooms" />
-                    <Input type="number" min={0} value={singleDayForm.availableRooms} onChange={(event) => setSingleDayForm((current) => ({ ...current, availableRooms: event.target.value }))} placeholder="Available rooms" />
-                  </div>
-                  {singleDayForm.rowVersion ? (
-                    <p className="text-xs text-slate-500">
-                      La celda seleccionada incluye control de concurrencia.
+          {/* Error state */}
+          {inventoryError && !inventory && (
+            <div className="flex flex-col items-center gap-4 rounded-2xl border border-red-400/20 bg-red-400/5 py-12 text-center">
+              <p className="text-sm font-semibold text-red-300">No se pudo cargar el inventario</p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => void loadInventory()}
+                className="border-white/15 text-slate-100 hover:text-slate-100"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Reintentar
+              </Button>
+            </div>
+          )}
+
+          {/* Loaded state */}
+          {inventory && (
+            <>
+              <Card className="border-white/10 bg-white/5 text-slate-100">
+                <CardHeader className="flex flex-row items-center justify-between gap-4">
+                  <div>
+                    <CardTitle>Calendario mensual</CardTitle>
+                    <p className="text-sm text-slate-400">
+                      Haz clic en una celda para precargar la edicion diaria.
                     </p>
-                  ) : null}
-                  <Button disabled={busyKey === "inventory-day"} type="submit">
-                    {busyKey === "inventory-day" ? "Guardando..." : "Guardar dia"}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="icon-sm" onClick={() => void handleShiftMonth(-1)} disabled={inventoryLoading} type="button">
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <div className="min-w-44 text-center text-sm font-medium capitalize text-slate-200">
+                      {toMonthLabel(currentMonth)}
+                    </div>
+                    <Button variant="outline" size="icon-sm" onClick={() => void handleShiftMonth(1)} disabled={inventoryLoading} type="button">
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className={inventoryLoading ? "pointer-events-none opacity-50 transition-opacity" : ""}>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Tipo de habitacion</TableHead>
+                        {monthDays.map((date) => (
+                          <TableHead key={date} className="text-center">{date.slice(-2)}</TableHead>
+                        ))}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {(hotel.roomTypes ?? []).map((roomType) => (
+                        <TableRow key={roomType.roomTypeId}>
+                          <TableCell className="font-medium">{roomType.name}</TableCell>
+                          {monthDays.map((date) => {
+                            const day = inventoryIndex.get(roomType.roomTypeId ?? 0)?.get(date);
+                            const avail = day?.availableRooms ?? null;
+                            const total = day?.totalRooms ?? 0;
+                            const cellColor =
+                              avail === null
+                                ? ""
+                                : avail === 0
+                                  ? "bg-red-500/15"
+                                  : avail < total / 2
+                                    ? "bg-amber-500/10"
+                                    : "";
+                            const textColor = avail === 0 ? "text-red-400" : "text-slate-100";
+                            return (
+                              <TableCell key={`${roomType.roomTypeId}-${date}`} className="p-1">
+                                <button
+                                  className={`w-full rounded-lg border border-white/10 px-2 py-2 text-center text-xs transition hover:border-white/20 hover:bg-white/5 ${cellColor}`}
+                                  onClick={() => void handleSelectInventoryDay(roomType.roomTypeId ?? 0, date)}
+                                  type="button"
+                                >
+                                  <div className={`font-semibold ${textColor}`}>
+                                    {day ? `${day.availableRooms}/${day.totalRooms}` : "--"}
+                                  </div>
+                                  <div className="text-[11px] text-slate-400">
+                                    {day ? `${day.reservedRooms} res.` : "sin dato"}
+                                  </div>
+                                </button>
+                              </TableCell>
+                            );
+                          })}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
 
-            <Card className="border-white/10 bg-white/5 text-slate-100">
-              <CardHeader>
-                <CardTitle>Actualizacion masiva</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <form className="space-y-4" onSubmit={handleBulkInventorySubmit}>
-                  <select className="h-10 w-full rounded-lg border border-input bg-transparent px-3 text-sm text-slate-100 outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50" value={bulkForm.roomTypeId} onChange={(event) => setBulkForm((current) => ({ ...current, roomTypeId: event.target.value }))}>
-                    {(hotel.roomTypes ?? []).map((roomType) => (
-                      <option key={roomType.roomTypeId} value={roomType.roomTypeId ?? 0}>
-                        {roomType.name}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <Input type="date" value={bulkForm.from} onChange={(event) => setBulkForm((current) => ({ ...current, from: event.target.value }))} />
-                    <Input type="date" value={bulkForm.to} onChange={(event) => setBulkForm((current) => ({ ...current, to: event.target.value }))} />
-                  </div>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <Input type="number" min={0} value={bulkForm.totalRooms} onChange={(event) => setBulkForm((current) => ({ ...current, totalRooms: event.target.value }))} placeholder="Total rooms" />
-                    <Input type="number" min={0} value={bulkForm.availableRooms} onChange={(event) => setBulkForm((current) => ({ ...current, availableRooms: event.target.value }))} placeholder="Available rooms" />
-                  </div>
-                  <Button disabled={busyKey === "inventory-bulk"} type="submit">
-                    {busyKey === "inventory-bulk" ? "Aplicando..." : "Aplicar rango"}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-          </div>
+              <div className="grid gap-6 xl:grid-cols-2">
+                <Card className="border-white/10 bg-white/5 text-slate-100">
+                  <CardHeader>
+                    <CardTitle>Edicion diaria</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <form className="space-y-4" onSubmit={handleSingleDayInventorySubmit}>
+                      <div className="space-y-1.5">
+                        <label className="text-sm font-medium text-slate-300">
+                          Tipo de habitacion
+                        </label>
+                      <Select
+                        value={singleDayForm.roomTypeId}
+                        onValueChange={(value) => setSingleDayForm((current) => ({ ...current, roomTypeId: value }))}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Tipo de habitación" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(hotel.roomTypes ?? []).map((roomType) => (
+                            <SelectItem key={roomType.roomTypeId} value={String(roomType.roomTypeId ?? 0)}>
+                              {roomType.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      </div>
+                      <AdminDateField
+                        label="Fecha"
+                        value={singleDayForm.date}
+                        onChange={(value) =>
+                          setSingleDayForm((current) => ({ ...current, date: value }))
+                        }
+                      />
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-1.5">
+                          <label className="text-sm font-medium text-slate-300">
+                            Total de habitaciones
+                          </label>
+                        <Input type="number" min={0} value={singleDayForm.totalRooms} onChange={(event) => setSingleDayForm((current) => ({ ...current, totalRooms: event.target.value }))} placeholder="Total rooms" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-sm font-medium text-slate-300">
+                            Habitaciones disponibles
+                          </label>
+                        <Input type="number" min={0} value={singleDayForm.availableRooms} onChange={(event) => setSingleDayForm((current) => ({ ...current, availableRooms: event.target.value }))} placeholder="Available rooms" />
+                        </div>
+                      </div>
+                      {singleDayForm.rowVersion ? (
+                        <p className="text-xs text-slate-500">
+                          La celda seleccionada incluye control de concurrencia.
+                        </p>
+                      ) : null}
+                      <Button disabled={busyKey === "inventory-day"} type="submit">
+                        {busyKey === "inventory-day" ? "Guardando..." : "Guardar dia"}
+                      </Button>
+                    </form>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-white/10 bg-white/5 text-slate-100">
+                  <CardHeader>
+                    <CardTitle>Actualizacion masiva</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <form className="space-y-4" onSubmit={handleBulkInventorySubmit}>
+                      <div className="space-y-1.5">
+                        <label className="text-sm font-medium text-slate-300">
+                          Tipo de habitacion
+                        </label>
+                      <Select
+                        value={bulkForm.roomTypeId}
+                        onValueChange={(value) => setBulkForm((current) => ({ ...current, roomTypeId: value }))}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Tipo de habitación" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(hotel.roomTypes ?? []).map((roomType) => (
+                            <SelectItem key={roomType.roomTypeId} value={String(roomType.roomTypeId ?? 0)}>
+                              {roomType.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      </div>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <AdminDateField
+                          label="Desde"
+                          value={bulkForm.from}
+                          onChange={(value) =>
+                            setBulkForm((current) => ({ ...current, from: value }))
+                          }
+                        />
+                        <AdminDateField
+                          label="Hasta"
+                          value={bulkForm.to}
+                          onChange={(value) =>
+                            setBulkForm((current) => ({ ...current, to: value }))
+                          }
+                        />
+                      </div>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-1.5">
+                          <label className="text-sm font-medium text-slate-300">
+                            Total de habitaciones
+                          </label>
+                        <Input type="number" min={0} value={bulkForm.totalRooms} onChange={(event) => setBulkForm((current) => ({ ...current, totalRooms: event.target.value }))} placeholder="Total rooms" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-sm font-medium text-slate-300">
+                            Habitaciones disponibles
+                          </label>
+                        <Input type="number" min={0} value={bulkForm.availableRooms} onChange={(event) => setBulkForm((current) => ({ ...current, availableRooms: event.target.value }))} placeholder="Available rooms" />
+                        </div>
+                      </div>
+                      <Button disabled={busyKey === "inventory-bulk"} type="submit">
+                        {busyKey === "inventory-bulk" ? "Aplicando..." : "Aplicar rango"}
+                      </Button>
+                    </form>
+                  </CardContent>
+                </Card>
+              </div>
+            </>
+          )}
         </TabsContent>
       </Tabs>
     </div>

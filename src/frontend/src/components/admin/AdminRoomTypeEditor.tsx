@@ -8,6 +8,7 @@ import type {
 } from "@/src/lib/api/generated/api-client";
 import { handleApiError } from "@/src/lib/api/handle-error";
 import { toast } from "sonner";
+import { AdminDateField } from "@/src/components/admin/AdminDateField";
 import { AdminRatePlanEditor } from "@/src/components/admin/AdminRatePlanEditor";
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
@@ -139,7 +140,7 @@ export function AdminRoomTypeEditor({
       });
       toast.success("Tipo de habitación actualizado.");
     } catch (saveError) {
-      handleApiError(saveError, "No se pudo actualizar el room type.");
+      handleApiError(saveError, "No se pudo actualizar el tipo de habitacion.");
     } finally {
       setBusy(null);
     }
@@ -152,7 +153,7 @@ export function AdminRoomTypeEditor({
       await onDelete();
       toast.success("Tipo de habitación eliminado.");
     } catch (deleteError) {
-      handleApiError(deleteError, "No se pudo eliminar el room type.");
+      handleApiError(deleteError, "No se pudo eliminar el tipo de habitacion.");
     } finally {
       setBusy(null);
     }
@@ -191,20 +192,20 @@ export function AdminRoomTypeEditor({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between gap-3 px-4 py-2 text-left"
+        className="flex w-full items-center justify-between gap-3 px-3 py-1.5 text-left"
       >
-        <div className="flex items-center gap-2.5 min-w-0">
+        <div className="flex items-center gap-2 min-w-0">
           <ChevronDown
             className={cn(
-              "h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform",
+              "h-3 w-3 shrink-0 text-slate-400 transition-transform",
               open && "rotate-180",
             )}
           />
-          <BedDouble className="h-4 w-4 shrink-0 text-sky-400" />
+          <BedDouble className="h-3.5 w-3.5 shrink-0 text-sky-400" />
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-slate-100 truncate">{roomType.name}</p>
-            <p className="text-xs text-slate-400">
-              {ratePlanCount} tarifa{ratePlanCount !== 1 ? "s" : ""} · máx. {roomType.maxOccupancy} huéspedes
+            <p className="truncate text-sm font-semibold text-slate-100">{roomType.name}</p>
+            <p className="text-[11px] text-slate-400">
+              {ratePlanCount} tarifa{ratePlanCount !== 1 ? "s" : ""} · máx. {roomType.maxOccupancy} huéspedes · ${roomType.basePrice}/noche base
             </p>
           </div>
         </div>
@@ -224,59 +225,66 @@ export function AdminRoomTypeEditor({
           </Button>
         </div>
 
-        <form className="grid gap-4 md:grid-cols-2" onSubmit={saveRoomType}>
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-slate-300">Nombre</label>
-            <Input
-              value={form.name}
-              onChange={(event) =>
-                setForm((current) => ({ ...current, name: event.target.value }))
-              }
-            />
+        <form className="space-y-4" onSubmit={saveRoomType}>
+          {/* Row 1: Name + Active */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-slate-300">Nombre</label>
+              <Input
+                value={form.name}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, name: event.target.value }))
+                }
+              />
+            </div>
+            <label className="flex items-center gap-2 self-end pb-2 text-sm text-slate-300">
+              <input
+                checked={form.isActive}
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    isActive: event.target.checked,
+                  }))
+                }
+                type="checkbox"
+              />
+              Activo
+            </label>
           </div>
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-slate-300">Máx. ocupación</label>
-            <Input
-              type="number"
-              min={1}
-              value={form.maxOccupancy}
-              onChange={(event) =>
-                setForm((current) => ({
-                  ...current,
-                  maxOccupancy: event.target.value,
-                }))
-              }
-            />
+          {/* Row 2: MaxOccupancy + BasePrice */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-slate-300">Máx. ocupación</label>
+              <Input
+                type="number"
+                min={1}
+                value={form.maxOccupancy}
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    maxOccupancy: event.target.value,
+                  }))
+                }
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-slate-300">Precio base</label>
+              <Input
+                type="number"
+                min={0}
+                step="0.01"
+                value={form.basePrice}
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    basePrice: event.target.value,
+                  }))
+                }
+              />
+            </div>
           </div>
+          {/* Row 3: Description full width */}
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-slate-300">Precio base</label>
-            <Input
-              type="number"
-              min={0}
-              step="0.01"
-              value={form.basePrice}
-              onChange={(event) =>
-                setForm((current) => ({
-                  ...current,
-                  basePrice: event.target.value,
-                }))
-              }
-            />
-          </div>
-          <label className="flex items-center gap-2 text-sm text-slate-300">
-            <input
-              checked={form.isActive}
-              onChange={(event) =>
-                setForm((current) => ({
-                  ...current,
-                  isActive: event.target.checked,
-                }))
-              }
-              type="checkbox"
-            />
-            Activo
-          </label>
-          <div className="space-y-1.5 md:col-span-2">
             <label className="text-sm font-medium text-slate-300">Descripción</label>
             <textarea
               className="w-full min-h-24 rounded-lg border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
@@ -289,17 +297,15 @@ export function AdminRoomTypeEditor({
               }
             />
           </div>
-          <div className="md:col-span-2">
-            <Button disabled={busy === "save-room-type"} type="submit">
-              {busy === "save-room-type" ? "Guardando..." : "Guardar tipo de habitación"}
-            </Button>
-          </div>
+          <Button disabled={busy === "save-room-type"} type="submit">
+            {busy === "save-room-type" ? "Guardando..." : "Guardar cambios"}
+          </Button>
         </form>
 
 
         <div className="space-y-3 border-l-2 border-l-emerald-500/30 pl-4">
           <p className="text-xs font-semibold uppercase tracking-widest text-emerald-400/70">
-            Tarifas
+            Tarifas ({ratePlanCount})
           </p>
 
           {(roomType.ratePlans ?? []).map((ratePlan: RatePlanDetailsDto) => (
@@ -328,16 +334,40 @@ export function AdminRoomTypeEditor({
                 <DialogTitle className="text-slate-100">Agregar tarifa</DialogTitle>
               </DialogHeader>
               <form id="add-rate-plan-form" className="grid gap-3 sm:grid-cols-2" onSubmit={createRatePlan}>
-                <Input value={newRatePlanForm.name} onChange={(e) => setNewRatePlanForm((c) => ({ ...c, name: e.target.value }))} placeholder="Nombre" />
-                <Input type="number" min={0} step="0.01" value={newRatePlanForm.pricePerNight} onChange={(e) => setNewRatePlanForm((c) => ({ ...c, pricePerNight: e.target.value }))} placeholder="Precio por noche" />
-                <Input type="date" value={newRatePlanForm.validFrom} onChange={(e) => setNewRatePlanForm((c) => ({ ...c, validFrom: e.target.value }))} />
-                <Input type="date" value={newRatePlanForm.validTo} onChange={(e) => setNewRatePlanForm((c) => ({ ...c, validTo: e.target.value }))} />
-                <Input value={newRatePlanForm.discountPercentage} onChange={(e) => setNewRatePlanForm((c) => ({ ...c, discountPercentage: e.target.value }))} placeholder="Descuento %" />
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-slate-300">Nombre</label>
+                  <Input value={newRatePlanForm.name} onChange={(e) => setNewRatePlanForm((c) => ({ ...c, name: e.target.value }))} placeholder="Nombre" />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-slate-300">Precio por noche</label>
+                  <Input type="number" min={0} step="0.01" value={newRatePlanForm.pricePerNight} onChange={(e) => setNewRatePlanForm((c) => ({ ...c, pricePerNight: e.target.value }))} placeholder="Precio por noche" />
+                </div>
+                <AdminDateField
+                  label="Valido desde"
+                  value={newRatePlanForm.validFrom}
+                  onChange={(value) =>
+                    setNewRatePlanForm((c) => ({ ...c, validFrom: value }))
+                  }
+                />
+                <AdminDateField
+                  label="Valido hasta"
+                  value={newRatePlanForm.validTo}
+                  onChange={(value) =>
+                    setNewRatePlanForm((c) => ({ ...c, validTo: value }))
+                  }
+                />
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-slate-300">Descuento %</label>
+                  <Input value={newRatePlanForm.discountPercentage} onChange={(e) => setNewRatePlanForm((c) => ({ ...c, discountPercentage: e.target.value }))} placeholder="Descuento %" />
+                </div>
                 <label className="flex items-center gap-2 text-sm text-slate-300">
                   <input checked={newRatePlanForm.isActive} onChange={(e) => setNewRatePlanForm((c) => ({ ...c, isActive: e.target.checked }))} type="checkbox" />
                   Activo
                 </label>
-                <textarea className="min-h-20 rounded-lg border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 sm:col-span-2" value={newRatePlanForm.description} onChange={(e) => setNewRatePlanForm((c) => ({ ...c, description: e.target.value }))} placeholder="Descripcion" />
+                <div className="space-y-1.5 sm:col-span-2">
+                  <label className="text-sm font-medium text-slate-300">Descripcion</label>
+                  <textarea className="min-h-20 rounded-lg border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 sm:col-span-2" value={newRatePlanForm.description} onChange={(e) => setNewRatePlanForm((c) => ({ ...c, description: e.target.value }))} placeholder="Descripcion" />
+                </div>
               </form>
               <DialogFooter>
                 <Button variant="outline" type="button" onClick={() => setAddRatePlanOpen(false)}>
@@ -356,7 +386,7 @@ export function AdminRoomTypeEditor({
       <Dialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
         <DialogContent className="dark border-white/10 bg-slate-900 text-slate-100 sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-slate-100">Eliminar tipo de habitacion</DialogTitle>
+            <DialogTitle className="text-slate-100">Eliminar tipo de habitación</DialogTitle>
             <DialogDescription className="text-slate-400">
               ¿Confirmas que deseas eliminar{" "}
               <span className="font-semibold text-slate-200">{roomType.name}</span>?

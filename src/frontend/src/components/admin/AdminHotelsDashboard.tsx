@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { memo, useState } from "react";
 import {
   ArrowDown,
   ArrowUp,
@@ -10,6 +10,7 @@ import {
   ChevronRight,
   Mail,
   MapPin,
+  Phone,
   Plus,
   Search,
   Star,
@@ -66,10 +67,104 @@ const emptyForm: CreateHotelFormState = {
   starRating: "4",
 };
 
-type SortField = "name" | "starRating" | "city" | "country";
-type StatusFilter = "all" | "active" | "inactive";
+export type SortField = "name" | "starRating" | "city" | "country";
+export type StatusFilter = "all" | "active" | "inactive";
 
-const PAGE_SIZE = 8;
+export type AdminHotelsParams = {
+  search: string;
+  statusFilter: StatusFilter;
+  sortField: SortField;
+  sortDir: "asc" | "desc";
+  page: number;
+};
+
+function AdminHotelsToolbar({
+  params,
+  onParamsChange,
+  onCreateHotel,
+}: {
+  params: AdminHotelsParams;
+  onParamsChange: (patch: Partial<AdminHotelsParams>) => void;
+  onCreateHotel: () => void;
+}) {
+  const [searchInput, setSearchInput] = useState(params.search);
+  const hasFilters = params.search.trim() !== "" || params.statusFilter !== "all";
+
+  function submitSearch() {
+    onParamsChange({ search: searchInput.trim(), page: 1 });
+  }
+
+  function clearFilters() {
+    setSearchInput("");
+    onParamsChange({ search: "", statusFilter: "all", page: 1 });
+  }
+
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-1.5">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <Input
+              className="h-9 w-56 pl-9 text-sm"
+              placeholder="Nombre, ciudad o pais..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && submitSearch()}
+            />
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="h-9 border-white/10 text-slate-300 hover:bg-white/8 hover:text-slate-100"
+            onClick={submitSearch}
+          >
+            Buscar
+          </Button>
+        </div>
+
+        <div className="flex overflow-hidden rounded-lg border border-white/10 text-xs font-medium">
+          {(["all", "active", "inactive"] as const).map((status) => (
+            <button
+              key={status}
+              type="button"
+              onClick={() => onParamsChange({ statusFilter: status, page: 1 })}
+              className={cn(
+                "px-3 py-1.5 transition",
+                params.statusFilter === status
+                  ? "bg-amber-400 text-slate-950"
+                  : "text-slate-300 hover:bg-white/8 hover:text-slate-100",
+              )}
+            >
+              {status === "all"
+                ? "Todos"
+                : status === "active"
+                  ? "Activos"
+                  : "Inactivos"}
+            </button>
+          ))}
+        </div>
+
+        {hasFilters && (
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-100"
+          >
+            <X className="h-3.5 w-3.5" />
+            Limpiar
+          </button>
+        )}
+      </div>
+
+      <Button onClick={onCreateHotel} className="shrink-0">
+        <Plus className="h-4 w-4" />
+        Crear hotel
+      </Button>
+    </div>
+  );
+}
 
 function HotelStarRating({ stars }: { stars: number }) {
   return (
@@ -84,12 +179,12 @@ function HotelStarRating({ stars }: { stars: number }) {
   );
 }
 
-function StarFilterControl({
+function StarPickerControl({
   value,
   onChange,
 }: {
-  value: number | null;
-  onChange: (v: number | null) => void;
+  value: number;
+  onChange: (v: number) => void;
 }) {
   return (
     <div className="flex items-center gap-0.5">
@@ -97,241 +192,216 @@ function StarFilterControl({
         <button
           key={star}
           type="button"
-          onClick={() => onChange(value === star ? null : star)}
+          onClick={() => onChange(star)}
           aria-label={`${star} estrella${star !== 1 ? "s" : ""}`}
-          aria-pressed={value !== null && star <= value}
+          aria-pressed={star <= value}
           className="focus:outline-none"
         >
           <Star
             className={cn(
-              "h-5 w-5 transition-colors",
-              value !== null && star <= value
+              "h-6 w-6 transition-colors",
+              star <= value
                 ? "fill-amber-400 text-amber-400"
                 : "fill-transparent text-slate-600 hover:text-amber-400",
             )}
           />
         </button>
       ))}
-      {value !== null && (
-        <button
-          type="button"
-          onClick={() => onChange(null)}
-          className="ml-1 text-slate-400 hover:text-slate-100"
-          aria-label="Limpiar estrellas"
-        >
-          <X className="h-3.5 w-3.5" />
-        </button>
-      )}
     </div>
   );
 }
 
-export function AdminHotelsDashboard({
-  initialHotels,
+function CreateHotelDialog({
+  open,
+  isSubmitting,
+  onOpenChange,
+  onSubmit,
 }: {
-  initialHotels: HotelDto[];
+  open: boolean;
+  isSubmitting: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSubmit: (form: CreateHotelFormState) => Promise<void>;
 }) {
-  const router = useRouter();
-  const [hotels, setHotels] = useState(initialHotels);
   const [form, setForm] = useState<CreateHotelFormState>(emptyForm);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [createOpen, setCreateOpen] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<HotelDto | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
 
-  const [search, setSearch] = useState("");
-  const [starFilter, setStarFilter] = useState<number | null>(null);
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
-  const [sortField, setSortField] = useState<SortField>("name");
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
-  const [page, setPage] = useState(1);
-
-  const filtered = useMemo(() => {
-    let result = hotels;
-
-    if (search.trim()) {
-      const q = search.trim().toLowerCase();
-      result = result.filter(
-        (h) =>
-          h.name?.toLowerCase().includes(q) ||
-          h.city?.toLowerCase().includes(q) ||
-          h.country?.toLowerCase().includes(q),
-      );
+  function handleOpenChange(nextOpen: boolean) {
+    if (!nextOpen) {
+      setForm(emptyForm);
     }
-
-    if (starFilter !== null) {
-      result = result.filter((h) => (h.starRating ?? 0) >= starFilter);
-    }
-
-    if (statusFilter === "active") {
-      result = result.filter((h) => h.isActive);
-    } else if (statusFilter === "inactive") {
-      result = result.filter((h) => !h.isActive);
-    }
-
-    return [...result].sort((a, b) => {
-      if (sortField === "starRating") {
-        const diff = (a.starRating ?? 0) - (b.starRating ?? 0);
-        return sortDir === "asc" ? diff : -diff;
-      }
-      const aVal = String(a[sortField] ?? "");
-      const bVal = String(b[sortField] ?? "");
-      const cmp = aVal.localeCompare(bVal);
-      return sortDir === "asc" ? cmp : -cmp;
-    });
-  }, [hotels, search, starFilter, statusFilter, sortField, sortDir]);
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const safePage = Math.min(page, totalPages);
-  const paginated = filtered.slice(
-    (safePage - 1) * PAGE_SIZE,
-    safePage * PAGE_SIZE,
-  );
-
-  const hasFilters =
-    search.trim() !== "" || starFilter !== null || statusFilter !== "all";
-
-  function clearFilters() {
-    setSearch("");
-    setStarFilter(null);
-    setStatusFilter("all");
-    setPage(1);
+    onOpenChange(nextOpen);
   }
 
-  function applyFilter(fn: () => void) {
-    fn();
-    setPage(1);
-  }
-
-  async function handleDeleteHotel() {
-    if (!deleteTarget) return;
-    setIsDeleting(true);
-    try {
-      await deleteAdminHotel(deleteTarget.hotelId!);
-      setHotels((current) => current.filter((h) => h.hotelId !== deleteTarget.hotelId));
-      setDeleteTarget(null);
-      toast.success("Hotel eliminado.");
-    } catch (error) {
-      handleApiError(error, "No se pudo eliminar el hotel.");
-    } finally {
-      setIsDeleting(false);
-    }
-  }
-
-  async function handleCreateHotel(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setIsSubmitting(true);
-    try {
-      const hotelId = await createAdminHotel({
-        name: form.name,
-        description: form.description,
-        address: form.address,
-        city: form.city,
-        country: form.country,
-        email: form.email,
-        phoneNumber: form.phoneNumber,
-        starRating: Number(form.starRating),
-      });
-
-      if (typeof hotelId === "number") {
-        setHotels((current) => [
-          ...current,
-          {
-            hotelId,
-            name: form.name,
-            description: form.description,
-            address: form.address,
-            city: form.city,
-            country: form.country,
-            email: form.email,
-            phoneNumber: form.phoneNumber,
-            starRating: Number(form.starRating),
-            isActive: true,
-          } as HotelDto,
-        ]);
-        setForm(emptyForm);
-        setCreateOpen(false);
-        toast.success("Hotel creado.");
-        router.push(`/admin/hotels/${hotelId}`);
-      }
-    } catch (error) {
-      handleApiError(error, "No se pudo crear el hotel.");
-    } finally {
-      setIsSubmitting(false);
-    }
+    await onSubmit(form);
   }
 
   return (
-    <div className="space-y-5">
-      {/* Toolbar: filters + create button */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="dark border-white/10 bg-slate-900 text-slate-100 sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="text-slate-100">Crear hotel</DialogTitle>
+        </DialogHeader>
+
+        <form id="create-hotel-form" className="space-y-3" onSubmit={handleSubmit}>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-slate-300">
+              Nombre <span className="text-red-400">*</span>
+            </label>
             <Input
-              className="h-9 w-64 pl-9 text-sm"
-              placeholder="Nombre, ciudad o pais..."
-              value={search}
-              onChange={(e) => applyFilter(() => setSearch(e.target.value))}
+              placeholder="Nombre del hotel"
+              value={form.name}
+              required
+              onChange={(e) => setForm((c) => ({ ...c, name: e.target.value }))}
             />
           </div>
-
-          <StarFilterControl
-            value={starFilter}
-            onChange={(v) => applyFilter(() => setStarFilter(v))}
-          />
-
-          <div className="flex overflow-hidden rounded-lg border border-white/10 text-xs font-medium">
-            {(["all", "active", "inactive"] as const).map((s) => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => applyFilter(() => setStatusFilter(s))}
-                className={cn(
-                  "px-3 py-1.5 transition",
-                  statusFilter === s
-                    ? "bg-amber-400 text-slate-950"
-                    : "text-slate-300 hover:bg-white/8 hover:text-slate-100",
-                )}
-              >
-                {s === "all"
-                  ? "Todos"
-                  : s === "active"
-                    ? "Activos"
-                    : "Inactivos"}
-              </button>
-            ))}
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-slate-300">
+              Descripcion <span className="text-red-400">*</span>
+            </label>
+            <textarea
+              className="min-h-20 w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+              placeholder="Descripcion del hotel"
+              value={form.description}
+              required
+              onChange={(e) =>
+                setForm((c) => ({ ...c, description: e.target.value }))
+              }
+            />
           </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-slate-300">
+              Direccion <span className="text-red-400">*</span>
+            </label>
+            <Input
+              placeholder="Direccion"
+              value={form.address}
+              required
+              onChange={(e) => setForm((c) => ({ ...c, address: e.target.value }))}
+            />
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-slate-300">
+                Ciudad <span className="text-red-400">*</span>
+              </label>
+              <Input
+                placeholder="Ciudad"
+                value={form.city}
+                required
+                onChange={(e) => setForm((c) => ({ ...c, city: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-slate-300">
+                Pais <span className="text-red-400">*</span>
+              </label>
+              <Input
+                placeholder="Pais"
+                value={form.country}
+                required
+                onChange={(e) =>
+                  setForm((c) => ({ ...c, country: e.target.value }))
+                }
+              />
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-slate-300">
+                Correo <span className="text-red-400">*</span>
+              </label>
+              <Input
+                placeholder="correo@hotel.com"
+                type="email"
+                value={form.email}
+                required
+                onChange={(e) => setForm((c) => ({ ...c, email: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-slate-300">
+                Telefono <span className="text-red-400">*</span>
+              </label>
+              <Input
+                placeholder="+503 0000-0000"
+                value={form.phoneNumber}
+                required
+                onChange={(e) =>
+                  setForm((c) => ({ ...c, phoneNumber: e.target.value }))
+                }
+              />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-slate-300">
+              Categoria (estrellas) <span className="text-red-400">*</span>
+            </label>
+            <StarPickerControl
+              value={Number(form.starRating)}
+              onChange={(v) => setForm((c) => ({ ...c, starRating: String(v) }))}
+            />
+          </div>
+        </form>
 
-          {hasFilters && (
-            <button
-              type="button"
-              onClick={clearFilters}
-              className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-100"
-            >
-              <X className="h-3.5 w-3.5" />
-              Limpiar
-            </button>
-          )}
-        </div>
+        <DialogFooter className="border-white/10 bg-transparent">
+          <Button
+            variant="outline"
+            onClick={() => handleOpenChange(false)}
+            type="button"
+          >
+            Cancelar
+          </Button>
+          <Button form="create-hotel-form" type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Creando..." : "Crear y gestionar"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
-        <Button onClick={() => setCreateOpen(true)} className="shrink-0">
-          <Plus className="h-4 w-4" />
-          Crear hotel
-        </Button>
-      </div>
+const HotelsResults = memo(function HotelsResults({
+  hotels,
+  totalRecords,
+  totalPages,
+  params,
+  isLoading,
+  hasFilters,
+  onParamsChange,
+  onCreateHotel,
+  onDeleteHotel,
+}: {
+  hotels: HotelDto[];
+  totalRecords: number;
+  totalPages: number;
+  params: AdminHotelsParams;
+  isLoading: boolean;
+  hasFilters: boolean;
+  onParamsChange: (patch: Partial<AdminHotelsParams>) => void;
+  onCreateHotel: () => void;
+  onDeleteHotel: (hotel: HotelDto) => void;
+}) {
+  const router = useRouter();
 
-      {/* Count + sort */}
+  function clearFilters() {
+    onParamsChange({ search: "", statusFilter: "all", page: 1 });
+  }
+
+  return (
+    <>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-slate-400">
-          {filtered.length} hotel{filtered.length !== 1 ? "es" : ""}
+          {totalRecords} hotel{totalRecords !== 1 ? "es" : ""}
           {hasFilters ? " encontrados" : " registrados"}
         </p>
         <div className="flex items-center gap-2">
           <span className="text-xs text-slate-400">Ordenar por</span>
           <Select
-            value={sortField}
-            onValueChange={(v) => applyFilter(() => setSortField(v as SortField))}
+            value={params.sortField}
+            onValueChange={(v) =>
+              onParamsChange({ sortField: v as SortField, page: 1 })
+            }
           >
             <SelectTrigger className="h-8 w-36 text-sm">
               <SelectValue />
@@ -347,12 +417,19 @@ export function AdminHotelsDashboard({
             variant="outline"
             size="icon"
             className="h-8 w-8"
-            onClick={() => applyFilter(() => setSortDir((d) => (d === "asc" ? "desc" : "asc")))}
+            onClick={() =>
+              onParamsChange({
+                sortDir: params.sortDir === "asc" ? "desc" : "asc",
+                page: 1,
+              })
+            }
             aria-label={
-              sortDir === "asc" ? "Orden ascendente" : "Orden descendente"
+              params.sortDir === "asc"
+                ? "Orden ascendente"
+                : "Orden descendente"
             }
           >
-            {sortDir === "asc" ? (
+            {params.sortDir === "asc" ? (
               <ArrowUp className="h-4 w-4" />
             ) : (
               <ArrowDown className="h-4 w-4" />
@@ -361,102 +438,238 @@ export function AdminHotelsDashboard({
         </div>
       </div>
 
-      {/* Hotel list */}
-      {filtered.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 py-20 text-slate-400">
-          <Building2 className="h-10 w-10 opacity-30" />
-          <p className="text-base font-medium">No se encontraron hoteles</p>
-          {hasFilters && (
-            <p className="text-sm">Intenta con otros filtros</p>
-          )}
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {paginated.map((hotel) => (
-            <Card
-              key={hotel.hotelId}
-              className="cursor-pointer border-white/10 bg-white/5 text-slate-100 transition hover:border-white/20 hover:bg-white/8"
-              onClick={() => router.push(`/admin/hotels/${hotel.hotelId}`)}
-            >
-              <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
-                <div className="min-w-0 space-y-1.5">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Building2 className="h-4 w-4 shrink-0 text-slate-400" />
-                    <h3 className="text-base font-semibold text-slate-100">
-                      {hotel.name}
-                    </h3>
-                    <HotelStarRating stars={hotel.starRating ?? 0} />
-                    <Badge variant={hotel.isActive ? "secondary" : "outline"}>
-                      {hotel.isActive ? "Activo" : "Inactivo"}
-                    </Badge>
-                  </div>
-                  <p className="line-clamp-2 text-sm text-slate-400">
-                    {hotel.description}
-                  </p>
-                  <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400">
-                    <span className="inline-flex items-center gap-1.5">
-                      <MapPin className="h-3.5 w-3.5 shrink-0" />
-                      {hotel.city}, {hotel.country}
-                    </span>
-                    {hotel.email && (
+      <div
+        className={cn(
+          "transition-opacity duration-150",
+          isLoading && "pointer-events-none opacity-50",
+        )}
+      >
+        {hotels.length === 0 ? (
+          <div className="flex flex-col items-center gap-4 rounded-2xl border border-white/10 bg-white/5 py-20 text-center">
+            <span className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-white/5">
+              <Building2 className="h-8 w-8 text-slate-500" />
+            </span>
+            <div>
+              <p className="text-base font-semibold text-slate-300">
+                No se encontraron hoteles
+              </p>
+              <p className="mt-1 text-sm text-slate-500">
+                {hasFilters
+                  ? "Intenta ajustar los filtros de busqueda."
+                  : "Crea tu primer hotel para comenzar."}
+              </p>
+            </div>
+            {!hasFilters && (
+              <Button onClick={onCreateHotel} size="sm">
+                <Plus className="h-4 w-4" />
+                Crear hotel
+              </Button>
+            )}
+            {hasFilters && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="text-sm text-amber-400 transition-colors hover:text-amber-300"
+              >
+                Limpiar filtros
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {hotels.map((hotel) => (
+              <Card
+                key={hotel.hotelId}
+                className="cursor-pointer border-white/10 bg-white/5 text-slate-100 transition hover:border-white/20 hover:bg-white/8"
+                onClick={() => router.push(`/admin/hotels/${hotel.hotelId}`)}
+              >
+                <CardContent className="flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0 space-y-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Building2 className="h-4 w-4 shrink-0 text-slate-400" />
+                      <h3 className="text-sm font-semibold text-slate-100">
+                        {hotel.name}
+                      </h3>
+                      <HotelStarRating stars={hotel.starRating ?? 0} />
+                      <Badge variant={hotel.isActive ? "secondary" : "outline"}>
+                        {hotel.isActive ? "Activo" : "Inactivo"}
+                      </Badge>
+                    </div>
+                    <p className="line-clamp-1 text-xs text-slate-400">
+                      {hotel.description}
+                    </p>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-400">
                       <span className="inline-flex items-center gap-1.5">
-                        <Mail className="h-3.5 w-3.5 shrink-0" />
-                        {hotel.email}
+                        <MapPin className="h-3.5 w-3.5 shrink-0" />
+                        {hotel.city}, {hotel.country}
                       </span>
-                    )}
+                      {hotel.email && (
+                        <span className="inline-flex items-center gap-1.5">
+                          <Mail className="h-3.5 w-3.5 shrink-0" />
+                          {hotel.email}
+                        </span>
+                      )}
+                      {hotel.phoneNumber && (
+                        <span className="inline-flex items-center gap-1.5">
+                          <Phone className="h-3.5 w-3.5 shrink-0" />
+                          {hotel.phoneNumber}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="shrink-0 border-red-400/20 text-red-400 hover:border-red-400/40 hover:bg-red-400/10 hover:text-red-300"
-                  onClick={(e) => { e.stopPropagation(); setDeleteTarget(hotel); }}
-                  aria-label="Eliminar hotel"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="shrink-0 border-red-400/20 text-red-400 hover:border-red-400/40 hover:bg-red-400/10 hover:text-red-300"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDeleteHotel(hotel);
+                    }}
+                    aria-label="Eliminar hotel"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
 
-      {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2">
+        <div className="flex items-center justify-center gap-3">
           <Button
             variant="outline"
-            size="sm"
-            disabled={safePage === 1}
-            onClick={() => setPage((p) => p - 1)}
+            size="icon"
+            className="h-8 w-8"
+            disabled={params.page <= 1 || isLoading}
+            onClick={() => onParamsChange({ page: params.page - 1 })}
+            aria-label="Pagina anterior"
           >
-            <ChevronLeft className="h-3.5 w-3.5" />
-            Anterior
+            <ChevronLeft className="h-4 w-4" />
           </Button>
-          <span className="text-sm text-slate-400">
-            {safePage} / {totalPages}
+          <span className="min-w-28 text-center text-sm text-slate-400">
+            Pagina <span className="font-medium text-slate-200">{params.page}</span>{" "}
+            de <span className="font-medium text-slate-200">{totalPages}</span>
           </span>
           <Button
             variant="outline"
-            size="sm"
-            disabled={safePage === totalPages}
-            onClick={() => setPage((p) => p + 1)}
+            size="icon"
+            className="h-8 w-8"
+            disabled={params.page >= totalPages || isLoading}
+            onClick={() => onParamsChange({ page: params.page + 1 })}
+            aria-label="Pagina siguiente"
           >
-            Siguiente
-            <ChevronRight className="h-3.5 w-3.5" />
+            <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
       )}
+    </>
+  );
+});
 
-      {/* Delete confirmation dialog */}
-      <Dialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
+export function AdminHotelsDashboard({
+  hotels,
+  totalRecords,
+  totalPages,
+  params,
+  isLoading,
+  onParamsChange,
+  onRefetch,
+}: {
+  hotels: HotelDto[];
+  totalRecords: number;
+  totalPages: number;
+  params: AdminHotelsParams;
+  isLoading: boolean;
+  onParamsChange: (patch: Partial<AdminHotelsParams>) => void;
+  onRefetch: () => void;
+}) {
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<HotelDto | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const hasFilters = params.search.trim() !== "" || params.statusFilter !== "all";
+
+  async function handleDeleteHotel() {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      await deleteAdminHotel(deleteTarget.hotelId!);
+      setDeleteTarget(null);
+      toast.success("Hotel eliminado.");
+      onRefetch();
+    } catch (error) {
+      handleApiError(error, "No se pudo eliminar el hotel.");
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
+  async function handleCreateHotel(form: CreateHotelFormState) {
+    setIsSubmitting(true);
+    try {
+      const hotelId = await createAdminHotel({
+        name: form.name,
+        description: form.description,
+        address: form.address,
+        city: form.city,
+        country: form.country,
+        email: form.email,
+        phoneNumber: form.phoneNumber,
+        starRating: Number(form.starRating),
+      });
+
+      if (typeof hotelId === "number") {
+        setCreateOpen(false);
+        toast.success("Hotel creado.");
+        router.push(`/admin/hotels/${hotelId}`);
+      }
+    } catch (error) {
+      handleApiError(error, "No se pudo crear el hotel.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="space-y-5">
+      <AdminHotelsToolbar
+        key={params.search}
+        params={params}
+        onParamsChange={onParamsChange}
+        onCreateHotel={() => setCreateOpen(true)}
+      />
+
+      <HotelsResults
+        hotels={hotels}
+        totalRecords={totalRecords}
+        totalPages={totalPages}
+        params={params}
+        isLoading={isLoading}
+        hasFilters={hasFilters}
+        onParamsChange={onParamsChange}
+        onCreateHotel={() => setCreateOpen(true)}
+        onDeleteHotel={setDeleteTarget}
+      />
+
+      <Dialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+      >
         <DialogContent className="dark border-white/10 bg-slate-900 text-slate-100 sm:max-w-sm">
           <DialogHeader>
             <DialogTitle className="text-slate-100">Eliminar hotel</DialogTitle>
             <DialogDescription className="text-slate-400">
-              ¿Confirmas que deseas eliminar{" "}
-              <span className="font-semibold text-slate-200">{deleteTarget?.name}</span>?
-              Esta acción no se puede deshacer.
+              Confirmas que deseas eliminar{" "}
+              <span className="font-semibold text-slate-200">
+                {deleteTarget?.name}
+              </span>
+              ? Esta accion no se puede deshacer.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -479,107 +692,12 @@ export function AdminHotelsDashboard({
         </DialogContent>
       </Dialog>
 
-      {/* Create hotel dialog */}
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="dark border-white/10 bg-slate-900 text-slate-100 sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="text-slate-100">Crear hotel</DialogTitle>
-          </DialogHeader>
-
-          <form
-            id="create-hotel-form"
-            className="space-y-3"
-            onSubmit={handleCreateHotel}
-          >
-            <Input
-              placeholder="Nombre"
-              value={form.name}
-              onChange={(e) =>
-                setForm((c) => ({ ...c, name: e.target.value }))
-              }
-            />
-            <textarea
-              className="min-h-20 w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-              placeholder="Descripcion"
-              value={form.description}
-              onChange={(e) =>
-                setForm((c) => ({ ...c, description: e.target.value }))
-              }
-            />
-            <Input
-              placeholder="Direccion"
-              value={form.address}
-              onChange={(e) =>
-                setForm((c) => ({ ...c, address: e.target.value }))
-              }
-            />
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Input
-                placeholder="Ciudad"
-                value={form.city}
-                onChange={(e) =>
-                  setForm((c) => ({ ...c, city: e.target.value }))
-                }
-              />
-              <Input
-                placeholder="Pais"
-                value={form.country}
-                onChange={(e) =>
-                  setForm((c) => ({ ...c, country: e.target.value }))
-                }
-              />
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Input
-                placeholder="Correo"
-                type="email"
-                value={form.email}
-                onChange={(e) =>
-                  setForm((c) => ({ ...c, email: e.target.value }))
-                }
-              />
-              <Input
-                placeholder="Telefono"
-                value={form.phoneNumber}
-                onChange={(e) =>
-                  setForm((c) => ({ ...c, phoneNumber: e.target.value }))
-                }
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-slate-300">Categoria (estrellas)</label>
-              <Input
-                placeholder="1 - 5"
-                type="number"
-                min={1}
-                max={5}
-                value={form.starRating}
-                onChange={(e) =>
-                  setForm((c) => ({ ...c, starRating: e.target.value }))
-                }
-              />
-            </div>
-
-          </form>
-
-          <DialogFooter className="border-white/10 bg-transparent">
-            <Button
-              variant="outline"
-              onClick={() => setCreateOpen(false)}
-              type="button"
-            >
-              Cancelar
-            </Button>
-            <Button
-              form="create-hotel-form"
-              type="submit"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Creando..." : "Crear y gestionar"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <CreateHotelDialog
+        open={createOpen}
+        isSubmitting={isSubmitting}
+        onOpenChange={setCreateOpen}
+        onSubmit={handleCreateHotel}
+      />
     </div>
   );
 }

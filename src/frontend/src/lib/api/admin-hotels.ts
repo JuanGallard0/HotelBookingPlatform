@@ -81,24 +81,35 @@ export function isAdminAccessError(error: unknown) {
   return error instanceof SwaggerException && (error.status === 401 || error.status === 403);
 }
 
-export async function getAdminHotels(accessToken?: string) {
+export type AdminHotelsQuery = {
+  search?: string;
+  isActive?: boolean;
+  page?: number;
+  pageSize?: number;
+  sortBy?: string;
+  sortDirection?: string;
+};
+
+export async function getAdminHotels(query: AdminHotelsQuery = {}, accessToken?: string) {
   const response = await makeHotelsClient(accessToken).list(
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    1,
-    100,
-    "Name",
-    "asc",
+    query.search || undefined,
+    query.isActive,
+    query.page ?? 1,
+    query.pageSize ?? 10,
+    query.sortBy ?? "Name",
+    query.sortDirection ?? "asc",
   );
 
   if (!response.success || !response.data) {
     throw response;
   }
 
-  return (response.data.data ?? []) as HotelDto[];
+  return {
+    hotels: (response.data.data ?? []) as HotelDto[],
+    totalRecords: response.data.totalRecords ?? 0,
+    totalPages: response.data.totalPages ?? 1,
+    pageNumber: response.data.pageNumber ?? 1,
+  };
 }
 
 export async function getAdminHotelDetails(
