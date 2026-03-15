@@ -143,7 +143,7 @@ export function AdminChrome({ children }: { children: ReactNode }) {
               </SheetTrigger>
               <SheetContent
                 side="left"
-                className="w-[22rem] border-white/10 bg-slate-950 p-0 text-slate-100"
+                className="w-88 border-white/10 bg-slate-950 p-0 text-slate-100"
               >
                 <SheetHeader className="border-b border-white/10 bg-slate-950 px-5 py-5">
                   <SheetTitle className="flex items-center gap-3 text-slate-100">
@@ -290,10 +290,16 @@ export function AdminChrome({ children }: { children: ReactNode }) {
             </p>
           </div>
           <div className="flex items-center gap-4 text-slate-500">
-            <Link href="/admin/hotels" className="hover:text-slate-300 transition-colors">
+            <Link
+              href="/admin/hotels"
+              className="hover:text-slate-300 transition-colors"
+            >
               Hoteles
             </Link>
-            <Link href="/admin/logs" className="hover:text-slate-300 transition-colors">
+            <Link
+              href="/admin/logs"
+              className="hover:text-slate-300 transition-colors"
+            >
               Logs
             </Link>
             <Link href="/" className="hover:text-slate-300 transition-colors">

@@ -345,7 +345,7 @@ function LogRecord({ log }: { log: AuditLogDto }) {
           <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">
             Additional Info
           </p>
-          <pre className="overflow-x-auto whitespace-pre-wrap break-words font-mono text-xs text-slate-300">
+          <pre className="overflow-x-auto whitespace-pre-wrap wrap-break-word font-mono text-xs text-slate-300">
             {log.additionalInfo || "Sin datos"}
           </pre>
         </div>
@@ -353,7 +353,7 @@ function LogRecord({ log }: { log: AuditLogDto }) {
           <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">
             Old Values
           </p>
-          <pre className="overflow-x-auto whitespace-pre-wrap break-words font-mono text-xs text-slate-300">
+          <pre className="overflow-x-auto whitespace-pre-wrap wrap-break-word font-mono text-xs text-slate-300">
             {log.oldValues || "Sin datos"}
           </pre>
         </div>
@@ -361,7 +361,7 @@ function LogRecord({ log }: { log: AuditLogDto }) {
           <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">
             New Values
           </p>
-          <pre className="overflow-x-auto whitespace-pre-wrap break-words font-mono text-xs text-slate-300">
+          <pre className="overflow-x-auto whitespace-pre-wrap wrap-break-word font-mono text-xs text-slate-300">
             {log.newValues || "Sin datos"}
           </pre>
         </div>
