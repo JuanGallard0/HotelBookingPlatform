@@ -1,12 +1,12 @@
 using System.Text;
-using HotelBookingPlatform.Application.Bookings.Jobs;
-using HotelBookingPlatform.Application.Common.Interfaces;
 using HotelBookingPlatform.Application.AuditLogs.Queries;
+using HotelBookingPlatform.Application.Bookings.Jobs;
 using HotelBookingPlatform.Application.Bookings.Queries;
+using HotelBookingPlatform.Application.Common.Interfaces;
 using HotelBookingPlatform.Application.Hotels.Queries;
 using HotelBookingPlatform.Domain.Enums;
-using HotelBookingPlatform.Infrastructure.Authentication;
 using HotelBookingPlatform.Infrastructure.Auditing;
+using HotelBookingPlatform.Infrastructure.Authentication;
 using HotelBookingPlatform.Infrastructure.Bookings;
 using HotelBookingPlatform.Infrastructure.Data;
 using HotelBookingPlatform.Infrastructure.Data.Interceptors;

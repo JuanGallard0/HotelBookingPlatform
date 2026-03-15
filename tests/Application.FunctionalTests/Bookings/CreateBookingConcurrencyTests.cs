@@ -1,10 +1,10 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using HotelBookingPlatform.Api.Infrastructure;
 using HotelBookingPlatform.Application.Auth.Commands.RegisterUser;
 using HotelBookingPlatform.Application.Auth.Common;
 using HotelBookingPlatform.Application.Bookings.Commands.CreateBooking;
-using HotelBookingPlatform.Api.Infrastructure;
 using HotelBookingPlatform.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Shouldly;

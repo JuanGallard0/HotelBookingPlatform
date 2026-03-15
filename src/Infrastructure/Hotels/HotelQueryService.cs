@@ -372,12 +372,12 @@ public sealed class HotelQueryService(IDbConnectionFactory connectionFactory) : 
     private static readonly IReadOnlyDictionary<string, string> GetHotelsSortColumns =
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
-            ["HotelId"]    = "h.Id",
-            ["Name"]       = "h.Name",
-            ["City"]       = "h.City",
-            ["Country"]    = "h.Country",
+            ["HotelId"] = "h.Id",
+            ["Name"] = "h.Name",
+            ["City"] = "h.City",
+            ["Country"] = "h.Country",
             ["StarRating"] = "h.StarRating",
-            ["IsActive"]   = "h.IsActive",
+            ["IsActive"] = "h.IsActive",
         };
 
     public async Task<HotelDetailsDto?> GetHotelDetailsAsync(

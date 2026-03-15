@@ -10,12 +10,12 @@ public sealed class AuditLogQueryService(IDbConnectionFactory connectionFactory)
     private static readonly IReadOnlyDictionary<string, string> SortColumnExpressions =
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
-            ["Id"]         = "al.Id",
+            ["Id"] = "al.Id",
             ["EntityName"] = "al.EntityName",
-            ["EntityId"]   = "al.EntityId",
-            ["Action"]     = "al.Action",
-            ["UserName"]   = "al.UserName",
-            ["Timestamp"]  = "al.Timestamp",
+            ["EntityId"] = "al.EntityId",
+            ["Action"] = "al.Action",
+            ["UserName"] = "al.UserName",
+            ["Timestamp"] = "al.Timestamp",
         };
 
     public async Task<(IReadOnlyList<AuditLogDto> Logs, int TotalCount)> GetAuditLogsAsync(

@@ -1,8 +1,8 @@
+using System.Text.Json;
 using HotelBookingPlatform.Application.Common.Interfaces;
 using HotelBookingPlatform.Application.Common.Models;
 using HotelBookingPlatform.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json;
 
 namespace HotelBookingPlatform.Infrastructure.Idempotency;
 

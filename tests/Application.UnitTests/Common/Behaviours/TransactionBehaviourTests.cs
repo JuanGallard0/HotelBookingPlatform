@@ -171,11 +171,11 @@ namespace HotelBookingPlatform.Application.UnitTests.Common.Behaviours
             var behaviour = new TransactionBehaviour<FakeCommand, Result>(_unitOfWork.Object);
             var result = errorType switch
             {
-                "Conflict"             => Result.Conflict("c"),
-                "Unauthorized"         => Result.Unauthorized(),
-                "Forbidden"            => Result.Forbidden(),
-                "UnprocessableEntity"  => Result.UnprocessableEntity("u"),
-                _                      => throw new ArgumentOutOfRangeException()
+                "Conflict" => Result.Conflict("c"),
+                "Unauthorized" => Result.Unauthorized(),
+                "Forbidden" => Result.Forbidden(),
+                "UnprocessableEntity" => Result.UnprocessableEntity("u"),
+                _ => throw new ArgumentOutOfRangeException()
             };
 
             await behaviour.Handle(new FakeCommand(), _ => Task.FromResult(result), CancellationToken.None);

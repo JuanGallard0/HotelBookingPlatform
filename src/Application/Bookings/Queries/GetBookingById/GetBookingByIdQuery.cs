@@ -1,4 +1,3 @@
-using HotelBookingPlatform.Application.Bookings.Queries;
 using HotelBookingPlatform.Application.Common.Interfaces;
 using HotelBookingPlatform.Application.Common.Models;
 

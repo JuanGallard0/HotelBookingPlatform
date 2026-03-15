@@ -1,9 +1,9 @@
 using HotelBookingPlatform.Application.Hotels.Queries.GetAvailableHotels;
 using HotelBookingPlatform.Application.Hotels.Queries.GetHotelAvailability;
+using HotelBookingPlatform.Application.Hotels.Queries.GetHotelById;
 using HotelBookingPlatform.Application.Hotels.Queries.GetHotelDetails;
 using HotelBookingPlatform.Application.Hotels.Queries.GetHotelInventory;
 using HotelBookingPlatform.Application.Hotels.Queries.GetHotels;
-using HotelBookingPlatform.Application.Hotels.Queries.GetHotelById;
 
 namespace HotelBookingPlatform.Application.Hotels.Queries;
 

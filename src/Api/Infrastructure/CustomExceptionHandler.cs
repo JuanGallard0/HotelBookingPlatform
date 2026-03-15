@@ -3,7 +3,6 @@ using HotelBookingPlatform.Application.Common.Models;
 using HotelBookingPlatform.Domain.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace HotelBookingPlatform.Api.Infrastructure;
 

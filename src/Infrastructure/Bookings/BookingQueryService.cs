@@ -12,12 +12,12 @@ public sealed class BookingQueryService(IDbConnectionFactory connectionFactory) 
     private static readonly IReadOnlyDictionary<string, string> SortColumnExpressions =
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
-            ["BookingId"]   = "b.Id",
-            ["CheckIn"]     = "b.CheckInDate",
-            ["CheckOut"]    = "b.CheckOutDate",
+            ["BookingId"] = "b.Id",
+            ["CheckIn"] = "b.CheckInDate",
+            ["CheckOut"] = "b.CheckOutDate",
             ["TotalAmount"] = "b.TotalAmount",
-            ["Status"]      = "b.Status",
-            ["CreatedAt"]   = "b.Created",
+            ["Status"] = "b.Status",
+            ["CreatedAt"] = "b.Created",
         };
 
     public async Task<(IReadOnlyList<UserBookingDto> Bookings, int TotalCount)> GetUserBookingsAsync(
@@ -100,22 +100,22 @@ public sealed class BookingQueryService(IDbConnectionFactory connectionFactory) 
         var bookings = rows
             .Select(r => new UserBookingDto
             {
-                BookingId          = r.BookingId,
-                BookingNumber      = r.BookingNumber,
-                HotelName          = r.HotelName,
-                RoomTypeName       = r.RoomTypeName,
-                Status             = (BookingStatus)r.Status,
-                CheckIn            = DateOnly.FromDateTime(r.CheckIn),
-                CheckOut           = DateOnly.FromDateTime(r.CheckOut),
-                Nights             = r.Nights,
-                NumberOfRooms      = r.NumberOfRooms,
-                NumberOfGuests     = r.NumberOfGuests,
-                TotalAmount        = r.TotalAmount,
-                SpecialRequests    = r.SpecialRequests,
-                ConfirmedAt        = r.ConfirmedAt,
-                CancelledAt        = r.CancelledAt,
+                BookingId = r.BookingId,
+                BookingNumber = r.BookingNumber,
+                HotelName = r.HotelName,
+                RoomTypeName = r.RoomTypeName,
+                Status = (BookingStatus)r.Status,
+                CheckIn = DateOnly.FromDateTime(r.CheckIn),
+                CheckOut = DateOnly.FromDateTime(r.CheckOut),
+                Nights = r.Nights,
+                NumberOfRooms = r.NumberOfRooms,
+                NumberOfGuests = r.NumberOfGuests,
+                TotalAmount = r.TotalAmount,
+                SpecialRequests = r.SpecialRequests,
+                ConfirmedAt = r.ConfirmedAt,
+                CancelledAt = r.CancelledAt,
                 CancellationReason = r.CancellationReason,
-                CreatedAt          = r.CreatedAt,
+                CreatedAt = r.CreatedAt,
             })
             .ToList();
 

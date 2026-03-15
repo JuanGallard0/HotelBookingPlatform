@@ -1,5 +1,3 @@
-using FluentValidation;
-
 namespace HotelBookingPlatform.Application.Bookings.Queries.GetBookingById;
 
 public sealed class GetBookingByIdQueryValidator : AbstractValidator<GetBookingByIdQuery>

@@ -6,7 +6,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
-using Shouldly;
 
 namespace HotelBookingPlatform.Application.UnitTests.Bookings.Jobs;
 

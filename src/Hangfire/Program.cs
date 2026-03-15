@@ -1,9 +1,7 @@
 using Hangfire;
 using Hangfire.SqlServer;
-using HotelBookingPlatform.Application.Bookings.Jobs;
-using HotelBookingPlatform.Infrastructure.Bookings;
-using HotelBookingPlatform.Infrastructure.Data;
 using HotelBookingPlatform.Hangfire;
+using HotelBookingPlatform.Infrastructure.Data;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);

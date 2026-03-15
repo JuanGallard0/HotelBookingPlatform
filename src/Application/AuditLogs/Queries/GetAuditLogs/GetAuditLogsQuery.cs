@@ -1,4 +1,3 @@
-using HotelBookingPlatform.Application.AuditLogs.Queries;
 using HotelBookingPlatform.Application.Common.Models;
 
 namespace HotelBookingPlatform.Application.AuditLogs.Queries.GetAuditLogs;

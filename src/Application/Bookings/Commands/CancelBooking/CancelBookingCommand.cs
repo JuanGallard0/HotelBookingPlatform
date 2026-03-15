@@ -1,9 +1,9 @@
+using System.Diagnostics;
+using System.Text.Json;
 using HotelBookingPlatform.Application.Common.Interfaces;
 using HotelBookingPlatform.Application.Common.Models;
 using HotelBookingPlatform.Domain.Entities;
 using HotelBookingPlatform.Domain.Exceptions;
-using System.Diagnostics;
-using System.Text.Json;
 
 namespace HotelBookingPlatform.Application.Bookings.Commands.CancelBooking;
 

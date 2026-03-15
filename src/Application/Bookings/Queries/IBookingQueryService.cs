@@ -1,5 +1,5 @@
-using HotelBookingPlatform.Application.Bookings.Queries.GetUserBookings;
 using HotelBookingPlatform.Application.Bookings.Queries.GetBookingById;
+using HotelBookingPlatform.Application.Bookings.Queries.GetUserBookings;
 
 namespace HotelBookingPlatform.Application.Bookings.Queries;
 
