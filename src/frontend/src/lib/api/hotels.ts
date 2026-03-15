@@ -47,7 +47,7 @@ export async function getHotelDetail(id: number, accessToken?: string) {
   const response = await makeClient(accessToken).hotelsGET(id);
 
   if (!response.success || !response.data) {
-    throw new Error(response.errorMessage ?? "No se pudo cargar el hotel.");
+    throw response;
   }
 
   return response.data as HotelDto;
@@ -81,7 +81,7 @@ export async function getHotelAvailability(
   const json = await res.json();
 
   if (!json.success || !json.data) {
-    throw new Error(json.errorMessage ?? "No se pudo cargar la disponibilidad.");
+    throw json;
   }
 
   return HotelAvailabilityDto.fromJS(json.data);
@@ -104,7 +104,7 @@ export async function listHotels(accessToken?: string) {
   );
 
   if (!response.success || !response.data) {
-    throw new Error(response.errorMessage ?? "No se pudieron cargar los hoteles.");
+    throw response;
   }
 
   return response.data.data ?? [];
@@ -127,7 +127,7 @@ export async function createHotel(
   const response = await makeClient(accessToken).createHotel(body);
 
   if (!response.success) {
-    throw new Error(response.errorMessage ?? "No se pudo crear el hotel.");
+    throw response;
   }
 
   return response.data ?? null;
@@ -152,7 +152,7 @@ export async function updateHotel(
   const response = await makeClient(accessToken).hotelsPUT(input.id, body);
 
   if (!response.success) {
-    throw new Error(response.errorMessage ?? "No se pudo actualizar el hotel.");
+    throw response;
   }
 }
 
@@ -160,6 +160,6 @@ export async function deleteHotel(id: number, accessToken?: string) {
   const response = await makeClient(accessToken).hotelsDELETE(id);
 
   if (!response.success) {
-    throw new Error(response.errorMessage ?? "No se pudo eliminar el hotel.");
+    throw response;
   }
 }

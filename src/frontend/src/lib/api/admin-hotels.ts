@@ -95,7 +95,7 @@ export async function getAdminHotels(accessToken?: string) {
   );
 
   if (!response.success || !response.data) {
-    throw new Error(response.errorMessage ?? "No se pudieron cargar los hoteles.");
+    throw response;
   }
 
   return (response.data.data ?? []) as HotelDto[];
@@ -108,7 +108,7 @@ export async function getAdminHotelDetails(
   const response = await makeHotelsClient(accessToken).details(hotelId);
 
   if (!response.success || !response.data) {
-    throw new Error(response.errorMessage ?? "No se pudieron cargar los detalles del hotel.");
+    throw response;
   }
 
   return response.data as HotelDetailsDto;
@@ -137,10 +137,11 @@ export async function getAdminHotelInventory(
     success: boolean;
     data?: HotelInventoryDto;
     errorMessage?: string;
+    validationErrors?: Record<string, string[]>;
   };
 
   if (!response.ok || !payload.success || !payload.data) {
-    throw new Error(payload.errorMessage ?? "No se pudo cargar el inventario.");
+    throw payload;
   }
 
   return payload.data as HotelInventoryDto;
@@ -155,7 +156,7 @@ export async function createAdminHotel(
   );
 
   if (!response.success) {
-    throw new Error(response.errorMessage ?? "No se pudo crear el hotel.");
+    throw response;
   }
 
   return response.data ?? null;
@@ -172,7 +173,7 @@ export async function updateAdminHotel(
   );
 
   if (!response.success) {
-    throw new Error(response.errorMessage ?? "No se pudo actualizar el hotel.");
+    throw response;
   }
 }
 
@@ -180,7 +181,7 @@ export async function deleteAdminHotel(hotelId: number, accessToken?: string) {
   const response = await makeHotelsClient(accessToken).hotelsDELETE(hotelId);
 
   if (!response.success) {
-    throw new Error(response.errorMessage ?? "No se pudo eliminar el hotel.");
+    throw response;
   }
 }
 
@@ -195,7 +196,7 @@ export async function createAdminRoomType(
   );
 
   if (!response.success) {
-    throw new Error(response.errorMessage ?? "No se pudo crear el tipo de habitación.");
+    throw response;
   }
 
   return response.data ?? null;
@@ -212,7 +213,7 @@ export async function updateAdminRoomType(
   );
 
   if (!response.success) {
-    throw new Error(response.errorMessage ?? "No se pudo actualizar el tipo de habitación.");
+    throw response;
   }
 }
 
@@ -225,7 +226,7 @@ export async function deleteAdminRoomType(
   );
 
   if (!response.success) {
-    throw new Error(response.errorMessage ?? "No se pudo eliminar el tipo de habitación.");
+    throw response;
   }
 }
 
@@ -240,7 +241,7 @@ export async function createAdminRatePlan(
   );
 
   if (!response.success) {
-    throw new Error(response.errorMessage ?? "No se pudo crear el plan de tarifas.");
+    throw response;
   }
 
   return response.data ?? null;
@@ -257,7 +258,7 @@ export async function updateAdminRatePlan(
   );
 
   if (!response.success) {
-    throw new Error(response.errorMessage ?? "No se pudo actualizar el plan de tarifas.");
+    throw response;
   }
 }
 
@@ -270,7 +271,7 @@ export async function deleteAdminRatePlan(
   );
 
   if (!response.success) {
-    throw new Error(response.errorMessage ?? "No se pudo eliminar el plan de tarifas.");
+    throw response;
   }
 }
 
@@ -300,10 +301,11 @@ export async function upsertAdminInventory(
   const payload = (await response.json()) as {
     success: boolean;
     errorMessage?: string;
+    validationErrors?: Record<string, string[]>;
   };
 
   if (!response.ok || !payload.success) {
-    throw new Error(payload.errorMessage ?? "No se pudo actualizar el inventario.");
+    throw payload;
   }
 }
 
@@ -318,8 +320,6 @@ export async function bulkUpdateAdminInventory(
   );
 
   if (!response.success) {
-    throw new Error(
-      response.errorMessage ?? "No se pudo actualizar el inventario en bloque.",
-    );
+    throw response;
   }
 }

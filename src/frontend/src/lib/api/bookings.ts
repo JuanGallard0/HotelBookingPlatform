@@ -132,7 +132,7 @@ export async function getMyBookings({
   );
 
   if (!response.success || !response.data) {
-    throw new Error(response.errorMessage ?? "No se pudieron cargar las reservas.");
+    throw response;
   }
 
   return {
@@ -151,7 +151,7 @@ export async function getBookingById(
   const response = await makeClient(accessToken).bookings(bookingId);
 
   if (!response.success || !response.data) {
-    throw new Error(response.errorMessage ?? "No se pudo cargar el detalle de la reserva.");
+    throw response;
   }
 
   return response.data;
@@ -207,7 +207,7 @@ export async function createBooking(
   );
 
   if (!response.success || !response.data) {
-    throw new Error(response.errorMessage ?? "No se pudo crear la reserva.");
+    throw response;
   }
 
   return response.data;
@@ -220,7 +220,7 @@ export async function confirmBooking(
   const response = await makeClient(accessToken).confirm(bookingId);
 
   if (!response.success) {
-    throw new Error(response.errorMessage ?? "No se pudo confirmar la reserva.");
+    throw response;
   }
 }
 
@@ -235,6 +235,6 @@ export async function cancelBooking(
   );
 
   if (!response.success) {
-    throw new Error(response.errorMessage ?? "No se pudo cancelar la reserva.");
+    throw response;
   }
 }
