@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type SyntheticEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
   CalendarDays,
@@ -169,6 +169,14 @@ function currentMonthStart() {
   return formatDateOnly(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)));
 }
 
+function requireId(value: number | null | undefined, label: string) {
+  if (value == null || value <= 0) {
+    throw new Error(`${label} invalido.`);
+  }
+
+  return value;
+}
+
 export function AdminHotelManager({
   initialHotel,
 }: {
@@ -224,14 +232,16 @@ export function AdminHotelManager({
   }, [hotel]);
 
   async function refreshHotelDetails() {
-    const nextHotel = await getAdminHotelDetails(hotel.hotelId ?? 0);
+    const nextHotel = await getAdminHotelDetails(
+      requireId(hotel.hotelId, "Hotel"),
+    );
     setHotel(nextHotel);
     return nextHotel;
   }
 
   async function refreshInventoryForMonth(monthFrom: string) {
     const nextInventory = await getAdminHotelInventory(
-      hotel.hotelId ?? 0,
+      requireId(hotel.hotelId, "Hotel"),
       firstDayOfMonth(monthFrom),
       lastDayOfMonth(monthFrom),
     );
@@ -275,10 +285,10 @@ export function AdminHotelManager({
     }
   }
 
-  async function handleHotelSave(event: React.FormEvent<HTMLFormElement>) {
+  async function handleHotelSave(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
     await runMutation("hotel-save", async () => {
-      await updateAdminHotel(hotel.hotelId ?? 0, {
+      await updateAdminHotel(requireId(hotel.hotelId, "Hotel"), {
         ...hotelForm,
         starRating: Number(hotelForm.starRating),
       });
@@ -289,16 +299,16 @@ export function AdminHotelManager({
   async function handleHotelDelete() {
     setConfirmDeleteOpen(false);
     await runMutation("hotel-delete", async () => {
-      await deleteAdminHotel(hotel.hotelId ?? 0);
+      await deleteAdminHotel(requireId(hotel.hotelId, "Hotel"));
       router.push("/admin/hotels");
       router.refresh();
     }, "Hotel eliminado.");
   }
 
-  async function handleCreateRoomType(event: React.FormEvent<HTMLFormElement>) {
+  async function handleCreateRoomType(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
     await runMutation("room-type-create", async () => {
-      await createAdminRoomType(hotel.hotelId ?? 0, {
+      await createAdminRoomType(requireId(hotel.hotelId, "Hotel"), {
         ...newRoomTypeForm,
         maxOccupancy: Number(newRoomTypeForm.maxOccupancy),
         basePrice: Number(newRoomTypeForm.basePrice),
@@ -320,11 +330,11 @@ export function AdminHotelManager({
     });
   }
 
-  async function handleSingleDayInventorySubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSingleDayInventorySubmit(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
     await runMutation("inventory-day", async () => {
       await upsertAdminInventory(
-        Number(singleDayForm.roomTypeId),
+        requireId(Number(singleDayForm.roomTypeId), "Tipo de habitacion"),
         parseDateOnly(singleDayForm.date),
         {
           totalRooms: Number(singleDayForm.totalRooms),
@@ -336,15 +346,18 @@ export function AdminHotelManager({
     }, "Inventario diario actualizado.");
   }
 
-  async function handleBulkInventorySubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleBulkInventorySubmit(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
     await runMutation("inventory-bulk", async () => {
-      await bulkUpdateAdminInventory(Number(bulkForm.roomTypeId), {
-        from: parseDateOnly(bulkForm.from),
-        to: parseDateOnly(bulkForm.to),
-        totalRooms: Number(bulkForm.totalRooms),
-        availableRooms: Number(bulkForm.availableRooms),
-      });
+      await bulkUpdateAdminInventory(
+        requireId(Number(bulkForm.roomTypeId), "Tipo de habitacion"),
+        {
+          from: parseDateOnly(bulkForm.from),
+          to: parseDateOnly(bulkForm.to),
+          totalRooms: Number(bulkForm.totalRooms),
+          availableRooms: Number(bulkForm.availableRooms),
+        },
+      );
       await refreshInventoryForMonth(bulkForm.from);
     }, "Inventario masivo actualizado.");
   }
@@ -526,14 +539,19 @@ export function AdminHotelManager({
                 roomType={roomType}
                 onCreateRatePlan={async (payload) => {
                   const { createAdminRatePlan } = await import("@/src/lib/api/admin-hotels");
-                  await createAdminRatePlan(roomType.roomTypeId ?? 0, {
+                  await createAdminRatePlan(
+                    requireId(roomType.roomTypeId, "Tipo de habitacion"),
+                    {
                     ...payload,
                     discountPercentage: payload.discountPercentage,
-                  });
+                    },
+                  );
                   await refreshHotelDetails();
                 }}
                 onDelete={async () => {
-                  await deleteAdminRoomType(roomType.roomTypeId ?? 0);
+                  await deleteAdminRoomType(
+                    requireId(roomType.roomTypeId, "Tipo de habitacion"),
+                  );
                   await refreshHotelDetails();
                 }}
                 onDeleteRatePlan={async (ratePlanId) => {
@@ -543,7 +561,10 @@ export function AdminHotelManager({
                 }}
                 onSave={async (payload) => {
                   const { updateAdminRoomType } = await import("@/src/lib/api/admin-hotels");
-                  await updateAdminRoomType(roomType.roomTypeId ?? 0, payload);
+                  await updateAdminRoomType(
+                    requireId(roomType.roomTypeId, "Tipo de habitacion"),
+                    payload,
+                  );
                   await refreshHotelDetails();
                 }}
                 onUpdateRatePlan={async (ratePlanId, payload) => {

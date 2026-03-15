@@ -1,0 +1,10 @@
+global using HotelBookingPlatform.Application.Common.Interfaces;
+global using HotelBookingPlatform.Domain.Entities;
+global using HotelBookingPlatform.Infrastructure.Data;
+global using Microsoft.Data.SqlClient;
+global using Microsoft.EntityFrameworkCore;
+global using Microsoft.EntityFrameworkCore.Diagnostics;
+global using Microsoft.Extensions.DependencyInjection;
+global using NUnit.Framework;
+global using Respawn;
+global using Shouldly;

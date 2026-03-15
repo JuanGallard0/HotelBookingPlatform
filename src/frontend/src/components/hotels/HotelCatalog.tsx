@@ -64,6 +64,7 @@ type SortOption = (typeof SORT_OPTIONS)[number]["value"];
 
 export function HotelCatalog() {
   const searchParams = useSearchParams();
+  const searchKey = searchParams.toString();
   const [hotels, setHotels] = useState<Hotel[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -75,23 +76,22 @@ export function HotelCatalog() {
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const canLoadMoreRef = useRef(false);
-
-  // Derived state: reset page to 1 when search filters change.
-  // Calling setState during render is React's recommended pattern for
-  // deriving state from incoming "props" changes (no effect needed).
-  const [prevSearchStr, setPrevSearchStr] = useState(() =>
-    searchParams.toString(),
-  );
-  const currentSearchStr = searchParams.toString();
-  if (currentSearchStr !== prevSearchStr) {
-    setPrevSearchStr(currentSearchStr);
+  const requestSequenceRef = useRef(0);
+  const [prevSearchStr, setPrevSearchStr] = useState(searchKey);
+  if (searchKey !== prevSearchStr) {
+    setPrevSearchStr(searchKey);
     setPage(1);
+    if (hotels.length > 0) {
+      setHotels([]);
+      setTotal(0);
+      setLoadedKey(null);
+    }
   }
 
   // fetchKey encodes everything that should trigger a new fetch.
   // loading is derived: true whenever the last resolved key differs from
   // what we currently need — no setLoading(true) inside any effect.
-  const fetchKey = `${currentSearchStr}|${page}|${sortBy}|${sortDir}|${filters.starRating ?? ""}`;
+  const fetchKey = `${searchKey}|${page}|${sortBy}|${sortDir}|${filters.starRating ?? ""}`;
   const loading = loadedKey !== fetchKey;
 
   useEffect(() => {
@@ -114,7 +114,9 @@ export function HotelCatalog() {
   }, []);
 
   useEffect(() => {
-    const sp = searchParams;
+    let cancelled = false;
+    const requestId = ++requestSequenceRef.current;
+    const sp = new URLSearchParams(searchKey);
     const checkIn = sp.get("checkIn")
       ? toDateOnly(sp.get("checkIn")!)
       : undefined;
@@ -142,18 +144,36 @@ export function HotelCatalog() {
         sortDir,
       )
       .then((response) => {
+        if (cancelled || requestId !== requestSequenceRef.current) {
+          return;
+        }
         const items = response.data?.data ?? [];
-        setHotels((prev) => (page === 1 ? items : [...prev, ...items]));
+        setHotels((prev) => {
+          if (page === 1) {
+            return items;
+          }
+
+          const seenHotelIds = new Set(prev.map((hotel) => hotel.hotelId));
+          const nextItems = items.filter(
+            (hotel) => !seenHotelIds.has(hotel.hotelId),
+          );
+          return [...prev, ...nextItems];
+        });
         setTotal(response.data?.totalRecords ?? items.length);
         setLoadedKey(fetchKey);
       })
       .catch(() => {
+        if (cancelled || requestId !== requestSequenceRef.current) {
+          return;
+        }
         setHotels([]);
         setLoadedKey(fetchKey);
       });
-    // fetchKey encodes all dependencies; using it as the sole dep is intentional.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchKey]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchKey, filters.starRating, page, searchKey, sortBy, sortDir]);
 
   return (
     <div className="flex gap-6 items-start">

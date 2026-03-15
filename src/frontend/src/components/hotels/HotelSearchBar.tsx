@@ -95,15 +95,46 @@ export function HotelSearchBar({
   variant = "dark",
   replace = false,
 }: HotelSearchBarProps) {
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const [name, setName] = useState(searchParams.get("search") ?? "");
-  const [checkIn, setCheckIn] = useState(searchParams.get("checkIn") ?? "");
-  const [checkOut, setCheckOut] = useState(searchParams.get("checkOut") ?? "");
-  const [guests, setGuests] = useState(
-    searchParams.get("numberOfGuests") ?? "",
+  const paramsKey = searchParams.toString();
+
+  return (
+    <HotelSearchBarInner
+      key={paramsKey}
+      initialName={searchParams.get("search") ?? ""}
+      initialCheckIn={searchParams.get("checkIn") ?? ""}
+      initialCheckOut={searchParams.get("checkOut") ?? ""}
+      initialGuests={searchParams.get("numberOfGuests") ?? ""}
+      initialRooms={searchParams.get("numberOfRooms") ?? ""}
+      className={className}
+      variant={variant}
+      replace={replace}
+    />
   );
-  const [rooms, setRooms] = useState(searchParams.get("numberOfRooms") ?? "");
+}
+
+function HotelSearchBarInner({
+  className = "",
+  variant = "dark",
+  replace = false,
+  initialName,
+  initialCheckIn,
+  initialCheckOut,
+  initialGuests,
+  initialRooms,
+}: HotelSearchBarProps & {
+  initialName: string;
+  initialCheckIn: string;
+  initialCheckOut: string;
+  initialGuests: string;
+  initialRooms: string;
+}) {
+  const router = useRouter();
+  const [name, setName] = useState(initialName);
+  const [checkIn, setCheckIn] = useState(initialCheckIn);
+  const [checkOut, setCheckOut] = useState(initialCheckOut);
+  const [guests, setGuests] = useState(initialGuests);
+  const [rooms, setRooms] = useState(initialRooms);
 
   const labelCls = cn(
     "text-xs font-semibold uppercase tracking-wide",
@@ -121,12 +152,21 @@ export function HotelSearchBar({
   function handleSearch(e: SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
     const params = new URLSearchParams();
-    if (name) params.set("search", name);
+    const trimmedName = name.trim();
+    const normalizedGuests = Number(guests);
+    const normalizedRooms = Number(rooms);
+
+    if (trimmedName) params.set("search", trimmedName);
     if (checkIn) params.set("checkIn", checkIn);
     if (checkOut) params.set("checkOut", checkOut);
-    if (guests) params.set("numberOfGuests", guests);
-    if (rooms) params.set("numberOfRooms", rooms);
-    const url = `/hotels?${params.toString()}`;
+    if (Number.isInteger(normalizedGuests) && normalizedGuests > 0) {
+      params.set("numberOfGuests", String(normalizedGuests));
+    }
+    if (Number.isInteger(normalizedRooms) && normalizedRooms > 0) {
+      params.set("numberOfRooms", String(normalizedRooms));
+    }
+    const query = params.toString();
+    const url = query ? `/hotels?${query}` : "/hotels";
     if (replace) {
       router.replace(url);
     } else {

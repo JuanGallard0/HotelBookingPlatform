@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type SyntheticEvent } from "react";
 import { BedDouble, ChevronDown, Plus, Trash2 } from "lucide-react";
 import type {
   RatePlanDetailsDto,
@@ -127,7 +127,7 @@ export function AdminRoomTypeEditor({
     setForm(toRoomTypeFormState(roomType));
   }, [roomType]);
 
-  async function saveRoomType(event: React.FormEvent<HTMLFormElement>) {
+  async function saveRoomType(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy("save-room-type");
     try {
@@ -159,7 +159,7 @@ export function AdminRoomTypeEditor({
     }
   }
 
-  async function createRatePlan(event: React.FormEvent<HTMLFormElement>) {
+  async function createRatePlan(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy("create-rate-plan");
     try {

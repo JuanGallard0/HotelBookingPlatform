@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace HotelBookingPlatform.Infrastructure.Data;
 
-internal sealed class UnitOfWork(ApplicationDbContext context) : IUnitOfWork, IAsyncDisposable
+internal sealed class UnitOfWork(ApplicationDbContext context) : IUnitOfWork, IAsyncDisposable, IDisposable
 {
     private IDbContextTransaction? _transaction;
 
@@ -68,5 +68,16 @@ internal sealed class UnitOfWork(ApplicationDbContext context) : IUnitOfWork, IA
             _transaction = null;
             context.ChangeTracker.Clear();
         }
+    }
+
+    public void Dispose()
+    {
+        if (_transaction is null)
+            return;
+
+        _transaction.Rollback();
+        _transaction.Dispose();
+        _transaction = null;
+        context.ChangeTracker.Clear();
     }
 }

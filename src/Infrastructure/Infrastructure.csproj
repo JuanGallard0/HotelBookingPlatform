@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="HotelBookingPlatform.Application.UnitTests" />
+    <InternalsVisibleTo Include="HotelBookingPlatform.Infrastructure.IntegrationTests" />
   </ItemGroup>
 
   <ItemGroup>

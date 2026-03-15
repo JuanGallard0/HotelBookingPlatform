@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { memo, useState } from "react";
+import { memo, useState, type SyntheticEvent } from "react";
 import {
   ArrowDown,
   ArrowUp,
@@ -231,7 +231,7 @@ function CreateHotelDialog({
     onOpenChange(nextOpen);
   }
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
     await onSubmit(form);
   }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type SyntheticEvent } from "react";
 import { ChevronDown, Tag, Trash2 } from "lucide-react";
 import type { RatePlanDetailsDto } from "@/src/lib/api/generated/api-client";
 import { handleApiError } from "@/src/lib/api/handle-error";
@@ -99,7 +99,7 @@ export function AdminRatePlanEditor({
     setForm(toRatePlanFormState(ratePlan));
   }, [ratePlan]);
 
-  async function saveRatePlan(event: React.FormEvent<HTMLFormElement>) {
+  async function saveRatePlan(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy("save");
     try {

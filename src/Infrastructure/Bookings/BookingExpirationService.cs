@@ -82,6 +82,7 @@ internal sealed class BookingExpirationService(
                     ActorUserName: "hangfire"));
             }
 
+            await unitOfWork.SaveChangesAsync(cancellationToken);
             await unitOfWork.CommitAsync(cancellationToken);
 
             logger.LogInformation(

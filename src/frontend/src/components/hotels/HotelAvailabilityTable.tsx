@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, type SyntheticEvent } from "react";
 import { useRouter } from "next/navigation";
 import { format, parse, isValid } from "date-fns";
 import { es } from "date-fns/locale";
@@ -147,7 +147,7 @@ export function HotelAvailabilityTable({ hotelId }: { hotelId: number }) {
     fetchAvailability(checkIn, checkOut, guests, numberOfRooms);
   }, [checkIn, checkOut, guests, numberOfRooms, fetchAvailability]);
 
-  async function handleSearch(e: React.FormEvent) {
+  async function handleSearch(e: SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!checkIn || !checkOut) return;
     await fetchAvailability(checkIn, checkOut, guests, numberOfRooms);
