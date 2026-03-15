@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Ban, CheckCircle, RefreshCw } from "lucide-react";
 
 import { useAuth } from "@/src/context/AuthContext";
 import {
@@ -389,28 +389,36 @@ export default function BookingDetailPage() {
               <div className="rounded-lg border border-border/60 p-4 text-sm text-foreground">
                 {booking.specialRequests || "Sin solicitudes especiales."}
               </div>
-              <Separator />
-              <div className="flex flex-wrap gap-3">
-                <Button type="button" variant="outline" onClick={() => loadBooking()}>
-                  Actualizar detalle
-                </Button>
-                {booking.status === 0 && user?.email && (
-                  <>
+              {booking.status === 0 && user?.email && (
+                <>
+                  <Separator />
+                  <div className="flex flex-col gap-3 sm:flex-row">
                     <Button
                       type="button"
+                      className="flex-1"
                       onClick={() => setConfirmOpen(true)}
                     >
+                      <CheckCircle className="h-4 w-4" />
                       Confirmar reserva
                     </Button>
                     <Button
                       type="button"
                       variant="destructive"
+                      className="flex-1"
                       onClick={() => setCancelOpen(true)}
                     >
+                      <Ban className="h-4 w-4" />
                       Cancelar reserva
                     </Button>
-                  </>
-                )}
+                  </div>
+                </>
+              )}
+              <Separator />
+              <div className="flex justify-end">
+                <Button type="button" variant="ghost" size="sm" onClick={() => loadBooking()}>
+                  <RefreshCw className="h-3.5 w-3.5" />
+                  Actualizar
+                </Button>
               </div>
             </CardContent>
           </Card>

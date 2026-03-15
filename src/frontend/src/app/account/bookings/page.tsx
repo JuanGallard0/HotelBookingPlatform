@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, ArrowRight, ArrowUpDown } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUpDown, Ban, CheckCircle } from "lucide-react";
 
 import { useAuth } from "@/src/context/AuthContext";
 import {
@@ -240,21 +240,25 @@ function InlineBookingRowActions({
 
   return (
     <>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex gap-2">
         <Button
           type="button"
           size="sm"
+          className="flex-1"
           onClick={() => setConfirmOpen(true)}
         >
+          <CheckCircle className="h-3.5 w-3.5" />
           Confirmar
         </Button>
         <Button
           type="button"
           size="sm"
-          variant="outline"
+          variant="destructive"
+          className="flex-1"
           onClick={() => setCancelOpen(true)}
         >
-          Cancelar reserva
+          <Ban className="h-3.5 w-3.5" />
+          Cancelar
         </Button>
       </div>
 

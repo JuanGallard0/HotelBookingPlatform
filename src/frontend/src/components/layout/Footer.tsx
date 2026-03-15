@@ -1,7 +1,11 @@
+"use client";
+
 import Link from "next/link";
+import { useAuth } from "@/src/context/AuthContext";
 
 export function Footer() {
   const year = new Date().getFullYear();
+  const { isAuthenticated, openModal } = useAuth();
 
   return (
     <footer className="border-t border-border bg-background">
@@ -24,27 +28,25 @@ export function Footer() {
             >
               Hoteles
             </Link>
-            <Link
-              href="/about"
-              className="text-sm text-muted-foreground hover:text-foreground"
-            >
-              Nosotros
-            </Link>
-            <Link
-              href="/account"
-              className="text-sm text-muted-foreground hover:text-foreground"
-            >
-              Mi cuenta
-            </Link>
-            <Link
-              href="/auth/login"
-              className="text-sm text-muted-foreground hover:text-foreground"
-            >
-              Iniciar sesion
-            </Link>
+            {isAuthenticated ? (
+              <Link
+                href="/account/profile"
+                className="text-sm text-muted-foreground hover:text-foreground"
+              >
+                Mi cuenta
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={() => openModal("login")}
+                className="text-sm text-muted-foreground hover:text-foreground"
+              >
+                Iniciar sesión
+              </button>
+            )}
           </nav>
           <p className="text-sm text-muted-foreground">
-            © {year} Hotel Booking. Todos los derechos reservados.
+            © {year} Hotel Booking. Juan Gallardo
           </p>
         </div>
       </div>
