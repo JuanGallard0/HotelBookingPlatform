@@ -55,9 +55,15 @@ internal sealed class UnitOfWork(ApplicationDbContext context) : IUnitOfWork, IA
 
     public async ValueTask DisposeAsync()
     {
-        if (_transaction is not null)
+        if (_transaction is null)
+            return;
+
+        try
         {
             await _transaction.RollbackAsync();
+        }
+        finally
+        {
             await _transaction.DisposeAsync();
             _transaction = null;
             context.ChangeTracker.Clear();

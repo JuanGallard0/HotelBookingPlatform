@@ -32,7 +32,7 @@ public sealed class TransactionBehaviour<TRequest, TResponse>(IUnitOfWork unitOf
         }
         catch
         {
-            await unitOfWork.RollbackAsync(cancellationToken);
+            await unitOfWork.RollbackAsync(CancellationToken.None);
             throw;
         }
     }

@@ -145,6 +145,21 @@ namespace HotelBookingPlatform.Application.UnitTests.Common.Behaviours
             _unitOfWork.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Never);
         }
 
+        [Test]
+        public async Task Handle_Command_ThrowsException_RollbackUsesNoneToken()
+        {
+            // Ensures the catch block uses CancellationToken.None so a cancelled token
+            // cannot swallow the original exception with a new OperationCanceledException.
+            var behaviour = new TransactionBehaviour<FakeCommand, Result>(_unitOfWork.Object);
+            using var cts = new CancellationTokenSource();
+            await cts.CancelAsync();
+
+            await Should.ThrowAsync<InvalidOperationException>(() =>
+                behaviour.Handle(new FakeCommand(), _ => throw new InvalidOperationException("original"), cts.Token));
+
+            _unitOfWork.Verify(u => u.RollbackAsync(CancellationToken.None), Times.Once);
+        }
+
         // --- all failed result types trigger rollback ---
 
         [TestCase("Conflict")]
