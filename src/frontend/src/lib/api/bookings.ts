@@ -14,8 +14,6 @@ const baseFetch: typeof fetch = (input, init) => globalThis.fetch(input, init);
 const browserBaseUrl = typeof window === "undefined" ? API_BASE_URL : "";
 
 function makeClient(accessToken?: string) {
-  // Use empty base on the client so requests route through the Next.js proxy,
-  // avoiding cross-origin preflight (OPTIONS) requests to the backend.
   const base = browserBaseUrl;
 
   if (!accessToken) {

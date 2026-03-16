@@ -46,12 +46,9 @@ export function AdminHotelsPageClient() {
   const [totalPages, setTotalPages] = useState(1);
   const [accessDenied, setAccessDenied] = useState(false);
   const [fetchKey, setFetchKey] = useState(0);
-  // Track which (paramsKey) was last successfully loaded — used to derive isLoading
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
 
   const paramsKey = searchParams.toString() + "|" + fetchKey;
-  // Show loading overlay only after the initial load (hotels !== null) and when
-  // params have changed but the new data hasn't arrived yet.
   const isLoading = hotels !== null && loadedKey !== paramsKey;
 
   useEffect(() => {

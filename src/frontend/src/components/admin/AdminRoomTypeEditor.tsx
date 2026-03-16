@@ -188,7 +188,6 @@ export function AdminRoomTypeEditor({
 
   return (
     <Card className="border-l-2 border-l-sky-500/50 border-white/10 bg-white/5 text-slate-100">
-      {/* Clickable header row */}
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -226,7 +225,6 @@ export function AdminRoomTypeEditor({
         </div>
 
         <form className="space-y-4" onSubmit={saveRoomType}>
-          {/* Row 1: Name + Active */}
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-slate-300">Nombre</label>
@@ -251,7 +249,6 @@ export function AdminRoomTypeEditor({
               Activo
             </label>
           </div>
-          {/* Row 2: MaxOccupancy + BasePrice */}
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-slate-300">Máx. ocupación</label>
@@ -283,7 +280,6 @@ export function AdminRoomTypeEditor({
               />
             </div>
           </div>
-          {/* Row 3: Description full width */}
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-slate-300">Descripción</label>
             <textarea

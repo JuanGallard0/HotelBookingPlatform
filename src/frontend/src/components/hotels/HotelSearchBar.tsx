@@ -203,7 +203,6 @@ function HotelSearchBarInner({
         value={checkIn}
         onChange={(v) => {
           setCheckIn(v);
-          // clear checkout if it's now before checkin
           if (checkOut && v >= checkOut) setCheckOut("");
         }}
         labelCls={labelCls}

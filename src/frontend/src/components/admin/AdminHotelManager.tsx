@@ -581,7 +581,6 @@ export function AdminHotelManager({
         </TabsContent>
 
         <TabsContent value="inventory" className="space-y-6">
-          {/* Loading state */}
           {inventoryLoading && !inventory && (
             <div className="animate-pulse space-y-4">
               <div className="rounded-2xl border border-white/10 bg-white/5 p-6 space-y-4">
@@ -602,7 +601,6 @@ export function AdminHotelManager({
             </div>
           )}
 
-          {/* Error state */}
           {inventoryError && !inventory && (
             <div className="flex flex-col items-center gap-4 rounded-2xl border border-red-400/20 bg-red-400/5 py-12 text-center">
               <p className="text-sm font-semibold text-red-300">No se pudo cargar el inventario</p>
@@ -618,7 +616,6 @@ export function AdminHotelManager({
             </div>
           )}
 
-          {/* Loaded state */}
           {inventory && (
             <>
               <Card className="border-white/10 bg-white/5 text-slate-100">

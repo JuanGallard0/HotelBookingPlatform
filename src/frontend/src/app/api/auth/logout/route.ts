@@ -15,7 +15,6 @@ export async function POST(request: NextRequest) {
         body: JSON.stringify({ refreshToken }),
       });
     } catch {
-      // Local cookie invalidation is the primary concern here.
     }
   }
 

@@ -99,7 +99,6 @@ public class HotelsEndpoints : EndpointGroupBase
             .RequireAuthorization("AdminOnly");
     }
 
-
     private static async Task<IResult> GetHotels(
         [AsParameters] GetHotelsQuery query,
         ISender sender,

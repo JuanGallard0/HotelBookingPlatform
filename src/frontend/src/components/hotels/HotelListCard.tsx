@@ -31,7 +31,6 @@ export function HotelListCard({ hotel }: { hotel: Hotel }) {
   return (
     <Link href={`/hotels/${hotel.hotelId}`}>
       <Card className="flex flex-col sm:flex-row sm:items-stretch gap-0 sm:gap-5 sm:p-4 overflow-hidden transition-shadow hover:shadow-md">
-        {/* Image — full width on mobile, fixed sidebar on sm+ */}
         <div className="relative h-48 w-full sm:h-auto sm:min-h-32 sm:w-40 sm:shrink-0 sm:overflow-hidden sm:rounded-xl">
           <Image
             src={HOTEL_IMAGES[((hotel.hotelId ?? 0) - 1) % 5]}

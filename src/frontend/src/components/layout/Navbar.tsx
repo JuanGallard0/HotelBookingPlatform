@@ -14,8 +14,6 @@ import {
   DropdownMenuTrigger,
 } from "@/src/components/ui/dropdown-menu";
 
-// Returns false on the server (and during hydration), true after mount on the client.
-// This prevents hydration mismatches when auth state is read from localStorage.
 function useIsMounted() {
   return useSyncExternalStore(
     () => () => {},

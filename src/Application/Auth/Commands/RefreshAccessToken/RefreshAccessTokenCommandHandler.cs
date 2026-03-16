@@ -35,7 +35,6 @@ public class RefreshAccessTokenCommandHandler(
             ExpiresAt = nextRefreshToken.ExpiresAt
         });
 
-        // Prune tokens that are already revoked or expired to prevent unbounded growth.
         var staleTokens = storedToken.User.RefreshTokens
             .Where(t => t != storedToken && (t.RevokedAt is not null || t.ExpiresAt <= now))
             .ToList();

@@ -30,7 +30,6 @@ import {
 } from "@/src/components/ui/sheet";
 import { SlidersHorizontal } from "lucide-react";
 
-/** Returns a Date whose .toISOString() yields "YYYY-MM-DD" (no time/timezone). */
 function toDateOnly(iso: string): Date {
   const d = new Date(iso);
   d.toISOString = () => iso;
@@ -88,9 +87,6 @@ export function HotelCatalog() {
     }
   }
 
-  // fetchKey encodes everything that should trigger a new fetch.
-  // loading is derived: true whenever the last resolved key differs from
-  // what we currently need — no setLoading(true) inside any effect.
   const fetchKey = `${searchKey}|${page}|${sortBy}|${sortDir}|${filters.starRating ?? ""}`;
   const loading = loadedKey !== fetchKey;
 
@@ -177,7 +173,6 @@ export function HotelCatalog() {
 
   return (
     <div className="flex gap-6 items-start">
-      {/* Desktop sidebar */}
       <aside className="hidden w-52 shrink-0 lg:block">
         <HotelFilters
           values={filters}
@@ -189,7 +184,6 @@ export function HotelCatalog() {
       </aside>
 
       <div className="flex flex-1 flex-col gap-4">
-        {/* Initial loading */}
         {loading && hotels.length === 0 && (
           <>
             {Array.from({ length: 4 }).map((_, i) => (
@@ -198,7 +192,6 @@ export function HotelCatalog() {
           </>
         )}
 
-        {/* Empty state */}
         {!loading && hotels.length === 0 && (
           <div className="flex flex-col items-center gap-3 py-20 text-slate-400">
             <span className="text-5xl">🔍</span>
@@ -207,11 +200,9 @@ export function HotelCatalog() {
           </div>
         )}
 
-        {/* Results header */}
         {hotels.length > 0 && (
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              {/* Mobile filter trigger */}
               <Sheet>
                 <SheetTrigger asChild>
                   <Button
@@ -288,7 +279,6 @@ export function HotelCatalog() {
           </div>
         )}
 
-        {/* Mobile filter trigger when no results yet */}
         {hotels.length === 0 && !loading && (
           <div className="flex lg:hidden">
             <Sheet>
@@ -324,7 +314,6 @@ export function HotelCatalog() {
           <HotelListCard key={hotel.hotelId} hotel={hotel} />
         ))}
 
-        {/* Sentinel — always in the DOM so the observer can attach */}
         <div ref={sentinelRef} className="h-px" />
         {loading && hotels.length > 0 && <SkeletonRow />}
         {!loading && hotels.length > 0 && hotels.length >= total && (

@@ -36,7 +36,6 @@ export function handleApiError(
     return;
   }
 
-  // The generated client throws the parsed response object directly on 4xx errors.
   if (isApiErrorResult(error)) {
     showApiErrorResult(error, fallback);
     return;

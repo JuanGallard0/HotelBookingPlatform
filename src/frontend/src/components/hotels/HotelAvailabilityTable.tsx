@@ -195,7 +195,6 @@ export function HotelAvailabilityTable({ hotelId }: { hotelId: number }) {
 
   return (
     <section id="availability" className="mt-10">
-      {/* Login prompt dialog */}
       <Dialog
         open={pendingUrl !== null}
         onOpenChange={(open) => {
@@ -226,7 +225,6 @@ export function HotelAvailabilityTable({ hotelId }: { hotelId: number }) {
         </DialogContent>
       </Dialog>
       <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
-        {/* Header */}
         <div className="px-6 py-5 border-b border-border">
           <h2 className="text-xl font-semibold text-card-foreground">
             Disponibilidad de habitaciones
@@ -237,7 +235,6 @@ export function HotelAvailabilityTable({ hotelId }: { hotelId: number }) {
           </p>
         </div>
 
-        {/* Filter form */}
         <form
           onSubmit={handleSearch}
           className="px-6 py-5 border-b border-border bg-muted/30"
@@ -304,7 +301,6 @@ export function HotelAvailabilityTable({ hotelId }: { hotelId: number }) {
           </div>
         </form>
 
-        {/* Results */}
         {searched && rooms !== null && rooms.length === 0 && (
           <p className="px-6 py-6 text-sm text-slate-500">
             No hay habitaciones disponibles para los criterios seleccionados.
@@ -313,7 +309,6 @@ export function HotelAvailabilityTable({ hotelId }: { hotelId: number }) {
 
         {rooms && rooms.length > 0 && (
           <>
-            {/* ── Mobile cards (< md) ── */}
             <div className="md:hidden divide-y divide-border">
               {rooms.map((room) => {
                 const discount = room.discountPercentage ?? 0;
@@ -390,7 +385,6 @@ export function HotelAvailabilityTable({ hotelId }: { hotelId: number }) {
               })}
             </div>
 
-            {/* ── Desktop table (>= md) ── */}
             <div className="hidden md:block overflow-x-auto">
               <Table>
                 <TableHeader>

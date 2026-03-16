@@ -27,8 +27,6 @@ function nights(checkIn: Date, checkOut: Date) {
   );
 }
 
-// -- Booking Confirmation -----------------------------------------------------
-
 function BookingConfirmation({ booking }: { booking: BookingDto }) {
   return (
     <div className="mx-auto max-w-lg text-center py-16 px-4">
@@ -103,21 +101,17 @@ function BookingConfirmation({ booking }: { booking: BookingDto }) {
   );
 }
 
-// -- Main Page ----------------------------------------------------------------
-
 function NewBookingPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { authReady, isAuthenticated, runWithAuth, user } = useAuth();
 
-  // Auth guard: redirect unauthenticated users to the previous page
   useEffect(() => {
     if (authReady && !isAuthenticated) {
       router.replace("/");
     }
   }, [authReady, isAuthenticated, router]);
 
-  // Booking context from query params
   const roomTypeId = Number(searchParams.get("roomTypeId") ?? "0");
   const checkInStr = searchParams.get("checkIn") ?? "";
   const checkOutStr = searchParams.get("checkOut") ?? "";
@@ -131,7 +125,6 @@ function NewBookingPageContent() {
   const checkOut = parseDate(checkOutStr);
   const nightCount = checkIn && checkOut ? nights(checkIn, checkOut) : 0;
 
-  // Form state — prefill with logged-in user data where available
   const [firstName, setFirstName] = useState(user?.firstName ?? "");
   const [lastName, setLastName] = useState(user?.lastName ?? "");
   const [email, setEmail] = useState(user?.email ?? "");
@@ -232,7 +225,6 @@ function NewBookingPageContent() {
   return (
     <main className="flex-1">
       <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
-        {/* Back link */}
         <button
           type="button"
           onClick={() => router.back()}
@@ -247,13 +239,11 @@ function NewBookingPageContent() {
         </h1>
 
         <div className="grid space-y-6 lg:space-y-0 lg:gap-8 lg:grid-cols-3">
-          {/* -- Form -- */}
           <form
             id="booking-form"
             onSubmit={handleSubmit}
             className="lg:col-span-2 space-y-8"
           >
-            {/* Guest info */}
             <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
               <div className="px-6 py-5 border-b border-border">
                 <h2 className="text-lg font-semibold text-card-foreground">
@@ -329,7 +319,6 @@ function NewBookingPageContent() {
               </div>
             </div>
 
-            {/* Special requests */}
             <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
               <div className="px-6 py-5 border-b border-border">
                 <h2 className="text-lg font-semibold text-card-foreground">
@@ -351,7 +340,6 @@ function NewBookingPageContent() {
               </div>
             </div>
 
-            {/* Desktop-only submit button */}
             <Button
               type="submit"
               size="lg"
@@ -362,7 +350,6 @@ function NewBookingPageContent() {
             </Button>
           </form>
 
-          {/* -- Summary -- */}
           <aside className="lg:col-span-1">
             <div className="sticky top-6 rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
               <div className="px-6 py-5 border-b border-border">
@@ -440,7 +427,6 @@ function NewBookingPageContent() {
           </aside>
         </div>
 
-        {/* Mobile-only submit button — rendered after the summary block */}
         <div className="lg:hidden mt-8 space-y-3">
           <Button
             type="submit"

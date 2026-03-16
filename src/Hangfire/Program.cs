@@ -61,7 +61,6 @@ app.Run();
 
 public partial class Program;
 
-// Allow host access in development/docker while keeping production locked down by default.
 sealed class DashboardAccessFilter(bool allowRemoteAccess) : IDashboardAuthorizationFilter
 {
     public bool Authorize(DashboardContext context)

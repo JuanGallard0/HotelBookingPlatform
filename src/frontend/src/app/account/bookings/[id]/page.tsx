@@ -201,8 +201,6 @@ export default function BookingDetailPage() {
     }
 
     loadBooking();
-    // bookingId and auth state are the actual reload triggers for this page.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authReady, bookingId, isAuthenticated, router]);
 
   useEffect(() => {
