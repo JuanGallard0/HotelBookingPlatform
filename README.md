@@ -347,6 +347,7 @@ Datos sembrados:
 - 3 room types por hotel
 - Inventario por 30 dias
 - 5 reservas de ejemplo
+- Registros adicionales de soporte para probar paginacion, filtros y ordenamiento sin crear datos manualmente
 
 Uso sugerido para revision:
 
