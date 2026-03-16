@@ -51,9 +51,9 @@ Modulos del frontend:
 - Modulo publico: portal orientado a cliente para buscar hoteles, revisar disponibilidad, crear reservas y administrar sus propias reservas desde `http://localhost:3000`
 - Portal admin: superficie operativa para mantenimiento de hoteles, room types, rate plans y revision de auditoria, accesible dentro del frontend con un usuario administrador
 
-Credenciales para pruebas:
+Credenciales pre-cargadas para pruebas:
 
-- Cliente: `cliente@hotelbooking.local` / `Guest123!`
+- Cliente: `turismo@hotelbooking.local` / `Guest123!`
 - Admin: `admin@hotelbooking.local` / `Admin123!`
 
 Detener y limpiar:
