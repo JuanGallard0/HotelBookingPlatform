@@ -1,8 +1,6 @@
-﻿using HotelBookingPlatform.Domain.Constants;
 using HotelBookingPlatform.Infrastructure.Data;
-using HotelBookingPlatform.Infrastructure.Identity;
 using MediatR;
-using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -14,8 +12,7 @@ public partial class Testing
     private static ITestDatabase _database = null!;
     private static CustomWebApplicationFactory _factory = null!;
     private static IServiceScopeFactory _scopeFactory = null!;
-    private static string? _userId;
-    private static List<string>? _roles;
+
     [OneTimeSetUp]
     public async Task RunBeforeAnyTests()
     {
@@ -44,71 +41,15 @@ public partial class Testing
         await mediator.Send(request);
     }
 
-    public static string? GetUserId()
-    {
-        return _userId;
-    }
-    
-    public static List<string>? GetRoles()
-    {
-        return _roles;
-    }
-
-    public static async Task<string> RunAsDefaultUserAsync()
-    {
-        return await RunAsUserAsync("test@local", "Testing1234!", Array.Empty<string>());
-    }
-
-    public static async Task<string> RunAsAdministratorAsync()
-    {
-        return await RunAsUserAsync("administrator@local", "Administrator1234!", new[] { Roles.Administrator });
-    }
-
-    public static async Task<string> RunAsUserAsync(string userName, string password, string[] roles)
-    {
-        using var scope = _scopeFactory.CreateScope();
-
-        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-
-        var user = new ApplicationUser { UserName = userName, Email = userName };
-
-        var result = await userManager.CreateAsync(user, password);
-
-        if (roles.Any())
-        {
-            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-
-            foreach (var role in roles)
-            {
-                await roleManager.CreateAsync(new IdentityRole(role));
-            }
-
-            await userManager.AddToRolesAsync(user, roles);
-        }
-
-        if (result.Succeeded)
-        {
-            _userId = user.Id;
-            _roles = roles.ToList();
-            return _userId;
-        }
-
-        var errors = string.Join(Environment.NewLine, result.ToApplicationResult().Errors);
-
-        throw new Exception($"Unable to create {userName}.{Environment.NewLine}{errors}");
-    }
-
     public static async Task ResetState()
     {
         try
         {
             await _database.ResetAsync();
         }
-        catch (Exception) 
+        catch (Exception)
         {
         }
-
-        _userId = null;
     }
 
     public static async Task<TEntity?> FindAsync<TEntity>(params object[] keyValues)
@@ -140,6 +81,35 @@ public partial class Testing
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
         return await context.Set<TEntity>().CountAsync();
+    }
+
+    public static HttpClient CreateClient()
+    {
+        return _factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            AllowAutoRedirect = false
+        });
+    }
+
+    public static async Task<TResult> ExecuteScopeAsync<TResult>(Func<IServiceProvider, Task<TResult>> action)
+    {
+        await using var scope = _scopeFactory.CreateAsyncScope();
+        return await action(scope.ServiceProvider);
+    }
+
+    public static async Task ExecuteScopeAsync(Func<IServiceProvider, Task> action)
+    {
+        await using var scope = _scopeFactory.CreateAsyncScope();
+        await action(scope.ServiceProvider);
+    }
+
+    public static async Task ExecuteDbContextAsync(Func<ApplicationDbContext, Task> action)
+    {
+        using var scope = _scopeFactory.CreateScope();
+
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        await action(context);
+        await context.SaveChangesAsync();
     }
 
     [OneTimeTearDown]

@@ -1,5 +1,4 @@
-﻿using System.Data.Common;
-using HotelBookingPlatform.Application.Common.Interfaces;
+using System.Data.Common;
 using HotelBookingPlatform.Infrastructure.Data;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -11,16 +10,12 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace HotelBookingPlatform.Application.FunctionalTests;
 
-using static Testing;
-
 public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
-    private readonly DbConnection _connection;
     private readonly string _connectionString;
 
     public CustomWebApplicationFactory(DbConnection connection, string connectionString)
     {
-        _connection = connection;
         _connectionString = connectionString;
     }
 
@@ -33,20 +28,11 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
         builder.ConfigureTestServices(services =>
         {
             services
-                .RemoveAll<IUser>()
-                .AddTransient(provider =>
-                {
-                    var mock = new Mock<IUser>();
-                    mock.SetupGet(x => x.Roles).Returns(GetRoles());
-                    mock.SetupGet(x => x.Id).Returns(GetUserId());
-                    return mock.Object;
-                });
-            services
                 .RemoveAll<DbContextOptions<ApplicationDbContext>>()
                 .AddDbContext<ApplicationDbContext>((sp, options) =>
                 {
                     options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
-                    options.UseSqlServer(_connection);
+                    options.UseSqlServer(_connectionString);
                 });
         });
     }

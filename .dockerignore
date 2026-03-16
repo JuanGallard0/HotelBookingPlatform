@@ -1,0 +1,17 @@
+.git
+.github
+.vs
+artifacts
+
+**/bin
+**/obj
+**/.DS_Store
+**/node_modules
+**/.next
+**/coverage
+**/*.tsbuildinfo
+
+src/frontend/.env
+src/frontend/.env.local
+src/frontend/.env.development.local
+src/frontend/.env.production.local

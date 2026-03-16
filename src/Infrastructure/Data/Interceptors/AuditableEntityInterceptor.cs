@@ -1,4 +1,4 @@
-﻿using HotelBookingPlatform.Application.Common.Interfaces;
+using HotelBookingPlatform.Application.Common.Interfaces;
 using HotelBookingPlatform.Domain.Common;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -8,15 +8,13 @@ namespace HotelBookingPlatform.Infrastructure.Data.Interceptors;
 
 public class AuditableEntityInterceptor : SaveChangesInterceptor
 {
-    private readonly IUser _user;
     private readonly TimeProvider _dateTime;
+    private readonly ICurrentUserService _currentUserService;
 
-    public AuditableEntityInterceptor(
-        IUser user,
-        TimeProvider dateTime)
+    public AuditableEntityInterceptor(TimeProvider dateTime, ICurrentUserService currentUserService)
     {
-        _user = user;
         _dateTime = dateTime;
+        _currentUserService = currentUserService;
     }
 
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
@@ -37,6 +35,8 @@ public class AuditableEntityInterceptor : SaveChangesInterceptor
     {
         if (context == null) return;
 
+        var currentUser = ResolveCurrentUser();
+
         foreach (var entry in context.ChangeTracker.Entries<BaseAuditableEntity>())
         {
             if (entry.State is EntityState.Added or EntityState.Modified || entry.HasChangedOwnedEntities())
@@ -44,21 +44,32 @@ public class AuditableEntityInterceptor : SaveChangesInterceptor
                 var utcNow = _dateTime.GetUtcNow();
                 if (entry.State == EntityState.Added)
                 {
-                    entry.Entity.CreatedBy = _user.Id;
                     entry.Entity.Created = utcNow;
-                } 
-                entry.Entity.LastModifiedBy = _user.Id;
+                    entry.Entity.CreatedBy = currentUser;
+                }
+
                 entry.Entity.LastModified = utcNow;
+                entry.Entity.LastModifiedBy = currentUser;
             }
         }
+    }
+
+    private string ResolveCurrentUser()
+    {
+        if (_currentUserService.IsAuthenticated)
+            return _currentUserService.Email
+                ?? _currentUserService.UserId?.ToString()
+                ?? "authenticated-user";
+
+        return "system";
     }
 }
 
 public static class Extensions
 {
     public static bool HasChangedOwnedEntities(this EntityEntry entry) =>
-        entry.References.Any(r => 
-            r.TargetEntry != null && 
-            r.TargetEntry.Metadata.IsOwned() && 
+        entry.References.Any(r =>
+            r.TargetEntry != null &&
+            r.TargetEntry.Metadata.IsOwned() &&
             (r.TargetEntry.State == EntityState.Added || r.TargetEntry.State == EntityState.Modified));
 }

@@ -35,9 +35,9 @@
       <PackageReference Include="Shouldly" />
       <PackageReference Include="Testcontainers.MsSql" />
     </ItemGroup>
-    
+
     <ItemGroup>
-        <ProjectReference Include="..\..\src\Web\Web.csproj" />
+        <ProjectReference Include="..\..\src\Api\Api.csproj" />
     </ItemGroup>
 
 </Project>
