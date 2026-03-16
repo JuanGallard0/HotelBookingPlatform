@@ -36,8 +36,8 @@ public class Result
     };
 
     public static Result Success() => new(true, Array.Empty<string>());
-    public static Result Failure(IEnumerable<string> errors) => new(false, errors);
-    public static Result Failure(string error) => new(false, [error]);
+    public static Result Failure(IEnumerable<string> errors) => new(false, errors, ResultErrorType.Validation);
+    public static Result Failure(string error) => new(false, [error], ResultErrorType.Validation);
     public static Result NotFound(string error) => new(false, [error], ResultErrorType.NotFound);
     public static Result Conflict(string error) => new(false, [error], ResultErrorType.Conflict);
     public static Result UnprocessableEntity(string error) => new(false, [error], ResultErrorType.UnprocessableEntity);
@@ -56,8 +56,8 @@ public class Result<T> : Result
     public T? Value { get; init; }
 
     public static Result<T> Success(T value) => new(true, value, Array.Empty<string>());
-    public new static Result<T> Failure(IEnumerable<string> errors) => new(false, default, errors);
-    public new static Result<T> Failure(string error) => new(false, default, [error]);
+    public new static Result<T> Failure(IEnumerable<string> errors) => new(false, default, errors, ResultErrorType.Validation);
+    public new static Result<T> Failure(string error) => new(false, default, [error], ResultErrorType.Validation);
     public new static Result<T> NotFound(string error) => new(false, default, [error], ResultErrorType.NotFound);
     public new static Result<T> Conflict(string error) => new(false, default, [error], ResultErrorType.Conflict);
     public new static Result<T> UnprocessableEntity(string error) => new(false, default, [error], ResultErrorType.UnprocessableEntity);

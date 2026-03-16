@@ -33,7 +33,12 @@ import { AdminDateField } from "@/src/components/admin/AdminDateField";
 import { AdminRoomTypeEditor } from "@/src/components/admin/AdminRoomTypeEditor";
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/src/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/src/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -50,7 +55,12 @@ import {
   DialogTitle,
 } from "@/src/components/ui/dialog";
 import { Input } from "@/src/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/src/components/ui/tabs";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/src/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -115,7 +125,9 @@ function lastDayOfMonth(value: string) {
 }
 
 function shiftMonth(date: Date, offset: number) {
-  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + offset, 1));
+  return new Date(
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + offset, 1),
+  );
 }
 
 function toMonthLabel(value: string) {
@@ -132,7 +144,11 @@ function buildMonthDays(from: string, to: string) {
     let current = parseDateOnly(from);
     current <= parseDateOnly(to);
     current = new Date(
-      Date.UTC(current.getUTCFullYear(), current.getUTCMonth(), current.getUTCDate() + 1),
+      Date.UTC(
+        current.getUTCFullYear(),
+        current.getUTCMonth(),
+        current.getUTCDate() + 1,
+      ),
     )
   ) {
     dates.push(formatDateOnly(current));
@@ -166,7 +182,9 @@ function emptyRoomTypeForm(): RoomTypeFormState {
 
 function currentMonthStart() {
   const now = new Date();
-  return formatDateOnly(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)));
+  return formatDateOnly(
+    new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)),
+  );
 }
 
 function requireId(value: number | null | undefined, label: string) {
@@ -188,15 +206,19 @@ export function AdminHotelManager({
   const [inventoryLoading, setInventoryLoading] = useState(false);
   const [inventoryError, setInventoryError] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(currentMonthStart);
-  const [hotelForm, setHotelForm] = useState(() => toHotelFormState(initialHotel));
-  const [newRoomTypeForm, setNewRoomTypeForm] = useState<RoomTypeFormState>(emptyRoomTypeForm());
-  const [singleDayForm, setSingleDayForm] = useState<SingleDayInventoryFormState>({
-    roomTypeId: String(initialHotel.roomTypes?.[0]?.roomTypeId ?? ""),
-    date: currentMonthStart(),
-    totalRooms: "0",
-    availableRooms: "0",
-    rowVersion: "",
-  });
+  const [hotelForm, setHotelForm] = useState(() =>
+    toHotelFormState(initialHotel),
+  );
+  const [newRoomTypeForm, setNewRoomTypeForm] =
+    useState<RoomTypeFormState>(emptyRoomTypeForm());
+  const [singleDayForm, setSingleDayForm] =
+    useState<SingleDayInventoryFormState>({
+      roomTypeId: String(initialHotel.roomTypes?.[0]?.roomTypeId ?? ""),
+      date: currentMonthStart(),
+      totalRooms: "0",
+      availableRooms: "0",
+      rowVersion: "",
+    });
   const [bulkForm, setBulkForm] = useState<BulkInventoryFormState>({
     roomTypeId: String(initialHotel.roomTypes?.[0]?.roomTypeId ?? ""),
     from: currentMonthStart(),
@@ -209,9 +231,10 @@ export function AdminHotelManager({
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   const monthDays = useMemo(
-    () => inventory
-      ? buildMonthDays(String(inventory.from), String(inventory.to))
-      : [],
+    () =>
+      inventory
+        ? buildMonthDays(String(inventory.from), String(inventory.to))
+        : [],
     [inventory],
   );
 
@@ -287,36 +310,48 @@ export function AdminHotelManager({
 
   async function handleHotelSave(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
-    await runMutation("hotel-save", async () => {
-      await updateAdminHotel(requireId(hotel.hotelId, "Hotel"), {
-        ...hotelForm,
-        starRating: Number(hotelForm.starRating),
-      });
-      await refreshHotelDetails();
-    }, "Hotel actualizado.");
+    await runMutation(
+      "hotel-save",
+      async () => {
+        await updateAdminHotel(requireId(hotel.hotelId, "Hotel"), {
+          ...hotelForm,
+          starRating: Number(hotelForm.starRating),
+        });
+        await refreshHotelDetails();
+      },
+      "Hotel actualizado.",
+    );
   }
 
   async function handleHotelDelete() {
     setConfirmDeleteOpen(false);
-    await runMutation("hotel-delete", async () => {
-      await deleteAdminHotel(requireId(hotel.hotelId, "Hotel"));
-      router.push("/admin/hotels");
-      router.refresh();
-    }, "Hotel eliminado.");
+    await runMutation(
+      "hotel-delete",
+      async () => {
+        await deleteAdminHotel(requireId(hotel.hotelId, "Hotel"));
+        router.push("/admin/hotels");
+        router.refresh();
+      },
+      "Hotel eliminado.",
+    );
   }
 
   async function handleCreateRoomType(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
-    await runMutation("room-type-create", async () => {
-      await createAdminRoomType(requireId(hotel.hotelId, "Hotel"), {
-        ...newRoomTypeForm,
-        maxOccupancy: Number(newRoomTypeForm.maxOccupancy),
-        basePrice: Number(newRoomTypeForm.basePrice),
-      });
-      await refreshHotelDetails();
-      setNewRoomTypeForm(emptyRoomTypeForm());
-      setCreateRoomTypeOpen(false);
-    }, "Tipo de habitación creado.");
+    await runMutation(
+      "room-type-create",
+      async () => {
+        await createAdminRoomType(requireId(hotel.hotelId, "Hotel"), {
+          ...newRoomTypeForm,
+          maxOccupancy: Number(newRoomTypeForm.maxOccupancy),
+          basePrice: Number(newRoomTypeForm.basePrice),
+        });
+        await refreshHotelDetails();
+        setNewRoomTypeForm(emptyRoomTypeForm());
+        setCreateRoomTypeOpen(false);
+      },
+      "Tipo de habitación creado.",
+    );
   }
 
   async function handleSelectInventoryDay(roomTypeId: number, date: string) {
@@ -330,40 +365,54 @@ export function AdminHotelManager({
     });
   }
 
-  async function handleSingleDayInventorySubmit(event: SyntheticEvent<HTMLFormElement>) {
+  async function handleSingleDayInventorySubmit(
+    event: SyntheticEvent<HTMLFormElement>,
+  ) {
     event.preventDefault();
-    await runMutation("inventory-day", async () => {
-      await upsertAdminInventory(
-        requireId(Number(singleDayForm.roomTypeId), "Tipo de habitacion"),
-        parseDateOnly(singleDayForm.date),
-        {
-          totalRooms: Number(singleDayForm.totalRooms),
-          availableRooms: Number(singleDayForm.availableRooms),
-          rowVersion: singleDayForm.rowVersion || undefined,
-        },
-      );
-      await refreshInventoryForMonth(singleDayForm.date);
-    }, "Inventario diario actualizado.");
+    await runMutation(
+      "inventory-day",
+      async () => {
+        await upsertAdminInventory(
+          requireId(Number(singleDayForm.roomTypeId), "Tipo de habitacion"),
+          parseDateOnly(singleDayForm.date),
+          {
+            totalRooms: Number(singleDayForm.totalRooms),
+            availableRooms: Number(singleDayForm.availableRooms),
+            rowVersion: singleDayForm.rowVersion || undefined,
+          },
+        );
+        await refreshInventoryForMonth(singleDayForm.date);
+      },
+      "Inventario diario actualizado.",
+    );
   }
 
-  async function handleBulkInventorySubmit(event: SyntheticEvent<HTMLFormElement>) {
+  async function handleBulkInventorySubmit(
+    event: SyntheticEvent<HTMLFormElement>,
+  ) {
     event.preventDefault();
-    await runMutation("inventory-bulk", async () => {
-      await bulkUpdateAdminInventory(
-        requireId(Number(bulkForm.roomTypeId), "Tipo de habitacion"),
-        {
-          from: parseDateOnly(bulkForm.from),
-          to: parseDateOnly(bulkForm.to),
-          totalRooms: Number(bulkForm.totalRooms),
-          availableRooms: Number(bulkForm.availableRooms),
-        },
-      );
-      await refreshInventoryForMonth(bulkForm.from);
-    }, "Inventario masivo actualizado.");
+    await runMutation(
+      "inventory-bulk",
+      async () => {
+        await bulkUpdateAdminInventory(
+          requireId(Number(bulkForm.roomTypeId), "Tipo de habitacion"),
+          {
+            from: parseDateOnly(bulkForm.from),
+            to: parseDateOnly(bulkForm.to),
+            totalRooms: Number(bulkForm.totalRooms),
+            availableRooms: Number(bulkForm.availableRooms),
+          },
+        );
+        await refreshInventoryForMonth(bulkForm.from);
+      },
+      "Inventario masivo actualizado.",
+    );
   }
 
   async function handleShiftMonth(offset: number) {
-    const nextMonth = formatDateOnly(shiftMonth(firstDayOfMonth(currentMonth), offset));
+    const nextMonth = formatDateOnly(
+      shiftMonth(firstDayOfMonth(currentMonth), offset),
+    );
     setInventoryLoading(true);
     try {
       await refreshInventoryForMonth(nextMonth);
@@ -378,7 +427,9 @@ export function AdminHotelManager({
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-100">{hotel.name}</h1>
+          <h1 className="text-2xl font-semibold text-slate-100">
+            {hotel.name}
+          </h1>
           {(hotel.city || hotel.country) && (
             <p className="mt-1 text-sm text-slate-400">
               {[hotel.city, hotel.country].filter(Boolean).join(", ")}
@@ -390,7 +441,11 @@ export function AdminHotelManager({
         </Badge>
       </div>
 
-      <Tabs defaultValue="configuration" onValueChange={handleTabChange} className="gap-5">
+      <Tabs
+        defaultValue="configuration"
+        onValueChange={handleTabChange}
+        className="gap-5"
+      >
         <TabsList variant="line" className="rounded-none bg-transparent p-0">
           <TabsTrigger value="configuration" className="px-3">
             <Layers3 className="h-4 w-4" />
@@ -431,32 +486,161 @@ export function AdminHotelManager({
             <CardContent>
               <form className="space-y-4" onSubmit={handleHotelSave}>
                 <div className="grid gap-4 md:grid-cols-2">
-                  <Input value={hotelForm.name} onChange={(event) => setHotelForm((current) => ({ ...current, name: event.target.value }))} placeholder="Nombre" />
-                  <Input value={hotelForm.starRating} onChange={(event) => setHotelForm((current) => ({ ...current, starRating: event.target.value }))} placeholder="Categoria" type="number" min={1} max={5} />
+                  <label className="space-y-1">
+                    <span className="text-xs font-medium text-slate-400">
+                      Nombre
+                    </span>
+                    <Input
+                      value={hotelForm.name}
+                      onChange={(event) =>
+                        setHotelForm((current) => ({
+                          ...current,
+                          name: event.target.value,
+                        }))
+                      }
+                      placeholder="Nombre"
+                    />
+                  </label>
+                  <label className="space-y-1">
+                    <span className="text-xs font-medium text-slate-400">
+                      Categoría
+                    </span>
+                    <Input
+                      value={hotelForm.starRating}
+                      onChange={(event) =>
+                        setHotelForm((current) => ({
+                          ...current,
+                          starRating: event.target.value,
+                        }))
+                      }
+                      placeholder="Categoria"
+                      type="number"
+                      min={1}
+                      max={5}
+                    />
+                  </label>
                 </div>
-                <textarea className="min-h-24 w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50" value={hotelForm.description} onChange={(event) => setHotelForm((current) => ({ ...current, description: event.target.value }))} placeholder="Descripcion" />
-                <Input value={hotelForm.address} onChange={(event) => setHotelForm((current) => ({ ...current, address: event.target.value }))} placeholder="Direccion" />
+                <label className="block space-y-1">
+                  <span className="text-xs font-medium text-slate-400">
+                    Descripción
+                  </span>
+                  <textarea
+                    className="min-h-24 w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                    value={hotelForm.description}
+                    onChange={(event) =>
+                      setHotelForm((current) => ({
+                        ...current,
+                        description: event.target.value,
+                      }))
+                    }
+                    placeholder="Descripcion"
+                  />
+                </label>
+                <label className="block space-y-1">
+                  <span className="text-xs font-medium text-slate-400">
+                    Dirección
+                  </span>
+                  <Input
+                    value={hotelForm.address}
+                    onChange={(event) =>
+                      setHotelForm((current) => ({
+                        ...current,
+                        address: event.target.value,
+                      }))
+                    }
+                    placeholder="Direccion"
+                  />
+                </label>
                 <div className="grid gap-4 md:grid-cols-2">
-                  <Input value={hotelForm.city} onChange={(event) => setHotelForm((current) => ({ ...current, city: event.target.value }))} placeholder="Ciudad" />
-                  <Input value={hotelForm.country} onChange={(event) => setHotelForm((current) => ({ ...current, country: event.target.value }))} placeholder="Pais" />
+                  <label className="space-y-1">
+                    <span className="text-xs font-medium text-slate-400">
+                      Ciudad
+                    </span>
+                    <Input
+                      value={hotelForm.city}
+                      onChange={(event) =>
+                        setHotelForm((current) => ({
+                          ...current,
+                          city: event.target.value,
+                        }))
+                      }
+                      placeholder="Ciudad"
+                    />
+                  </label>
+                  <label className="space-y-1">
+                    <span className="text-xs font-medium text-slate-400">
+                      País
+                    </span>
+                    <Input
+                      value={hotelForm.country}
+                      onChange={(event) =>
+                        setHotelForm((current) => ({
+                          ...current,
+                          country: event.target.value,
+                        }))
+                      }
+                      placeholder="Pais"
+                    />
+                  </label>
                 </div>
                 <div className="grid gap-4 md:grid-cols-2">
-                  <Input value={hotelForm.email} onChange={(event) => setHotelForm((current) => ({ ...current, email: event.target.value }))} placeholder="Correo" />
-                  <Input value={hotelForm.phoneNumber} onChange={(event) => setHotelForm((current) => ({ ...current, phoneNumber: event.target.value }))} placeholder="Telefono" />
+                  <label className="space-y-1">
+                    <span className="text-xs font-medium text-slate-400">
+                      Correo electrónico
+                    </span>
+                    <Input
+                      value={hotelForm.email}
+                      onChange={(event) =>
+                        setHotelForm((current) => ({
+                          ...current,
+                          email: event.target.value,
+                        }))
+                      }
+                      placeholder="Correo"
+                    />
+                  </label>
+                  <label className="space-y-1">
+                    <span className="text-xs font-medium text-slate-400">
+                      Teléfono
+                    </span>
+                    <Input
+                      value={hotelForm.phoneNumber}
+                      onChange={(event) =>
+                        setHotelForm((current) => ({
+                          ...current,
+                          phoneNumber: event.target.value,
+                        }))
+                      }
+                      placeholder="Telefono"
+                    />
+                  </label>
                 </div>
                 <label className="flex items-center gap-2 text-sm text-slate-300">
-                  <input checked={hotelForm.isActive} onChange={(event) => setHotelForm((current) => ({ ...current, isActive: event.target.checked }))} type="checkbox" />
+                  <input
+                    checked={hotelForm.isActive}
+                    onChange={(event) =>
+                      setHotelForm((current) => ({
+                        ...current,
+                        isActive: event.target.checked,
+                      }))
+                    }
+                    type="checkbox"
+                  />
                   Hotel activo
                 </label>
                 <Button disabled={busyKey === "hotel-save"} type="submit">
-                  {busyKey === "hotel-save" ? "Guardando..." : "Guardar cambios"}
+                  {busyKey === "hotel-save"
+                    ? "Guardando..."
+                    : "Guardar cambios"}
                 </Button>
               </form>
             </CardContent>
           </Card>
 
           <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold text-slate-300">Tipos de habitación</p>
+            <p className="text-sm font-semibold text-slate-300">
+              Tipos de habitación
+            </p>
             <Button size="sm" onClick={() => setCreateRoomTypeOpen(true)}>
               <Plus className="h-4 w-4" />
               Crear tipo de habitacion
@@ -466,11 +650,15 @@ export function AdminHotelManager({
           <Dialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
             <DialogContent className="dark border-white/10 bg-slate-900 text-slate-100 sm:max-w-sm">
               <DialogHeader>
-                <DialogTitle className="text-slate-100">Eliminar hotel</DialogTitle>
+                <DialogTitle className="text-slate-100">
+                  Eliminar hotel
+                </DialogTitle>
                 <DialogDescription className="text-slate-400">
                   ¿Confirmas que deseas eliminar{" "}
-                  <span className="font-semibold text-slate-200">{hotel.name}</span>?
-                  Esta acción no se puede deshacer.
+                  <span className="font-semibold text-slate-200">
+                    {hotel.name}
+                  </span>
+                  ? Esta acción no se puede deshacer.
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
@@ -493,39 +681,117 @@ export function AdminHotelManager({
             </DialogContent>
           </Dialog>
 
-          <Dialog open={createRoomTypeOpen} onOpenChange={setCreateRoomTypeOpen}>
+          <Dialog
+            open={createRoomTypeOpen}
+            onOpenChange={setCreateRoomTypeOpen}
+          >
             <DialogContent className="dark border-white/10 bg-slate-900 text-slate-100 sm:max-w-lg">
               <DialogHeader>
-                <DialogTitle className="text-slate-100">Crear tipo de habitacion</DialogTitle>
+                <DialogTitle className="text-slate-100">
+                  Crear tipo de habitacion
+                </DialogTitle>
               </DialogHeader>
-              <form id="create-room-type-form" className="grid gap-3 sm:grid-cols-2" onSubmit={handleCreateRoomType}>
+              <form
+                id="create-room-type-form"
+                className="grid gap-3 sm:grid-cols-2"
+                onSubmit={handleCreateRoomType}
+              >
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-slate-300">Nombre</label>
-                  <Input placeholder="Nombre" value={newRoomTypeForm.name} onChange={(e) => setNewRoomTypeForm((c) => ({ ...c, name: e.target.value }))} />
+                  <label className="text-sm font-medium text-slate-300">
+                    Nombre
+                  </label>
+                  <Input
+                    placeholder="Nombre"
+                    value={newRoomTypeForm.name}
+                    onChange={(e) =>
+                      setNewRoomTypeForm((c) => ({
+                        ...c,
+                        name: e.target.value,
+                      }))
+                    }
+                  />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-slate-300">Maxima ocupacion</label>
-                  <Input placeholder="Max ocupacion" type="number" min={1} value={newRoomTypeForm.maxOccupancy} onChange={(e) => setNewRoomTypeForm((c) => ({ ...c, maxOccupancy: e.target.value }))} />
+                  <label className="text-sm font-medium text-slate-300">
+                    Maxima ocupacion
+                  </label>
+                  <Input
+                    placeholder="Max ocupacion"
+                    type="number"
+                    min={1}
+                    value={newRoomTypeForm.maxOccupancy}
+                    onChange={(e) =>
+                      setNewRoomTypeForm((c) => ({
+                        ...c,
+                        maxOccupancy: e.target.value,
+                      }))
+                    }
+                  />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-slate-300">Precio base</label>
-                  <Input placeholder="Precio base" type="number" min={0} step="0.01" value={newRoomTypeForm.basePrice} onChange={(e) => setNewRoomTypeForm((c) => ({ ...c, basePrice: e.target.value }))} />
+                  <label className="text-sm font-medium text-slate-300">
+                    Precio base
+                  </label>
+                  <Input
+                    placeholder="Precio base"
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={newRoomTypeForm.basePrice}
+                    onChange={(e) =>
+                      setNewRoomTypeForm((c) => ({
+                        ...c,
+                        basePrice: e.target.value,
+                      }))
+                    }
+                  />
                 </div>
                 <label className="flex items-center gap-2 text-sm text-slate-300">
-                  <input checked={newRoomTypeForm.isActive} onChange={(e) => setNewRoomTypeForm((c) => ({ ...c, isActive: e.target.checked }))} type="checkbox" />
+                  <input
+                    checked={newRoomTypeForm.isActive}
+                    onChange={(e) =>
+                      setNewRoomTypeForm((c) => ({
+                        ...c,
+                        isActive: e.target.checked,
+                      }))
+                    }
+                    type="checkbox"
+                  />
                   Activo
                 </label>
                 <div className="space-y-1.5 sm:col-span-2">
-                  <label className="text-sm font-medium text-slate-300">Descripcion</label>
-                  <textarea className="min-h-20 rounded-lg border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 sm:col-span-2" placeholder="Descripcion" value={newRoomTypeForm.description} onChange={(e) => setNewRoomTypeForm((c) => ({ ...c, description: e.target.value }))} />
+                  <label className="text-sm font-medium text-slate-300">
+                    Descripcion
+                  </label>
+                  <textarea
+                    className="min-h-20 rounded-lg border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 sm:col-span-2"
+                    placeholder="Descripcion"
+                    value={newRoomTypeForm.description}
+                    onChange={(e) =>
+                      setNewRoomTypeForm((c) => ({
+                        ...c,
+                        description: e.target.value,
+                      }))
+                    }
+                  />
                 </div>
               </form>
               <DialogFooter>
-                <Button variant="outline" type="button" onClick={() => setCreateRoomTypeOpen(false)}>
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={() => setCreateRoomTypeOpen(false)}
+                >
                   Cancelar
                 </Button>
-                <Button form="create-room-type-form" type="submit" disabled={busyKey === "room-type-create"}>
-                  {busyKey === "room-type-create" ? "Creando..." : "Crear tipo de habitacion"}
+                <Button
+                  form="create-room-type-form"
+                  type="submit"
+                  disabled={busyKey === "room-type-create"}
+                >
+                  {busyKey === "room-type-create"
+                    ? "Creando..."
+                    : "Crear tipo de habitacion"}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -538,12 +804,13 @@ export function AdminHotelManager({
                 monthStart={currentMonth}
                 roomType={roomType}
                 onCreateRatePlan={async (payload) => {
-                  const { createAdminRatePlan } = await import("@/src/lib/api/admin-hotels");
+                  const { createAdminRatePlan } =
+                    await import("@/src/lib/api/admin-hotels");
                   await createAdminRatePlan(
                     requireId(roomType.roomTypeId, "Tipo de habitacion"),
                     {
-                    ...payload,
-                    discountPercentage: payload.discountPercentage,
+                      ...payload,
+                      discountPercentage: payload.discountPercentage,
                     },
                   );
                   await refreshHotelDetails();
@@ -555,12 +822,14 @@ export function AdminHotelManager({
                   await refreshHotelDetails();
                 }}
                 onDeleteRatePlan={async (ratePlanId) => {
-                  const { deleteAdminRatePlan } = await import("@/src/lib/api/admin-hotels");
+                  const { deleteAdminRatePlan } =
+                    await import("@/src/lib/api/admin-hotels");
                   await deleteAdminRatePlan(ratePlanId);
                   await refreshHotelDetails();
                 }}
                 onSave={async (payload) => {
-                  const { updateAdminRoomType } = await import("@/src/lib/api/admin-hotels");
+                  const { updateAdminRoomType } =
+                    await import("@/src/lib/api/admin-hotels");
                   await updateAdminRoomType(
                     requireId(roomType.roomTypeId, "Tipo de habitacion"),
                     payload,
@@ -568,7 +837,8 @@ export function AdminHotelManager({
                   await refreshHotelDetails();
                 }}
                 onUpdateRatePlan={async (ratePlanId, payload) => {
-                  const { updateAdminRatePlan } = await import("@/src/lib/api/admin-hotels");
+                  const { updateAdminRatePlan } =
+                    await import("@/src/lib/api/admin-hotels");
                   await updateAdminRatePlan(ratePlanId, {
                     ...payload,
                     discountPercentage: payload.discountPercentage,
@@ -603,7 +873,9 @@ export function AdminHotelManager({
 
           {inventoryError && !inventory && (
             <div className="flex flex-col items-center gap-4 rounded-2xl border border-red-400/20 bg-red-400/5 py-12 text-center">
-              <p className="text-sm font-semibold text-red-300">No se pudo cargar el inventario</p>
+              <p className="text-sm font-semibold text-red-300">
+                No se pudo cargar el inventario
+              </p>
               <Button
                 variant="outline"
                 size="sm"
@@ -627,33 +899,57 @@ export function AdminHotelManager({
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button variant="outline" size="icon-sm" onClick={() => void handleShiftMonth(-1)} disabled={inventoryLoading} type="button">
+                    <Button
+                      variant="outline"
+                      size="icon-sm"
+                      onClick={() => void handleShiftMonth(-1)}
+                      disabled={inventoryLoading}
+                      type="button"
+                    >
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
                     <div className="min-w-44 text-center text-sm font-medium capitalize text-slate-200">
                       {toMonthLabel(currentMonth)}
                     </div>
-                    <Button variant="outline" size="icon-sm" onClick={() => void handleShiftMonth(1)} disabled={inventoryLoading} type="button">
+                    <Button
+                      variant="outline"
+                      size="icon-sm"
+                      onClick={() => void handleShiftMonth(1)}
+                      disabled={inventoryLoading}
+                      type="button"
+                    >
                       <ChevronRight className="h-4 w-4" />
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent className={inventoryLoading ? "pointer-events-none opacity-50 transition-opacity" : ""}>
+                <CardContent
+                  className={
+                    inventoryLoading
+                      ? "pointer-events-none opacity-50 transition-opacity"
+                      : ""
+                  }
+                >
                   <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead>Tipo de habitacion</TableHead>
                         {monthDays.map((date) => (
-                          <TableHead key={date} className="text-center">{date.slice(-2)}</TableHead>
+                          <TableHead key={date} className="text-center">
+                            {date.slice(-2)}
+                          </TableHead>
                         ))}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {(hotel.roomTypes ?? []).map((roomType) => (
                         <TableRow key={roomType.roomTypeId}>
-                          <TableCell className="font-medium">{roomType.name}</TableCell>
+                          <TableCell className="font-medium">
+                            {roomType.name}
+                          </TableCell>
                           {monthDays.map((date) => {
-                            const day = inventoryIndex.get(roomType.roomTypeId ?? 0)?.get(date);
+                            const day = inventoryIndex
+                              .get(roomType.roomTypeId ?? 0)
+                              ?.get(date);
                             const avail = day?.availableRooms ?? null;
                             const total = day?.totalRooms ?? 0;
                             const cellColor =
@@ -664,19 +960,32 @@ export function AdminHotelManager({
                                   : avail < total / 2
                                     ? "bg-amber-500/10"
                                     : "";
-                            const textColor = avail === 0 ? "text-red-400" : "text-slate-100";
+                            const textColor =
+                              avail === 0 ? "text-red-400" : "text-slate-100";
                             return (
-                              <TableCell key={`${roomType.roomTypeId}-${date}`} className="p-1">
+                              <TableCell
+                                key={`${roomType.roomTypeId}-${date}`}
+                                className="p-1"
+                              >
                                 <button
                                   className={`w-full rounded-lg border border-white/10 px-2 py-2 text-center text-xs transition hover:border-white/20 hover:bg-white/5 ${cellColor}`}
-                                  onClick={() => void handleSelectInventoryDay(roomType.roomTypeId ?? 0, date)}
+                                  onClick={() =>
+                                    void handleSelectInventoryDay(
+                                      roomType.roomTypeId ?? 0,
+                                      date,
+                                    )
+                                  }
                                   type="button"
                                 >
                                   <div className={`font-semibold ${textColor}`}>
-                                    {day ? `${day.availableRooms}/${day.totalRooms}` : "--"}
+                                    {day
+                                      ? `${day.availableRooms}/${day.totalRooms}`
+                                      : "--"}
                                   </div>
                                   <div className="text-[11px] text-slate-400">
-                                    {day ? `${day.reservedRooms} res.` : "sin dato"}
+                                    {day
+                                      ? `${day.reservedRooms} res.`
+                                      : "sin dato"}
                                   </div>
                                 </button>
                               </TableCell>
@@ -695,32 +1004,46 @@ export function AdminHotelManager({
                     <CardTitle>Edicion diaria</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <form className="space-y-4" onSubmit={handleSingleDayInventorySubmit}>
+                    <form
+                      className="space-y-4"
+                      onSubmit={handleSingleDayInventorySubmit}
+                    >
                       <div className="space-y-1.5">
                         <label className="text-sm font-medium text-slate-300">
                           Tipo de habitacion
                         </label>
-                      <Select
-                        value={singleDayForm.roomTypeId}
-                        onValueChange={(value) => setSingleDayForm((current) => ({ ...current, roomTypeId: value }))}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Tipo de habitación" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {(hotel.roomTypes ?? []).map((roomType) => (
-                            <SelectItem key={roomType.roomTypeId} value={String(roomType.roomTypeId ?? 0)}>
-                              {roomType.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        <Select
+                          value={singleDayForm.roomTypeId}
+                          onValueChange={(value) =>
+                            setSingleDayForm((current) => ({
+                              ...current,
+                              roomTypeId: value,
+                            }))
+                          }
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Tipo de habitación" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {(hotel.roomTypes ?? []).map((roomType) => (
+                              <SelectItem
+                                key={roomType.roomTypeId}
+                                value={String(roomType.roomTypeId ?? 0)}
+                              >
+                                {roomType.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                       <AdminDateField
                         label="Fecha"
                         value={singleDayForm.date}
                         onChange={(value) =>
-                          setSingleDayForm((current) => ({ ...current, date: value }))
+                          setSingleDayForm((current) => ({
+                            ...current,
+                            date: value,
+                          }))
                         }
                       />
                       <div className="grid gap-4 md:grid-cols-2">
@@ -728,13 +1051,35 @@ export function AdminHotelManager({
                           <label className="text-sm font-medium text-slate-300">
                             Total de habitaciones
                           </label>
-                        <Input type="number" min={0} value={singleDayForm.totalRooms} onChange={(event) => setSingleDayForm((current) => ({ ...current, totalRooms: event.target.value }))} placeholder="Total rooms" />
+                          <Input
+                            type="number"
+                            min={0}
+                            value={singleDayForm.totalRooms}
+                            onChange={(event) =>
+                              setSingleDayForm((current) => ({
+                                ...current,
+                                totalRooms: event.target.value,
+                              }))
+                            }
+                            placeholder="Total rooms"
+                          />
                         </div>
                         <div className="space-y-1.5">
                           <label className="text-sm font-medium text-slate-300">
                             Habitaciones disponibles
                           </label>
-                        <Input type="number" min={0} value={singleDayForm.availableRooms} onChange={(event) => setSingleDayForm((current) => ({ ...current, availableRooms: event.target.value }))} placeholder="Available rooms" />
+                          <Input
+                            type="number"
+                            min={0}
+                            value={singleDayForm.availableRooms}
+                            onChange={(event) =>
+                              setSingleDayForm((current) => ({
+                                ...current,
+                                availableRooms: event.target.value,
+                              }))
+                            }
+                            placeholder="Available rooms"
+                          />
                         </div>
                       </div>
                       {singleDayForm.rowVersion ? (
@@ -742,8 +1087,13 @@ export function AdminHotelManager({
                           La celda seleccionada incluye control de concurrencia.
                         </p>
                       ) : null}
-                      <Button disabled={busyKey === "inventory-day"} type="submit">
-                        {busyKey === "inventory-day" ? "Guardando..." : "Guardar dia"}
+                      <Button
+                        disabled={busyKey === "inventory-day"}
+                        type="submit"
+                      >
+                        {busyKey === "inventory-day"
+                          ? "Guardando..."
+                          : "Guardar dia"}
                       </Button>
                     </form>
                   </CardContent>
@@ -754,40 +1104,57 @@ export function AdminHotelManager({
                     <CardTitle>Actualizacion masiva</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <form className="space-y-4" onSubmit={handleBulkInventorySubmit}>
+                    <form
+                      className="space-y-4"
+                      onSubmit={handleBulkInventorySubmit}
+                    >
                       <div className="space-y-1.5">
                         <label className="text-sm font-medium text-slate-300">
                           Tipo de habitacion
                         </label>
-                      <Select
-                        value={bulkForm.roomTypeId}
-                        onValueChange={(value) => setBulkForm((current) => ({ ...current, roomTypeId: value }))}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Tipo de habitación" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {(hotel.roomTypes ?? []).map((roomType) => (
-                            <SelectItem key={roomType.roomTypeId} value={String(roomType.roomTypeId ?? 0)}>
-                              {roomType.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        <Select
+                          value={bulkForm.roomTypeId}
+                          onValueChange={(value) =>
+                            setBulkForm((current) => ({
+                              ...current,
+                              roomTypeId: value,
+                            }))
+                          }
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Tipo de habitación" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {(hotel.roomTypes ?? []).map((roomType) => (
+                              <SelectItem
+                                key={roomType.roomTypeId}
+                                value={String(roomType.roomTypeId ?? 0)}
+                              >
+                                {roomType.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div className="grid gap-4 md:grid-cols-2">
                         <AdminDateField
                           label="Desde"
                           value={bulkForm.from}
                           onChange={(value) =>
-                            setBulkForm((current) => ({ ...current, from: value }))
+                            setBulkForm((current) => ({
+                              ...current,
+                              from: value,
+                            }))
                           }
                         />
                         <AdminDateField
                           label="Hasta"
                           value={bulkForm.to}
                           onChange={(value) =>
-                            setBulkForm((current) => ({ ...current, to: value }))
+                            setBulkForm((current) => ({
+                              ...current,
+                              to: value,
+                            }))
                           }
                         />
                       </div>
@@ -796,17 +1163,44 @@ export function AdminHotelManager({
                           <label className="text-sm font-medium text-slate-300">
                             Total de habitaciones
                           </label>
-                        <Input type="number" min={0} value={bulkForm.totalRooms} onChange={(event) => setBulkForm((current) => ({ ...current, totalRooms: event.target.value }))} placeholder="Total rooms" />
+                          <Input
+                            type="number"
+                            min={0}
+                            value={bulkForm.totalRooms}
+                            onChange={(event) =>
+                              setBulkForm((current) => ({
+                                ...current,
+                                totalRooms: event.target.value,
+                              }))
+                            }
+                            placeholder="Total rooms"
+                          />
                         </div>
                         <div className="space-y-1.5">
                           <label className="text-sm font-medium text-slate-300">
                             Habitaciones disponibles
                           </label>
-                        <Input type="number" min={0} value={bulkForm.availableRooms} onChange={(event) => setBulkForm((current) => ({ ...current, availableRooms: event.target.value }))} placeholder="Available rooms" />
+                          <Input
+                            type="number"
+                            min={0}
+                            value={bulkForm.availableRooms}
+                            onChange={(event) =>
+                              setBulkForm((current) => ({
+                                ...current,
+                                availableRooms: event.target.value,
+                              }))
+                            }
+                            placeholder="Available rooms"
+                          />
                         </div>
                       </div>
-                      <Button disabled={busyKey === "inventory-bulk"} type="submit">
-                        {busyKey === "inventory-bulk" ? "Aplicando..." : "Aplicar rango"}
+                      <Button
+                        disabled={busyKey === "inventory-bulk"}
+                        type="submit"
+                      >
+                        {busyKey === "inventory-bulk"
+                          ? "Aplicando..."
+                          : "Aplicar rango"}
                       </Button>
                     </form>
                   </CardContent>
