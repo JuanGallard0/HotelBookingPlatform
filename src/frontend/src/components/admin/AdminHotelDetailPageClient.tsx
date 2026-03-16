@@ -29,7 +29,6 @@ export function AdminHotelDetailPageClient({
     if (!Number.isFinite(hotelId)) return;
 
     let cancelled = false;
-    setLoadError(false);
 
     void runWithAuth(() => getAdminHotelDetails(hotelId))
       .then((result) => {

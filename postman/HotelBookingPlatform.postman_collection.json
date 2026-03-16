@@ -105,6 +105,50 @@
           }
         },
         {
+          "name": "Login Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  if (json?.data?.accessToken) pm.environment.set('adminAccessToken', json.data.accessToken);",
+                  "  if (json?.data?.refreshToken) pm.environment.set('adminRefreshToken', json.data.refreshToken);",
+                  "} "
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminLoginEmail}}\",\n  \"password\": \"{{adminLoginPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Logs in with the seeded admin user and stores the admin access token."
+          }
+        },
+        {
           "name": "Get Current User",
           "request": {
             "method": "GET",

@@ -75,6 +75,109 @@ public class CreateBookingConcurrencyTests : BaseTestFixture
         inventorySnapshot.All(day => day.TotalRooms == 1).ShouldBeTrue();
     }
 
+    [Test]
+    public async Task CreateBooking_WithConcurrentRequestsAndSameIdempotencyKey_ReplaysOriginalCreatedResponse()
+    {
+        var roomTypeId = await SeedAbundantRoomInventoryAsync();
+        var accessToken = await RegisterAndAuthenticateAsync();
+        const int requestCount = 6;
+        var sharedKey = Guid.NewGuid().ToString("N");
+        var command = CreateCommand(roomTypeId, "guest-samekey@example.com");
+
+        var startGate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        var tasks = Enumerable.Range(0, requestCount)
+            .Select(_ => Task.Run(async () =>
+            {
+                using var client = CreateClient();
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+                var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/bookings")
+                {
+                    Content = JsonContent.Create(command)
+                };
+
+                request.Headers.Add("Idempotency-Key", sharedKey);
+
+                await startGate.Task;
+                return await client.SendAsync(request);
+            }))
+            .ToArray();
+
+        startGate.SetResult();
+
+        var responses = await Task.WhenAll(tasks);
+        var statusCodes = responses.Select(r => r.StatusCode).ToArray();
+        var responseBodies = await Task.WhenAll(responses.Select(response => response.Content.ReadAsStringAsync()));
+        var locations = responses.Select(response => response.Headers.Location?.ToString()).ToArray();
+
+        statusCodes.ShouldAllBe(code => code == HttpStatusCode.Created);
+        responseBodies.Distinct().Count().ShouldBe(1, string.Join(Environment.NewLine,
+            statusCodes.Zip(responseBodies, (status, body) => $"{(int)status} {status}: {body}")));
+        locations.ShouldAllBe(location => !string.IsNullOrWhiteSpace(location));
+        locations.Distinct().Count().ShouldBe(1, string.Join(Environment.NewLine,
+            locations.Select(location => location ?? "<null>")));
+        (await CountAsync<Booking>()).ShouldBe(1);
+        (await CountAsync<Guest>()).ShouldBe(1);
+    }
+
+    private static async Task<int> SeedAbundantRoomInventoryAsync()
+    {
+        var checkIn = DateOnly.FromDateTime(DateTime.UtcNow.Date.AddDays(5));
+        var roomTypeId = 0;
+
+        await ExecuteDbContextAsync(async context =>
+        {
+            var hotel = new Hotel
+            {
+                Name = $"SameKey Hotel {Guid.NewGuid():N}",
+                Description = "Same-key concurrency test hotel",
+                Address = "San Salvador",
+                City = "San Salvador",
+                Country = "El Salvador",
+                Email = $"hotel-samekey-{Guid.NewGuid():N}@example.com",
+                PhoneNumber = "+50370000012",
+                StarRating = 4,
+                IsActive = true
+            };
+
+            context.Hotels.Add(hotel);
+            await context.SaveChangesAsync();
+
+            var roomType = new RoomType
+            {
+                HotelId = hotel.Id,
+                Name = "SameKey Standard",
+                Description = "Abundant room inventory",
+                MaxOccupancy = 2,
+                BasePrice = 150m,
+                IsActive = true
+            };
+
+            context.RoomTypes.Add(roomType);
+            await context.SaveChangesAsync();
+
+            context.RoomInventories.AddRange(
+                new RoomInventory { RoomTypeId = roomType.Id, Date = checkIn, TotalRooms = 10, AvailableRooms = 10 },
+                new RoomInventory { RoomTypeId = roomType.Id, Date = checkIn.AddDays(1), TotalRooms = 10, AvailableRooms = 10 });
+
+            context.RatePlans.Add(new RatePlan
+            {
+                RoomTypeId = roomType.Id,
+                Name = "BAR",
+                Description = "Best available rate",
+                ValidFrom = checkIn.AddDays(-2),
+                ValidTo = checkIn.AddDays(5),
+                PricePerNight = 150m,
+                IsActive = true
+            });
+
+            roomTypeId = roomType.Id;
+        });
+
+        return roomTypeId;
+    }
+
     private static CreateBookingCommand CreateCommand(int roomTypeId, string guestEmail)
     {
         var checkIn = DateOnly.FromDateTime(DateTime.UtcNow.Date.AddDays(5));

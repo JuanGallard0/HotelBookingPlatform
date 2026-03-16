@@ -46,6 +46,16 @@ Verificacion rapida:
 - OpenAPI: `http://localhost:5000/openapi/v1.json`
 - Hangfire: `http://localhost:5002/hangfire`
 
+Modulos del frontend:
+
+- Modulo publico: portal orientado a cliente para buscar hoteles, revisar disponibilidad, crear reservas y administrar sus propias reservas desde `http://localhost:3000`
+- Portal admin: superficie operativa para mantenimiento de hoteles, room types, rate plans y revision de auditoria, accesible dentro del frontend con un usuario administrador
+
+Credenciales para pruebas:
+
+- Cliente: `cliente@hotelbooking.local` / `Guest123!`
+- Admin: `admin@hotelbooking.local` / `Admin123!`
+
 Detener y limpiar:
 
 ```powershell
