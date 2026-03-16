@@ -42,3 +42,6 @@ next-env.d.ts
 
 # generated api client
 # /src/lib/api/generated/api-client.ts
+
+# override root [Ll]ogs/ rule — Next.js route segment, not a log directory
+!src/app/admin/logs/
