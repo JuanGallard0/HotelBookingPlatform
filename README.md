@@ -28,7 +28,7 @@ docker compose up --build
 
 Requisitos:
 
-- Docker Desktop con `docker compose`
+- Docker Engine o Docker Desktop con soporte para `docker compose`
 - Puertos libres `3000`, `5000`, `5002` y `1433`
 
 Que debe ocurrir:
@@ -43,6 +43,7 @@ Verificacion rapida:
 
 - Frontend: `http://localhost:3000`
 - Health API: `http://localhost:5000/health`
+- Scalar API Reference: `http://localhost:5000/scalar`
 - OpenAPI: `http://localhost:5000/openapi/v1.json`
 - Hangfire: `http://localhost:5002/hangfire`
 
@@ -288,6 +289,8 @@ Servicios expuestos:
 
 - Frontend: `http://localhost:3000`
 - API: `http://localhost:5000`
+- Scalar API Reference: `http://localhost:5000/scalar`
+- OpenAPI: `http://localhost:5000/openapi/v1.json`
 - Hangfire: `http://localhost:5002/hangfire`
 - SQL Server: `localhost,1433`
 
@@ -295,6 +298,7 @@ Notas:
 
 - El archivo `.env` incluido cubre el escenario local de evaluacion
 - El stack fue validado con `docker compose up --build` en este repositorio
+- No es obligatorio usar Docker Desktop; cualquier instalacion compatible con `docker compose` funciona para la revision
 - La API y Hangfire usan el mismo SQL Server del compose
 
 ## Postman
