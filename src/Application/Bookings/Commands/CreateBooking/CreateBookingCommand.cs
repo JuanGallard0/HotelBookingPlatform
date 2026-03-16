@@ -72,7 +72,9 @@ public class CreateBookingCommandHandler(
                       && rp.IsActive
                       && rp.ValidFrom <= checkIn
                       && rp.ValidTo >= checkOut)
-            .OrderBy(rp => rp.PricePerNight)
+            .OrderBy(rp => rp.DiscountPercentage != null && rp.DiscountPercentage > 0
+                ? rp.PricePerNight * (1 - rp.DiscountPercentage.Value / 100)
+                : rp.PricePerNight)
             .FirstOrDefaultAsync(cancellationToken);
 
         var pricePerNight = ratePlan?.GetEffectivePrice() ?? roomType.BasePrice;

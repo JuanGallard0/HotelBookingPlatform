@@ -356,7 +356,7 @@ export function HotelAvailabilityTable({ hotelId }: { hotelId: number }) {
                     <div className="flex items-end justify-between">
                       <div>
                         {discount > 0 && (
-                          <p className="text-xs text-muted-foreground line-through">
+                          <p className="text-xs text-muted-foreground">
                             {base.toFixed(2)} {room.currency} / noche
                           </p>
                         )}
@@ -397,10 +397,10 @@ export function HotelAvailabilityTable({ hotelId }: { hotelId: number }) {
                       Disponibles
                     </TableHead>
                     <TableHead className="py-4 text-right text-sm">
-                      Precio / noche
+                      Descuento
                     </TableHead>
                     <TableHead className="py-4 text-right text-sm">
-                      Descuento
+                      Precio / noche
                     </TableHead>
                     <TableHead className="py-4 text-right text-sm">
                       Total estancia
@@ -455,16 +455,6 @@ export function HotelAvailabilityTable({ hotelId }: { hotelId: number }) {
                           </Badge>
                         </TableCell>
                         <TableCell className="py-5 text-right">
-                          <p
-                            className={`text-sm font-medium ${discount > 0 ? "text-muted-foreground line-through" : "text-card-foreground"}`}
-                          >
-                            {base.toFixed(2)} {room.currency}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            por noche
-                          </p>
-                        </TableCell>
-                        <TableCell className="py-5 text-right">
                           {discount > 0 ? (
                             <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100">
                               -{discount}%
@@ -474,6 +464,16 @@ export function HotelAvailabilityTable({ hotelId }: { hotelId: number }) {
                               —
                             </span>
                           )}
+                        </TableCell>
+                        <TableCell className="py-5 text-right">
+                          <p
+                            className="text-sm font-medium text-card-foreground"
+                          >
+                            {base.toFixed(2)} {room.currency}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            por noche
+                          </p>
                         </TableCell>
                         <TableCell className="py-5 text-right">
                           <p className="text-base font-bold text-card-foreground">

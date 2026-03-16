@@ -243,9 +243,23 @@ public sealed class HotelQueryService(IDbConnectionFactory connectionFactory) : 
                     rt.Description,
                     rt.MaxOccupancy,
                     avail.MinAvailableRooms AS AvailableRooms,
-                    COALESCE(best_rp.PricePerNight, rt.BasePrice) AS PricePerNight,
+                    COALESCE(
+                        CASE
+                            WHEN best_rp.DiscountPercentage IS NOT NULL AND best_rp.DiscountPercentage > 0
+                            THEN best_rp.PricePerNight * (1.0 - best_rp.DiscountPercentage / 100.0)
+                            ELSE best_rp.PricePerNight
+                        END,
+                        rt.BasePrice
+                    ) AS PricePerNight,
                     best_rp.DiscountPercentage,
-                    COALESCE(best_rp.PricePerNight, rt.BasePrice) * @Nights AS TotalPrice,
+                    COALESCE(
+                        CASE
+                            WHEN best_rp.DiscountPercentage IS NOT NULL AND best_rp.DiscountPercentage > 0
+                            THEN best_rp.PricePerNight * (1.0 - best_rp.DiscountPercentage / 100.0)
+                            ELSE best_rp.PricePerNight
+                        END,
+                        rt.BasePrice
+                    ) * @Nights AS TotalPrice,
                     'USD' AS Currency
                 FROM RoomTypes rt
                 INNER JOIN (
@@ -268,12 +282,25 @@ public sealed class HotelQueryService(IDbConnectionFactory connectionFactory) : 
                       AND rp.IsActive = 1
                       AND rp.ValidFrom <= @CheckIn
                       AND rp.ValidTo >= @CheckOut
-                    ORDER BY rp.PricePerNight
+                    ORDER BY
+                        CASE
+                            WHEN rp.DiscountPercentage IS NOT NULL AND rp.DiscountPercentage > 0
+                            THEN rp.PricePerNight * (1.0 - rp.DiscountPercentage / 100.0)
+                            ELSE rp.PricePerNight
+                        END
                 ) best_rp
                 WHERE rt.HotelId = @HotelId
                   AND rt.IsActive = 1
                   AND (@NumberOfGuests IS NULL OR rt.MaxOccupancy >= @NumberOfGuests)
-                ORDER BY COALESCE(best_rp.PricePerNight, rt.BasePrice)
+                ORDER BY
+                    COALESCE(
+                        CASE
+                            WHEN best_rp.DiscountPercentage IS NOT NULL AND best_rp.DiscountPercentage > 0
+                            THEN best_rp.PricePerNight * (1.0 - best_rp.DiscountPercentage / 100.0)
+                            ELSE best_rp.PricePerNight
+                        END,
+                        rt.BasePrice
+                    )
                 """,
                 new
                 {
