@@ -26,7 +26,6 @@ COPY src/frontend/package.json src/frontend/package-lock.json ./
 RUN npm ci --omit=dev
 
 COPY --from=builder /app/src/frontend/.next ./.next
-COPY --from=builder /app/src/frontend/public ./public
 COPY --from=builder /app/src/frontend/next.config.ts ./next.config.ts
 
 CMD ["npm", "run", "start"]

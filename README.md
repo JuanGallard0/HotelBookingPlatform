@@ -1,66 +1,83 @@
 # Hotel Booking Platform
 
-Plataforma de reservas de hoteles construida como solución end-to-end con API en `.NET`, frontend desacoplado en `Next.js`, SQL Server, CQRS, control de concurrencia, idempotencia y observabilidad básica. El objetivo del proyecto es demostrar una implementación sólida para un flujo de reservas con foco en consistencia y mantenibilidad.
+Plataforma de reservas de hoteles construida como solucion end-to-end con API en `.NET`, frontend desacoplado en `Next.js`, SQL Server, CQRS, control de concurrencia, idempotencia y observabilidad. La entrega prioriza arquitectura, consistencia transaccional y una experiencia de evaluacion simple.
 
 ## Tabla de contenido
 
+- [Inicio rapido](#inicio-rapido)
 - [Resumen](#resumen)
 - [Arquitectura](#arquitectura)
-  - [Capas](#capas)
-  - [Diagrama](#diagrama)
-  - [Estructura principal](#estructura-principal)
-- [Funcionalidad principal](#funcionalidad-principal)
-  - [Backend](#backend)
-  - [Frontend](#frontend)
-- [Decisiones técnicas relevantes](#decisiones-técnicas-relevantes)
-  - [CQRS](#cqrs)
-  - [Transacciones y UnitOfWork](#transacciones-y-unitofwork)
-  - [Idempotencia](#idempotencia)
-  - [Concurrencia y anti-overbooking](#concurrencia-y-anti-overbooking)
-  - [Auditoría](#auditoría)
-  - [Observabilidad](#observabilidad)
-  - [Expiración automática de reservas](#expiración-automática-de-reservas)
-  - [Rate limiting](#rate-limiting)
-  - [Cache de disponibilidad](#cache-de-disponibilidad)
-- [Estado actual](#estado-actual)
-  - [Implementado](#implementado)
-  - [Parcial o fuera del foco principal](#parcial-o-fuera-del-foco-principal)
-  - [No implementado](#no-implementado)
-- [Ejecución local](#ejecución-local)
-  - [Requisitos](#requisitos)
-  - [API](#api)
-  - [Hangfire](#hangfire)
-  - [Frontend](#frontend-1)
+- [Estructura del repositorio](#estructura-del-repositorio)
+- [Funcionalidad implementada](#funcionalidad-implementada)
+- [Decisiones tecnicas](#decisiones-tecnicas)
+- [Ejecucion local sin Docker](#ejecucion-local-sin-docker)
 - [Docker](#docker)
 - [Postman](#postman)
 - [Pruebas](#pruebas)
 - [Datos de demo](#datos-de-demo)
-- [Próximos pasos naturales](#próximos-pasos-naturales)
+- [Limitaciones conocidas](#limitaciones-conocidas)
+- [Diagrama relacional](#diagrama-relacional)
+
+## Inicio rapido
+
+La revision principal esta pensada para ejecutarse con un solo comando:
+
+```powershell
+docker compose up --build
+```
+
+Requisitos:
+
+- Docker Desktop con `docker compose`
+- Puertos libres `3000`, `5000`, `5002` y `1433`
+
+Que debe ocurrir:
+
+- SQL Server inicia en `localhost,1433`
+- La API aplica migraciones y seed automaticamente
+- El frontend queda disponible en `http://localhost:3000`
+- La API queda disponible en `http://localhost:5000`
+- Hangfire queda disponible en `http://localhost:5002/hangfire`
+
+Verificacion rapida:
+
+- Frontend: `http://localhost:3000`
+- Health API: `http://localhost:5000/health`
+- OpenAPI: `http://localhost:5000/openapi/v1.json`
+- Hangfire: `http://localhost:5002/hangfire`
+
+Detener y limpiar:
+
+```powershell
+docker compose down -v
+```
 
 ## Resumen
 
-- Arquitectura por capas con `Domain`, `Application`, `Infrastructure`, `Api`, `frontend` y un host separado de `Hangfire`
-- `EF Core` en escritura y `Dapper` en lectura
-- `UnitOfWork` y transacciones centralizadas para commands
-- `Result Pattern` para respuestas de aplicación y mapeo HTTP consistente
-- Idempotencia en creación de reservas mediante `Idempotency-Key`
-- Prevención de overbooking con `RowVersion` sobre inventario
-- Auditoría mínima de eventos críticos de booking
-- Observabilidad mínima con logs estructurados, `CorrelationId`, `TraceId` y métricas básicas
-- Bonus implementados: expiración automática de reservas, `rate limiting` y `cache` de disponibilidad, autenticación simple con JWT
+- Clean Architecture con capas `Domain`, `Application`, `Infrastructure`, `Api` y `frontend`
+- CQRS obligatorio: `EF Core` para escritura y `Dapper` para lectura
+- `UnitOfWork` y transacciones centralizadas en commands
+- `Result Pattern` para evitar excepciones como control de flujo
+- REST versionado en `/api/v1/...`
+- Idempotencia en creacion de reservas mediante `Idempotency-Key`
+- Prevencion de overbooking con `RowVersion` sobre inventario
+- Observabilidad con `Serilog`, `CorrelationId`, `TraceId` y metricas basicas
+- Auditoria minima de eventos criticos de reservas
+- Frontend separado en `Next.js`
+- Docker Compose para levantar SQL Server, API, Hangfire y frontend
 
 ## Arquitectura
 
-### Capas
+Capas:
 
-- `Domain`: entidades, enums, eventos de dominio y reglas del núcleo
-- `Application`: commands, queries, validaciones, contratos y comportamientos
-- `Infrastructure`: persistencia, Dapper, autenticación, idempotencia, auditoría y caching
-- `Api`: endpoints, middleware, versionado, observabilidad y OpenAPI
-- `frontend`: aplicación `Next.js` separada
-- `Hangfire`: host dedicado para jobs recurrentes
+- `Domain`: entidades, enums, eventos de dominio y reglas nucleares
+- `Application`: commands, queries, validaciones, contratos y behaviours
+- `Infrastructure`: EF Core, Dapper, autenticacion, idempotencia, auditoria y cache
+- `Api`: Minimal API, middleware, versionado, OpenAPI y mapeo HTTP
+- `frontend`: cliente `Next.js`
+- `Hangfire`: host separado para jobs recurrentes
 
-### Diagrama
+Diagrama:
 
 ```mermaid
 flowchart LR
@@ -69,238 +86,171 @@ flowchart LR
     APP --> DOM["Domain"]
     APP --> INF["Infrastructure"]
     INF --> SQL["SQL Server"]
-    API --> OBS["Logs, TraceId, CorrelationId y métricas"]
     APP --> CQRS["CQRS"]
     CQRS --> WR["Write side: EF Core"]
     CQRS --> RD["Read side: Dapper"]
-    APP --> UOW["UnitOfWork + transacciones"]
-    APP --> IDP["Idempotencia"]
+    APP --> UOW["UnitOfWork + transactions"]
+    APP --> IDP["Idempotency"]
     APP --> AUD["AuditLog"]
+    API --> OBS["Logs, traces and metrics"]
     HF["Hangfire"] --> APP
     HF --> INF
     HF --> SQL
 ```
 
-### Estructura principal
+## Estructura del repositorio
 
-- [src/Domain](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/src/Domain)
-- [src/Application](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/src/Application)
-- [src/Infrastructure](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/src/Infrastructure)
-- [src/Api](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/src/Api)
-- [src/frontend](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/src/frontend)
-- [src/Hangfire](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/src/Hangfire)
+- [src/Domain](src/Domain)
+- [src/Application](src/Application)
+- [src/Infrastructure](src/Infrastructure)
+- [src/Api](src/Api)
+- [src/Hangfire](src/Hangfire)
+- [src/frontend](src/frontend)
+- [tests/Application.UnitTests](tests/Application.UnitTests)
+- [tests/Application.FunctionalTests](tests/Application.FunctionalTests)
+- [tests/Infrastructure.IntegrationTests](tests/Infrastructure.IntegrationTests)
+- [tests/Domain.UnitTests](tests/Domain.UnitTests)
+- [postman](postman)
 
-## Funcionalidad principal
+## Funcionalidad implementada
 
-### Backend
+Backend:
 
-- CRUD de hoteles, tipos de habitación y rate plans
-- endpoints administrativos para gestión de hoteles, inventario y tarifas
-- Búsqueda de disponibilidad por hotel, fechas y huéspedes
-- Cálculo de disponibilidad por rango de fechas
-- Creación, confirmación, cancelación, listado y detalle de reservas
-- autenticación con `JWT` y refresh tokens
-- autorización por roles para superficie administrativa
-- Paginación y ordenamiento en consultas
-- Seed automático para demo
+- CRUD de hoteles
+- CRUD de tipos de habitacion
+- CRUD de rate plans
+- Gestion de inventario por fecha
+- Busqueda de disponibilidad por hotel, fechas y huespedes
+- Creacion de reservas con idempotencia
+- Confirmacion y cancelacion de reservas
+- Listado y detalle de reservas
+- Paginacion y ordenamiento en consultas
+- Autenticacion con JWT y refresh tokens
+- Autorizacion por rol para endpoints administrativos
+- Seed automatico para entorno de desarrollo
 
-### Frontend
+Frontend:
 
-- Búsqueda de disponibilidad
+- Busqueda de disponibilidad
+- Catalogo de hoteles
 - Detalle de hotel
-- Creación de reserva
+- Creacion de reserva
 - Listado de reservas del usuario
 - Detalle de reserva
-- Confirmación y cancelación
-- lado administrativo para mantenimiento de hoteles
-- visualización de eventos auditados relevantes
-- Manejo de estados `loading`, `error` y `empty`
+- Confirmacion y cancelacion de reserva
+- Superficie administrativa para hoteles, room types, rate plans y auditoria
+- Estados `loading`, `error` y `empty`
 
-## Decisiones técnicas relevantes
+## Decisiones tecnicas
 
 ### CQRS
 
-La escritura usa `EF Core` y la lectura usa `Dapper`. Esto mantiene el write side alineado con el modelo de dominio y permite queries más directas y optimizadas.
+- Escritura con `EF Core`
+- Lectura con `Dapper`
+- DTOs especificos por endpoint
+- Paginacion desde SQL en el read side
 
 Referencias:
 
-- [BookingQueryService.cs](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/src/Infrastructure/Bookings/BookingQueryService.cs)
-- [HotelQueryService.cs](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/src/Infrastructure/Hotels/HotelQueryService.cs)
+- [BookingQueryService.cs](src/Infrastructure/Bookings/BookingQueryService.cs)
+- [HotelQueryService.cs](src/Infrastructure/Hotels/HotelQueryService.cs)
 
-### Transacciones y UnitOfWork
+### Unit of Work y transacciones
 
-Todos los commands pasan por una transacción centralizada. El `commit` ocurre solo si el `Result` es exitoso; si hay error o excepción se hace `rollback`.
+- Todos los commands pasan por un pipeline transaccional
+- El `commit` solo ocurre cuando el `Result` es exitoso
+- Si falla una validacion o una operacion de negocio, se hace `rollback`
 
 Referencias:
 
-- [TransactionBehaviour.cs](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/src/Application/Common/Behaviours/TransactionBehaviour.cs)
-- [IUnitOfWork.cs](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/src/Application/Common/Interfaces/IUnitOfWork.cs)
-- [UnitOfWork.cs](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/src/Infrastructure/Data/UnitOfWork.cs)
+- [TransactionBehaviour.cs](src/Application/Common/Behaviours/TransactionBehaviour.cs)
+- [IUnitOfWork.cs](src/Application/Common/Interfaces/IUnitOfWork.cs)
+- [UnitOfWork.cs](src/Infrastructure/Data/UnitOfWork.cs)
 
 ### Idempotencia
 
-La creación de reservas soporta `Idempotency-Key`. Una repetición con la misma llave devuelve exactamente la misma respuesta persistida.
+- La creacion de reservas requiere `Idempotency-Key`
+- Se persiste la respuesta original y se devuelve exactamente la misma en repeticiones validas
 
 Referencias:
 
-- [IdempotencyEndpointFilter.cs](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/src/Api/Infrastructure/IdempotencyEndpointFilter.cs)
-- [IdempotencyService.cs](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/src/Infrastructure/Idempotency/IdempotencyService.cs)
+- [IdempotencyEndpointFilter.cs](src/Api/Infrastructure/IdempotencyEndpointFilter.cs)
+- [IdempotencyService.cs](src/Infrastructure/Idempotency/IdempotencyService.cs)
 
 ### Concurrencia y anti-overbooking
 
-La solución usa `optimistic concurrency` con `RowVersion` sobre `RoomInventory`. Cuando múltiples solicitudes compiten por el mismo inventario, los conflictos se detectan al guardar y se devuelve un resultado controlado sin permitir sobreventa.
+- La estrategia elegida es `optimistic concurrency` con `RowVersion` en `RoomInventory`
+- Si dos solicitudes compiten por el mismo inventario, el conflicto se detecta al guardar
+- La API responde con resultado controlado sin permitir inventario negativo ni sobreventa
 
 Referencias:
 
-- [RoomInventoryConfiguration.cs](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/src/Infrastructure/Data/Configurations/RoomInventoryConfiguration.cs)
-- [CreateBookingCommand.cs](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/src/Application/Bookings/Commands/CreateBooking/CreateBookingCommand.cs)
-- [CreateBookingConcurrencyTests.cs](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/tests/Application.FunctionalTests/Bookings/CreateBookingConcurrencyTests.cs)
+- [RoomInventoryConfiguration.cs](src/Infrastructure/Data/Configurations/RoomInventoryConfiguration.cs)
+- [CreateBookingCommand.cs](src/Application/Bookings/Commands/CreateBooking/CreateBookingCommand.cs)
+- [CreateBookingConcurrencyTests.cs](tests/Application.FunctionalTests/Bookings/CreateBookingConcurrencyTests.cs)
 
-### Auditoría
+### Auditoria
 
-Se persisten eventos críticos del dominio de reservas en `AuditLog`. Actualmente se auditan:
+Eventos auditados:
 
 - `BookingCreated`
 - `BookingConfirmed`
 - `BookingCancelled`
-- expiración automática de reservas pendientes
-
-La solución también deja preparada la visibilidad de estos eventos para seguimiento operativo desde la superficie administrativa.
-
-Además, el dominio publica eventos como `BookingCreated`, `BookingConfirmed` y `BookingCancelled`. Estos eventos están configurados dentro del modelo y del pipeline de aplicación, pero hoy no se usan para integración externa ni para un patrón más avanzado como `Outbox`.
+- Expiracion automatica de reservas pendientes
 
 Referencias:
 
-- [AuditLog.cs](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/src/Domain/Entities/AuditLog.cs)
-- [AuditLogService.cs](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/src/Infrastructure/Auditing/AuditLogService.cs)
+- [AuditLog.cs](src/Domain/Entities/AuditLog.cs)
+- [AuditLogService.cs](src/Infrastructure/Auditing/AuditLogService.cs)
 
 ### Observabilidad
-
-La API expone una base evaluable de observabilidad:
 
 - `Serilog` con logging estructurado
 - `CorrelationId` por request
 - `TraceId` y `SpanId`
-- medición de duración de requests
-- métricas básicas con `Meter`
+- Middleware de duracion de requests
+- Metricas basicas con `Meter`
 
 Referencias:
 
-- [Program.cs](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/src/Api/Program.cs)
-- [RequestCorrelationMiddleware.cs](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/src/Api/Infrastructure/RequestCorrelationMiddleware.cs)
-- [RequestMetricsMiddleware.cs](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/src/Api/Infrastructure/RequestMetricsMiddleware.cs)
+- [Program.cs](src/Api/Program.cs)
+- [RequestCorrelationMiddleware.cs](src/Api/Infrastructure/RequestCorrelationMiddleware.cs)
+- [RequestMetricsMiddleware.cs](src/Api/Infrastructure/RequestMetricsMiddleware.cs)
 
-### Expiración automática de reservas
+### Bonus implementados
 
-Se agregó un host separado de `Hangfire` para cancelar reservas `Pending` cuyo `CheckInDate` ya pasó. El dashboard corre en el proyecto `Hangfire`, no en la API.
-
-Referencias:
-
-- [Program.cs](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/src/Hangfire/Program.cs)
-- [ExpirePendingBookingsJob.cs](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/src/Hangfire/ExpirePendingBookingsJob.cs)
-- [BookingExpirationService.cs](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/src/Infrastructure/Bookings/BookingExpirationService.cs)
-
-### Rate limiting
-
-Se aplicaron políticas de `rate limiting` a endpoints sensibles:
-
-- `auth`: límite por IP
-- `booking-write`: límite por usuario autenticado, con fallback a IP
-
-Referencias:
-
-- [DependencyInjection.cs](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/src/Api/DependencyInjection.cs)
-- [AuthEndpoints.cs](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/src/Api/Endpoints/AuthEndpoints.cs)
-- [BookingsEndpoints.cs](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/src/Api/Endpoints/BookingsEndpoints.cs)
-
-### Cache de disponibilidad
-
-La búsqueda de disponibilidad usa `IMemoryCache` con TTL corto e invalidación cuando una reserva modifica el inventario efectivo.
-
-Referencias:
-
-- [AvailabilityCache.cs](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/src/Infrastructure/Caching/AvailabilityCache.cs)
-- [GetAvailableHotelsQuery.cs](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/src/Application/Hotels/Queries/GetAvailableHotels/GetAvailableHotelsQuery.cs)
-- [GetHotelAvailabilityQuery.cs](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/src/Application/Hotels/Queries/GetHotelAvailability/GetHotelAvailabilityQuery.cs)
-
-### Autenticación y autorización
-
-La API usa autenticación basada en `JWT` para access tokens y refresh tokens persistidos para renovación de sesión. Los endpoints administrativos se protegen por rol para separar operaciones de cliente y administración.
-
-Referencias:
-
-- [AuthEndpoints.cs](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/src/Api/Endpoints/AuthEndpoints.cs)
-- [User.cs](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/src/Domain/Entities/User.cs)
-- [RefreshToken.cs](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/src/Domain/Entities/RefreshToken.cs)
-
-## Estado actual
-
-### Implementado
-
-- arquitectura por capas
-- CQRS
-- `EF Core` para escritura
-- `Dapper` para lectura
-- `UnitOfWork` y transacciones
-- `Result Pattern`
-- versionado REST
-- idempotencia
-- control de concurrencia anti-overbooking
-- auditoría mínima
-- observabilidad mínima
-- frontend desacoplado
-- superficie administrativa para CRUD operativo
-- Docker Compose
-- colección de Postman
-- pruebas sobre escenarios críticos
-- expiración automática con `Hangfire`
-- autenticación simple con `JWT`
+- Expiracion automatica de reservas con `Hangfire`
 - `rate limiting`
-- `cache` de disponibilidad
+- Cache de disponibilidad
+- Autenticacion JWT simple
 
-### Parcial o fuera del foco principal
+Referencias:
 
-- `Payment`: entidad presente, flujo no priorizado
-- seed más amplio que el mínimo pedido
+- [Program.cs](src/Hangfire/Program.cs)
+- [ExpirePendingBookingsJob.cs](src/Hangfire/ExpirePendingBookingsJob.cs)
+- [AvailabilityCache.cs](src/Infrastructure/Caching/AvailabilityCache.cs)
 
-### No implementado
+## Ejecucion local sin Docker
 
-- `Outbox pattern`
-
-## Ejecución local
-
-### Requisitos
+Requisitos:
 
 - `.NET SDK 10`
-- `SQL Server` o `LocalDB`
-- `Node.js 20+`
-- `npm`
+- Node.js `20+`
+- SQL Server o LocalDB
 
-### API
+API:
 
 ```powershell
 dotnet run --project .\src\Api\Api.csproj
 ```
 
-URLs:
-
-- API HTTPS: `https://localhost:5001`
-- API HTTP: `http://localhost:5000`
-- OpenAPI: `https://localhost:5001/openapi/v1.json`
-- Scalar: `https://localhost:5001/scalar`
-
-### Hangfire
+Hangfire:
 
 ```powershell
 dotnet run --project .\src\Hangfire\Hangfire.csproj
 ```
 
-URLs:
-
-- Dashboard HTTPS: `https://localhost:51928/hangfire`
-- Dashboard HTTP: `http://localhost:51929/hangfire`
-
-### Frontend
+Frontend:
 
 ```powershell
 cd .\src\frontend
@@ -309,39 +259,40 @@ npm run generate-api
 npm run dev
 ```
 
-URL:
-
-- `http://localhost:3000`
-
 ## Docker
 
-Archivos:
+Archivos relevantes:
 
-- [docker-compose.yml](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/docker-compose.yml)
-- [src/Api/Dockerfile](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/src/Api/Dockerfile)
-- [src/Hangfire/Dockerfile](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/src/Hangfire/Dockerfile)
-- [src/frontend/Dockerfile](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/src/frontend/Dockerfile)
+- [docker-compose.yml](docker-compose.yml)
+- [src/Api/Dockerfile](src/Api/Dockerfile)
+- [src/Hangfire/Dockerfile](src/Hangfire/Dockerfile)
+- [src/frontend/Dockerfile](src/frontend/Dockerfile)
 
-Levantar stack:
+Comando principal:
 
 ```powershell
 docker compose up --build
 ```
 
-URLs:
+Servicios expuestos:
 
 - Frontend: `http://localhost:3000`
 - API: `http://localhost:5000`
-- Health: `http://localhost:5000/health`
 - Hangfire: `http://localhost:5002/hangfire`
 - SQL Server: `localhost,1433`
+
+Notas:
+
+- El archivo `.env` incluido cubre el escenario local de evaluacion
+- El stack fue validado con `docker compose up --build` en este repositorio
+- La API y Hangfire usan el mismo SQL Server del compose
 
 ## Postman
 
 Archivos:
 
-- [HotelBookingPlatform.postman_collection.json](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/postman/HotelBookingPlatform.postman_collection.json)
-- [HotelBookingPlatform.local.postman_environment.json](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/postman/HotelBookingPlatform.local.postman_environment.json)
+- [HotelBookingPlatform.postman_collection.json](postman/HotelBookingPlatform.postman_collection.json)
+- [HotelBookingPlatform.local.postman_environment.json](postman/HotelBookingPlatform.local.postman_environment.json)
 
 Flujo sugerido:
 
@@ -353,7 +304,7 @@ Flujo sugerido:
 6. `Bookings -> Get Booking Detail`
 7. `Bookings -> Confirm Booking` o `Cancel Booking`
 8. `Admin -> Create Hotel`, `Create Room Type` y `Create Rate Plan`
-9. consultar o revisar `AuditLog` desde la base o superficie administrativa según el flujo demostrado
+9. Revisar `AuditLog` o superficie administrativa
 
 ## Pruebas
 
@@ -363,48 +314,43 @@ Ejecutar todo:
 dotnet test
 ```
 
-Escenarios puntuales:
+Escenarios destacados:
 
-```powershell
-dotnet test .\tests\Application.FunctionalTests\Application.FunctionalTests.csproj --filter CreateBookingConcurrencyTests
-dotnet test .\tests\Application.FunctionalTests\Application.FunctionalTests.csproj --filter CreateBookingIdempotencyTests
-dotnet test .\tests\Application.FunctionalTests\Application.FunctionalTests.csproj --filter BookingExpirationServiceTests
-dotnet test .\tests\Application.FunctionalTests\Application.FunctionalTests.csproj --filter RateLimitingTests
-dotnet test .\tests\Application.UnitTests\Application.UnitTests.csproj --filter GetAvailableHotelsQueryHandlerCacheTests
-```
-
-Pruebas destacadas:
-
-- [CreateBookingConcurrencyTests.cs](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/tests/Application.FunctionalTests/Bookings/CreateBookingConcurrencyTests.cs)
-- [CreateBookingIdempotencyTests.cs](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/tests/Application.FunctionalTests/Bookings/CreateBookingIdempotencyTests.cs)
-- [BookingExpirationServiceTests.cs](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/tests/Application.FunctionalTests/Bookings/BookingExpirationServiceTests.cs)
-- [RateLimitingTests.cs](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/tests/Application.FunctionalTests/RateLimiting/RateLimitingTests.cs)
-- [BookingExpirationRecurringJobSetupServiceTests.cs](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/tests/Application.UnitTests/Bookings/Jobs/BookingExpirationRecurringJobSetupServiceTests.cs)
-- [GetAvailableHotelsQueryHandlerCacheTests.cs](/C:/Users/HP/OneDrive/Documents/JG/HotelBookingPlatform/tests/Application.UnitTests/Hotels/Queries/GetAvailableHotelsQueryHandlerCacheTests.cs)
+- [CreateBookingConcurrencyTests.cs](tests/Application.FunctionalTests/Bookings/CreateBookingConcurrencyTests.cs)
+- [CreateBookingIdempotencyTests.cs](tests/Application.FunctionalTests/Bookings/CreateBookingIdempotencyTests.cs)
+- [BookingExpirationServiceTests.cs](tests/Application.FunctionalTests/Bookings/BookingExpirationServiceTests.cs)
+- [RateLimitingTests.cs](tests/Application.FunctionalTests/RateLimiting/RateLimitingTests.cs)
+- [BookingExpirationRecurringJobSetupServiceTests.cs](tests/Application.UnitTests/Bookings/Jobs/BookingExpirationRecurringJobSetupServiceTests.cs)
+- [GetAvailableHotelsQueryHandlerCacheTests.cs](tests/Application.UnitTests/Hotels/Queries/GetAvailableHotelsQueryHandlerCacheTests.cs)
+- [BookingTests.cs](tests/Domain.UnitTests/Bookings/BookingTests.cs)
 
 ## Datos de demo
 
-Credenciales del seed:
+Credenciales creadas por el seed automatico:
 
-- Admin
-  - email: `admin@hotelbooking.local`
-  - password: `Admin123!`
-- Cliente
-  - email: `cliente@hotelbooking.local`
-  - password: `Guest123!`
+- Admin: `admin@hotelbooking.local` / `Admin123!`
+- Cliente: `cliente@hotelbooking.local` / `Guest123!`
 
-## Próximos pasos naturales
+Datos sembrados:
 
-- implementar `Outbox pattern`
-- separar con más claridad la superficie administrativa en una capa/API y frontend diferenciados del portal de cliente
-- ampliar auditoría administrativa si se requiere trazabilidad más amplia
-- persistir logs en una plataforma de observabilidad para monitoreo y búsqueda, por ejemplo `Elasticsearch`
-- hacer invalidación de cache más granular por hotel y rango
-- endurecer seguridad del dashboard de `Hangfire` para producción
+- 2 hoteles
+- 3 room types por hotel
+- Inventario por 30 dias
+- 5 reservas de ejemplo
 
-## Diagrama SQL de entidades
+Uso sugerido para revision:
 
-El siguiente diagrama resume el modelo relacional principal usado por la solución. Está enfocado en las entidades de negocio y tablas transversales más relevantes.
+1. Iniciar sesion como cliente y crear una reserva.
+2. Confirmar o cancelar la reserva creada.
+3. Iniciar sesion como admin y revisar mantenimiento de hoteles o auditoria.
+
+## Limitaciones conocidas
+
+- `Payment` existe como entidad, pero no se priorizo un flujo completo de pagos
+- No se implemento `Outbox pattern`
+- El dashboard de Hangfire queda accesible en `Development` para facilitar revision local; para produccion debe endurecerse
+
+## Diagrama relacional
 
 ```mermaid
 erDiagram

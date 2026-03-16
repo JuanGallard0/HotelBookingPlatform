@@ -38,6 +38,7 @@ builder.Services.AddHangfireServer(options =>
 builder.Services.AddHostedService<BookingExpirationRecurringJobSetupService>();
 
 var app = builder.Build();
+var allowRemoteDashboardAccess = app.Configuration.GetValue("Hangfire:AllowRemoteDashboardAccess", app.Environment.IsDevelopment());
 
 if (app.Environment.IsDevelopment())
 {
@@ -50,7 +51,7 @@ if (app.Environment.IsDevelopment())
 app.UseSerilogRequestLogging();
 app.UseHangfireDashboard("/hangfire", new DashboardOptions
 {
-    Authorization = [new LocalOnlyDashboardFilter()]
+    Authorization = [new DashboardAccessFilter(allowRemoteDashboardAccess)]
 });
 
 app.MapGet("/", () => Results.Redirect("/hangfire"));
@@ -60,11 +61,16 @@ app.Run();
 
 public partial class Program;
 
-// Only allow requests from localhost to access the Hangfire dashboard.
-sealed class LocalOnlyDashboardFilter : IDashboardAuthorizationFilter
+// Allow host access in development/docker while keeping production locked down by default.
+sealed class DashboardAccessFilter(bool allowRemoteAccess) : IDashboardAuthorizationFilter
 {
     public bool Authorize(DashboardContext context)
     {
+        if (allowRemoteAccess)
+        {
+            return true;
+        }
+
         var httpContext = context.GetHttpContext();
         var remote = httpContext.Connection.RemoteIpAddress;
         return remote is not null && (
